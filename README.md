@@ -1,48 +1,70 @@
-````markdown
-# 📊 GAP — Sistema de Gestão Financeira
+# 📊 GAP — Sistema de Gestão Financeira  
+**Gerencie, acompanhe e entenda sua vida financeira de forma simples e eficiente.**
 
 ![Status](https://img.shields.io/badge/STATUS-EM_DESENVOLVIMENTO-orange?style=for-the-badge)
-![License](https://img.shields.io/github/license/gusta-xis/gap?style=for-the-badge&color=blue)
-
-> 🚧 **Projeto em Desenvolvimento (Work In Progress)**
->
-> Este sistema está atualmente em fase ativa de construção. Estruturas de banco de dados, API e interfaces estão sujeitas a alterações constantes.
-
-O **GAP** é um sistema web de gestão financeira projetado para ajudar usuários a organizar gastos, visualizar relatórios e acompanhar a saúde financeira de forma simples e intuitiva.
+![Tecnologia](https://img.shields.io/badge/NODE.JS-Backend-green?style=for-the-badge)
+![Banco](https://img.shields.io/badge/MySQL-Database-blue?style=for-the-badge)
+![Licença](https://img.shields.io/badge/LICENSE-MIT-blue?style=for-the-badge)
 
 ---
 
-## 📸 Screenshots
-*(Em breve: Adicione aqui GIFs ou imagens do sistema funcionando)*
+## 📌 Sobre o Projeto
+
+O **GAP** (Gestão de Acompanhamento Pessoal) é um sistema web criado para auxiliar usuários no **controle financeiro**, permitindo registrar transações, visualizar relatórios, acompanhar gastos por categoria e obter insights sobre sua saúde financeira.
+
+O projeto está sendo desenvolvido com o objetivo de:
+
+✔ Melhorar o controle financeiro diário  
+✔ Facilitar a visualização de gastos  
+✔ Automatizar cálculos e análises  
+✔ Criar um painel intuitivo e funcional  
 
 ---
 
-## 🛠️ Tecnologias Utilizadas
+## 🎯 Objetivo Geral
 
-### Front-end
-![HTML5](https://img.shields.io/badge/HTML5-E34F26?style=for-the-badge&logo=html5&logoColor=white)
-![CSS3](https://img.shields.io/badge/CSS3-1572B6?style=for-the-badge&logo=css3&logoColor=white)
-![JavaScript](https://img.shields.io/badge/JavaScript-F7DF1E?style=for-the-badge&logo=javascript&logoColor=black)
+Construir um sistema completo de controle financeiro, com:
 
-### Back-end
-![Node.js](https://img.shields.io/badge/Node.js-43853D?style=for-the-badge&logo=node.js&logoColor=white)
-![Express.js](https://img.shields.io/badge/Express.js-404D59?style=for-the-badge)
-![MySQL](https://img.shields.io/badge/MySQL-005C84?style=for-the-badge&logo=mysql&logoColor=white)
-
-### Ferramentas
-![VS Code](https://img.shields.io/badge/VS_Code-0078D4?style=for-the-badge&logo=visual%20studio%20code&logoColor=white)
-![Git](https://img.shields.io/badge/Git-F05032?style=for-the-badge&logo=git&logoColor=white)
+- Dashboard interativo  
+- Cadastro de receitas e despesas  
+- Sistema de categorias  
+- Histórico e relatórios  
+- API organizada em MVC  
+- Persistência em banco MySQL  
+- Interface web responsiva  
 
 ---
 
-## ✨ Funcionalidades Planejadas
+## 🌐 Público-Alvo
 
-- [ ] 📥 Cadastro de transações (Entrada/Saída)
-- [ ] 📊 Dashboard financeiro com gráficos
-- [ ] 🗂️ Classificação por categorias
-- [ ] 🔍 Filtro e busca de movimentações
-- [ ] 👤 Autenticação de usuário
-- [ ] 💾 Persistência de dados (MySQL)
+Este projeto foi pensado para:
+
+- Usuários que desejam organizar suas finanças  
+- Pequenos empreendedores  
+- Estudantes que querem aprender Node.js na prática  
+- Pessoas buscando controle e clareza financeira  
+
+---
+
+## 🛠 Tecnologias Utilizadas
+
+### **Frontend**
+- HTML5  
+- CSS3  
+- JavaScript  
+
+### **Backend**
+- Node.js  
+- Express.js  
+- MySQL / MySQL2  
+- Dotenv  
+- Nodemon  
+
+### **Ferramentas**
+- Visual Studio Code  
+- Git & GitHub  
+- Insomnia / Postman  
+- MySQL Workbench  
 
 ---
 
@@ -50,90 +72,130 @@ O **GAP** é um sistema web de gestão financeira projetado para ajudar usuário
 
 ```bash
 /Gap
- ├── docs/                # Documentação e scripts SQL
- ├── public/              # Arquivos estáticos (CSS, JS, Imagens)
- ├── src/                 # Lógica da aplicação (Controllers, Models)
- ├── server.js            # Ponto de entrada do servidor
- ├── .env                 # Variáveis de ambiente (Configuração do Banco)
- └── package.json         # Dependências do projeto
-````
+ ├── public/               
+ │    ├── css/
+ │    ├── js/
+ │    └── assets/
+ │
+ ├── src/
+ │    ├── controllers/     # Regras de negócio
+ │    ├── routes/          # Rotas da API
+ │    ├── services/        # Funções de acesso ao banco
+ │    ├── database/        # Conexão MySQL
+ │    ├── middlewares/     # Validações e erros
+ │    └── api.js           # Agrupamento das rotas
+ │
+ ├── docs/                 # Scripts SQL e documentação extra
+ │
+ ├── server.js             # Inicialização do servidor
+ ├── .env                  # Variáveis de ambiente
+ ├── package.json          # Dependências
+ └── README.md             
+```
 
------
+---
 
-## 🚀 Como Rodar o Projeto Localmente
+## 🔌 Rotas da API (Endpoints)
 
-Siga os passos abaixo para configurar o ambiente de desenvolvimento:
+### **Usuários**
+| Método | Rota                 | Descrição |
+|-------|----------------------|-----------|
+| POST  | `/api/users/save`    | Salva novo usuário |
+| GET   | `/api/users/findAll` | Lista todos os usuários |
+| GET   | `/api/users/findById/:id` | Busca usuário pelo ID |
+| DELETE | `/api/users/deleteById/:id` | Remove um usuário |
+| PUT   | `/api/users/updateById/:id` | Atualização completa |
+| PATCH | `/api/users/updatePartial/:id` | Atualização parcial |
+| GET | `/api/users/findByEmail?email=` | Busca por email |
 
-### 1️⃣ Pré-requisitos
+---
 
-  * **Node.js** instalado na máquina.
-  * **MySQL** instalado e rodando.
-  * **Git** instalado.
+## 📊 Funcionalidades do Sistema
 
-### 2️⃣ Clonar e Instalar
+### ✔ Implementadas
+- API modular em MVC  
+- CRUD completo de usuários  
+- Conexão confiável com MySQL  
+- Rotas bem estruturadas  
 
+### 🚀 Em Desenvolvimento
+- Cadastro de transações financeiras  
+- Dashboard com gráficos  
+- Relatórios financeiros  
+- Login e autenticação JWT  
+- Telas completas do frontend  
+
+---
+
+## 🚀 Como Rodar o Projeto
+
+### 1️⃣ Clonar o repositório
 ```bash
-# Clone este repositório
-git clone [https://github.com/gusta-xis/gap.git](https://github.com/gusta-xis/gap.git)
-
-# Acesse a pasta do projeto
+git clone https://github.com/gusta-xis/gap.git
 cd gap
+```
 
-# Instale as dependências
+### 2️⃣ Instalar dependências
+```bash
 npm install
 ```
 
-### 3️⃣ Configurar Variáveis de Ambiente (.env)
-
-Por segurança, o arquivo de configuração não é enviado para o GitHub.
-Crie um arquivo chamado `.env` na raiz do projeto e configure suas credenciais:
-
+### 3️⃣ Criar o arquivo `.env`
 ```env
 PORT=3000
 DB_HOST=localhost
-DB_USER=seu_usuario_mysql
-DB_PASS=sua_senha_mysql
+DB_USER=root
+DB_PASS=sua_senha
 DB_NAME=gap_financeiro
 ```
 
-### 4️⃣ Banco de Dados
-
-Crie um banco de dados no MySQL com o nome definido no `.env` (ex: `gap_financeiro`) e execute o script SQL disponível na pasta `/docs` (se houver) para criar as tabelas.
-
-### 5️⃣ Executar o Servidor
-
+### 4️⃣ Iniciar o servidor
 ```bash
-# Para rodar em modo de desenvolvimento (com nodemon)
 npm run dev
-
-# Para rodar em produção
-npm start
 ```
 
-O servidor iniciará em: `http://localhost:3000`
+---
 
------
+## 🗄 Banco de Dados
+
+Crie o banco:
+
+```sql
+CREATE DATABASE gap_financeiro;
+```
+
+As tabelas serão adicionadas conforme o avanço do projeto.
+
+---
+
+## 🤝 Contribuições
+
+1. Fork  
+2. Crie uma branch  
+3. Commit  
+4. Pull request  
+
+Contribuições são bem-vindas!  
+
+---
 
 ## 👨‍💻 Autor
 
-\<table\>
-\<tr\>
-\<td align="center"\>
-\<a href="https://github.com/gusta-xis"\>
-\<img src="https://www.google.com/search?q=https://github.com/gusta-xis.png" width="100px;" alt="Foto de Luiz Gustavo"/\><br>
-\<sub\>
-\<b\>Luiz Gustavo\</b\>
-\</sub\>
-\</a\>
-\</td\>
-\</tr\>
-\</table\>
+<table>
+<tr>
+<td align="center">
+  <a href="https://github.com/gusta-xis">
+    <img src="https://github.com/gusta-xis.png" width="120px" style="border-radius: 50%;" alt="Avatar"/><br>
+    <sub><b>Luiz Gustavo</b></sub>
+  </a>
+</td>
+</tr>
+</table>
 
------
+---
 
 ## 📄 Licença
 
-Este projeto está sob a licença MIT. Veja o arquivo [LICENSE](https://www.google.com/search?q=LICENSE) para mais detalhes.
+Este projeto está sob a licença **MIT**.  
+Sinta-se livre para usar e modificar.
 
-```
-```
