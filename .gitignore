@@ -1,0 +1,27 @@
+# --- Dependências ---
+node_modules/
+package-lock.json # (Opcional: alguns preferem manter, outros ignorar. Se for trabalhar em equipe, é bom manter. Pode remover essa linha se quiser versionar)
+
+# --- Segurança & Ambiente (NUNCA ENVIE ISSO) ---
+.env
+.env.local
+.env.development
+.env.test
+.env.production
+
+# --- Logs ---
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# --- Arquivos de Sistema Operacional ---
+.DS_Store
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# --- IDE / Editores ---
+.vscode/
+.idea/
