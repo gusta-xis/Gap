@@ -4,7 +4,9 @@ module.exports = {
   create(req, res) {
     userService.create(req.body, (err, result) => {
       if (err) return res.status(500).json({ error: err.message });
-      res.status(201).json({ message: 'Usuário criado com sucesso', id: result.insertId });
+      req.passo('💾', `Salvo no Banco (ID: ${result.insertId || 'Múltiplos'})`);
+      
+      res.status(201).json({ message: 'Criado com sucesso', id: result.insertId });
     });
   },
 

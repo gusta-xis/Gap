@@ -13,7 +13,7 @@ module.exports = function (req, res, next) {
         if (err) {
             return res.status(403).json({ error: "Token inválido!" });
         }
-
+            req.passo('🔑', `Auth OK: Usuário ${decoded.id || 'Desconhecido'} liberado`);
         req.user = decoded;
         next();
     });
