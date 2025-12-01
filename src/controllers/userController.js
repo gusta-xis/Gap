@@ -1,50 +1,24 @@
 const userService = require('../services/userService');
 
 module.exports = {
+  login(req, res) {
+    if(req.passo) req.passo('🔑', 'Tentativa de Login');
+    userService.login(req.body.email, req.body.senha, (err, result) => {
+      if (err) return res.status(err.status).json({ error: err.message });
+      if(req.passo) req.passo('✅', 'Login Sucesso');
+      res.json(result);
+    });
+  },
   create(req, res) {
+    if(req.passo) req.passo('⚙️', 'Criando Usuário');
     userService.create(req.body, (err, result) => {
       if (err) return res.status(500).json({ error: err.message });
-      req.passo('💾', `Salvo no Banco (ID: ${result.insertId || 'Múltiplos'})`);
-      
-      res.status(201).json({ message: 'Criado com sucesso', id: result.insertId });
+      if(req.passo) req.passo('💾', 'Usuário Salvo');
+      res.status(201).json({ message: 'Criado', id: result.insertId });
     });
   },
-
-  findAll(req, res) {
-    userService.findAll((err, rows) => {
-      if (err) return res.status(500).json({ error: err.message });
-      res.status(200).json(rows);
-    });
-  },
-
-  findById(req, res) {
-    userService.findById(req.params.id, (err, row) => {
-      if (err) return res.status(500).json({ error: err.message });
-      if (!row) return res.status(404).json({ message: 'Usuário não encontrado' });
-      res.status(200).json(row);
-    });
-  },
-
-  findByEmail(req, res) {
-    // Pegando email via Query Param (?email=...)
-    userService.findByEmail(req.query.email, (err, row) => {
-      if (err) return res.status(500).json({ error: err.message });
-      if (!row) return res.status(404).json({ message: 'Usuário não encontrado' });
-      res.status(200).json(row);
-    });
-  },
-
-  update(req, res) {
-    userService.update(req.params.id, req.body, (err, result) => {
-      if (err) return res.status(500).json({ error: err.message });
-      res.status(200).json({ message: 'Dados atualizados com sucesso' });
-    });
-  },
-
-  delete(req, res) {
-    userService.delete(req.params.id, (err, result) => {
-      if (err) return res.status(500).json({ error: err.message });
-      res.status(200).json({ message: 'Usuário deletado com sucesso' });
-    });
-  }
+  findAll(req, res) { userService.findAll((err, r) => res.json(r)); },
+  findById(req, res) { userService.findById(req.params.id, (err, r) => res.json(r)); },
+  update(req, res) { userService.update(req.params.id, req.body, (err, r) => res.json(r)); },
+  delete(req, res) { userService.delete(req.params.id, (err, r) => res.json(r)); }
 };

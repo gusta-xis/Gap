@@ -1,33 +1,20 @@
 const userModel = require('../models/userModel');
+const jwt = require('jsonwebtoken');
+require('dotenv').config();
 
 module.exports = {
+  login: (email, senha, callback) => {
+    userModel.findByEmail(email, (err, user) => {
+      if (err) return callback({ status: 500, message: 'Erro banco' });
+      if (!user || user.senha !== senha) return callback({ status: 401, message: 'Credenciais inválidas' });
 
-  create(data, callback) {
-    // Regra de negócio: Verifica se é um cadastro em massa ou único
-    if (Array.isArray(data)) {
-      return userModel.createMany(data, callback);
-    }
-    userModel.create(data, callback);
+      const token = jwt.sign({ id: user.id, email: user.email }, process.env.JWT_SECRET, { expiresIn: '1h' });
+      callback(null, { token, user: { id: user.id, nome: user.nome, email: user.email } });
+    });
   },
-
-  findAll(callback) {
-    userModel.findAll(callback);
-  },
-
-  findById(id, callback) {
-    userModel.findById(id, callback);
-  },
-
-  findByEmail(email, callback) {
-    userModel.findByEmail(email, callback);
-  },
-
-  update(id, data, callback) {
-    // Aqui você poderia colocar regras, ex: verificar se o email mudou
-    userModel.update(id, data, callback);
-  },
-
-  delete(id, callback) {
-    userModel.remove(id, callback);
-  }
+  create: (data, cb) => Array.isArray(data) ? userModel.createMany(data, cb) : userModel.create(data, cb),
+  findAll: (cb) => userModel.findAll(cb),
+  findById: (id, cb) => userModel.findById(id, cb),
+  update: (id, data, cb) => userModel.update(id, data, cb),
+  delete: (id, cb) => userModel.remove(id, cb)
 };
