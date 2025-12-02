@@ -1,11 +1,12 @@
 const express = require('express');
 const router = express.Router();
 
-// Importa as rotas de usuário
 const userRoutes = require('./routes/userRoutes');
+const salarioRoutes = require('./routes/salarioRoutes');
+const fixoRoutes = require('./routes/fixoRoutes');
 
-// Define o prefixo '/users'. 
-// Isso faz com que as rotas fiquem: /api/users, /api/users/:id, etc.
 router.use('/users', userRoutes);
+router.use('/salarios', salarioRoutes);
+router.use('/gastos-fixos', fixoRoutes);
 
 module.exports = router;

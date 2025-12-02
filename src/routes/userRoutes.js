@@ -1,15 +1,17 @@
 const express = require('express');
 const router = express.Router();
 const userController = require('../controllers/userController');
+const { validateUser } = require('../middlewares/validatorsMiddleware');
+const authMiddleware = require('../middlewares/authMiddleware');
 
-// Rotas Base: /api/users (definido no api.js)
+// Rotas Públicas
+router.post('/login', userController.login);
+router.post('/', validateUser, userController.create);
 
-router.post('/', userController.create);           // Cria um usuario
-router.get('/', userController.findAll);           // Busca todos
-router.get('/search', userController.findByEmail); // Busca por email (?email=x)
-router.get('/:id', userController.findById);       // Busca por ID
-router.put('/:id', userController.update);         // Atualiza completo
-router.patch('/:id', userController.update);       // Atualiza parcial (mesma logica no seu SQL)
-router.delete('/:id', userController.delete);      // Deleta
+// Rotas Protegidas
+router.get('/', authMiddleware, userController.findAll);
+router.get('/:id', authMiddleware, userController.findById);
+router.put('/:id', authMiddleware, validateUser, userController.update);
+router.delete('/:id', authMiddleware, userController.delete);
 
 module.exports = router;
