@@ -183,12 +183,21 @@ Contribuições são bem-vindas!
 
 <table>
 <tr>
+
 <td align="center">
   <a href="https://github.com/gusta-xis">
-    <img src="https://github.com/gusta-xis.png" width="120px" style="border-radius: 50%;" alt="Avatar"/><br>
-    <sub><b>Luiz Gustavo</b></sub>
+    <img src="https://github.com/gusta-xis.png" width="120px" style="border-radius: 50%;" alt="Avatar"/><br/>
+    <strong>Luiz Gustavo</strong>
   </a>
 </td>
+
+<td align="center">
+  <a href="https://github.com/SunshasDev">
+    <img src="https://github.com/SunshasDev.png" width="120px" style="border-radius: 50%;" alt="Avatar"/><br/>
+    <strong>Luis Eduardo</strong>
+  </a>
+</td>
+
 </tr>
 </table>
 
