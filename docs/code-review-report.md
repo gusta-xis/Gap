@@ -117,5 +117,15 @@ Checklist rápido para revisão manual antes de merge
 - [ ] Adicionar `README.md` e `.env.example`.
 
 Se quiser, eu aplico automaticamente as mudanças da checklist (A — commit + PR), ou aplico e deixo pronto para você revisar localmente (B).
+ 
+Atualização: substituí o `README.md` pelo conteúdo que você forneceu (versão pública do GitHub). O `README.md` agora contém:
+
+- Descrição do projeto e objetivos
+- Tecnologias utilizadas e estrutura do projeto
+- Rotas de API listadas (ex.: endpoints de usuários)
+- Instruções de instalação e execução
+- Informação sobre banco de dados e contribuição
+
+Recomendo revisar o bloco de rotas no README e alinhá-lo com as rotas atuais do projeto (algumas rotas no README usam caminhos como `/api/users/save` enquanto no código atual as rotas estão montadas em `/api/users` com endpoints diferentes — verifique os nomes e ajuste para evitar confusão externa).
 
 Observação: os arquivos acima são os pontos centrais do repositório; se desejar posso gerar um `docs/overview.md` com checklist detalhado por arquivo (ex.: variáveis `.env` necessárias, endpoints, payloads esperados).
