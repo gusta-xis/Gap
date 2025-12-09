@@ -76,16 +76,18 @@ Nota rápida: alguns arquivos de configuração adicionais existem no repositór
 - `.hintrc` (htmlhint config)
 - `.gitattributes`
 
-Nota: durante a revisão também padronizei o tratamento de erros dos controllers do módulo `Gap-Finance`.
+Nota: durante a revisão padronizei o tratamento de erros dos controllers do módulo `Gap-Finance`.
 Os arquivos atualizados foram:
 - `src/Modules/Gap-Finance/controllers/salarioController.js`
 - `src/Modules/Gap-Finance/controllers/fixoController.js`
+- `src/Modules/Gap-Finance/controllers/variaveisController.js` (implementado durante a revisão)
 
-Ambos agora usam `src/utils/errorHandler.js` (`sendError`) para respostas de erro consistentes.
+Todos esses controllers agora usam `src/utils/errorHandler.js` (`sendError`) para lidar com erros de serviço.
 
-- `src/Modules/Gap-Finance/*`: módulos de `salario`, `fixo`, `variaveis` com `models`, `services`, `controllers` e `routes` — seguem padrão similar ao `Gap-Core`.
-
-Observação importante: `src/Modules/Gap-Finance/controllers/variaveisController.js` existe porém está vazio — precisa ser implementado ou removido.
+Observação sobre uso de `res.status(...)` no código atual:
+- Uso direto de `res.status(...)` permanece em respostas de sucesso (`200`, `201`) e em casos `404` (registro não encontrado) — isso é esperado e apropriado.
+- Middlewares de validação (`src/Modules/Gap-Finance/middlewares/validatorsMiddleware.js`) continuam retornando `res.status(400)` para erros de validação (correto).
+- Não foram encontradas ocorrências de `res.status(500).json({ error: err.message })` espalhadas após a normalização; as respostas de erro agora são centralizadas via `sendError` onde aplicável.
 
 - `public/login.html`: página de login e cadastro (front) que consome `POST /api/users/login` e `POST /api/users`.
 - `public/subtemas.html`: painel principal após login — chama `scripts/subtemas.js` e `styles/subtemas.css`.
@@ -103,11 +105,12 @@ Correções/ações extras realizadas durante a revisão
 - Gere i o PDF (`docs/code-review-report.pdf`) com `md-to-pdf`.
 - Adicionei `docs/*.pdf` ao `.gitignore` para evitar commitar relatórios gerados.
 
+
 Recomendações adicionais (correções que você pode querer aplicar agora)
 
-- Padronizar o uso de `sendError` em todos os controllers. Alguns controllers ainda usam `res.status(500).json({ error: err.message })` diretamente — é melhor centralizar por consistência.
-- Adicionar um arquivo `README.md` e um `.env.example` listando as variáveis necessárias: `JWT_SECRET`, `DB_HOST`, `DB_USER`, `DB_PASSWORD`, `DB_NAME`, `PORT`.
-- Rodar `npm audit fix` e revisar vulnerabilidades (o `npm install` mostrou 1 high severity durante a revisão).
+- Verificar e migrar quaisquer controllers menores restantes para `sendError` caso seja desejado (a maioria dos controllers principais já foi atualizada).
+- Adicionar exemplos de request/response no `README.md` (ex.: payload de login e resposta com `token` + `user`).
+- `npm audit` foi executado e `npm audit fix --force` foi aplicado durante a revisão; no momento não há vulnerabilidades reportadas.
 
 Checklist rápido para revisão manual antes de merge
 
