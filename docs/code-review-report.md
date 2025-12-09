@@ -13,7 +13,7 @@ Principais observações
 - Variáveis de ambiente: havia múltiplos `require('dotenv').config()` espalhados — agora centralizado no `server.js`.
 - Tratamento de erros: havia inconsistência entre controllers (alguns usavam `err.status`, outros forçavam 500). Adicionado `src/utils/errorHandler.js` e controllers refatorados para usar `sendError(res, err)`.
 - Estilo: mistura de aspas, ponto e vírgula e indentação. Adicionados `.editorconfig` e `.prettierrc` para padronizar formatação.
-- Dependências: `package.json` inclui pacotes possivelmente não usados (`react`, `tailwind` pacotes, `css`). Recomendo limpeza.
+- Dependências: `package.json` contém dependências focadas no backend (`express`, `mysql2`, `bcrypt`, `jsonwebtoken`, `dotenv`) e ferramentas de desenvolvimento (`prettier`, `md-to-pdf`, `nodemon`). Recomendo revisar periodicamente e remover pacotes não usados.
 - Segurança: token salvo em `localStorage` (risco XSS). Recomendo avaliar cookies HttpOnly para sessões.
 
 Correções aplicadas (detalhado)
@@ -35,29 +35,50 @@ Correções aplicadas (detalhado)
 
 Recomendações (próximos passos)
 
+- Rodar ESLint + Prettier e formatar todo o projeto. (Já há `prettier` em devDependencies e scripts `format`/`format:check`).
+- Revisar o `package.json` e remover dependências não usadas quando identificadas; preferir manter devDependencies apenas para tarefas de desenvolvimento (format, report, dev server).
+- Considerar migrar para `async/await` nas camadas de service/controller para maior legibilidade.
+- Rever estratégia de armazenamento de JWT (mover para cookie HttpOnly quando possível).
+- Adicionar/confirmar `README.md` e `.env.example` com todas as variáveis necessárias (`JWT_SECRET`, DB credentials, PORT).
+
+**Padrão MVC (breve explicação)**
+
+- MVC (Model-View-Controller) é o padrão arquitetural usado no backend do GAP:
+	- **Models**: camada de acesso a dados / queries SQL (em `src/Modules/*/models`).
+	- **Views**: no contexto deste projeto o frontend estático em `public/` (HTML/CSS/JS) — páginas servidas como arquivos estáticos.
+	- **Controllers**: recebem requisições HTTP, validam/encaminham para os serviços e retornam respostas (`src/Modules/*/controllers`).
+	- **Services**: encapsulam regras de negócio e interações com os modelos/DB (`src/Modules/*/services`).
+
+Esta separação mantém responsabilidades claras: rotas apenas mapeiam endpoints (`src/api.js` / `routes`), controllers orquestram, services executam lógica, models fazem queries.
+
 - Rodar ESLint + Prettier e formatar todo o projeto. Sugestão: adicionar `prettier` como devDependency e script `npm run format`.
-- Remover dependências não usadas no `package.json` (ex.: `react`, `tailwind` pacote local, `css`) e rodar `npm prune`.
+- Revisar o `package.json` e remover dependências não usadas quando identificadas; preferir manter devDependencies apenas para tarefas de desenvolvimento (format, report, dev server).
 - Considerar migrar para `async/await` nas camadas de service/controller para maior legibilidade.
 - Rever estratégia de armazenamento de JWT (mover para cookie HttpOnly quando possível).
 - Adicionar `README.md` com variáveis de ambiente necessárias (`JWT_SECRET`, DB credentials) e instruções de desenvolvimento.
 
 Como gerar o PDF deste relatório
 
-No seu ambiente Windows (cmd.exe), instale `pandoc` (https://pandoc.org/) ou use o Chrome para imprimir o markdown como PDF.
+No seu ambiente Windows (cmd.exe), você pode gerar o PDF usando o conversor já configurado no projeto (`md-to-pdf`), sem precisar instalar o `pandoc`.
 
-Com `pandoc` instalado:
+Com o script configurado no `package.json`, execute:
 
 ```
-pandoc docs\code-review-report.md -o docs\code-review-report.pdf
+npm run report:pdf
 ```
 
-Ou abra `docs\code-review-report.md` em um editor que suporte exportar para PDF (VS Code, Typora) e exporte.
+Isso irá gerar automaticamente o arquivo PDF:
+
+```
+docs\code-review-report.pdf
+```
+
+Ou abra `docs\code-review-report.md` em um editor que suporte exportar para PDF (VS Code, Typora) e exporte manualmente.
 
 **Mapa de arquivos (descrição por arquivo/página)**
 
 - `server.js`: entrada da aplicação Express — carrega `dotenv`, configura middlewares (`express.json`, logger), serve a raiz `/` (login), rota `/subtemas`, arquivos estáticos (`public`) e monta as rotas da API em `/api`.
-- `package.json`: dependências e scripts (`dev`, `start`). Removi dependências não usadas e adicionei `prettier` como devDependency durante a revisão.
-- `package.json`: dependências e scripts (`dev`, `start`). Removi dependências não usadas e adicionei `prettier` e `md-to-pdf` como devDependencies durante a revisão; adicionei scripts `format`, `format:check` e `report:pdf`.
+`package.json`: dependências e scripts (`dev`, `start`). Durante a revisão confirmei que há scripts `format`, `format:check` e `report:pdf` e que `prettier` e `md-to-pdf` constam em devDependencies.
 - `src/api.js`: agrega rotas de módulos (`/users`, `/salarios`, `/gastos-fixos`).
 - `src/config/db.js`: configura conexão MySQL (`mysql2`).
 - `src/middlewares/logger.js`: middleware de logging que adiciona `req.passo` para passos de log e tempo de execução.
