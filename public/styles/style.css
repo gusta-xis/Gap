@@ -1,0 +1,227 @@
+/* RESET E PADRÕES */
+:root{
+    --accent: #9c4c19;
+    --accent-600: #8b4317;
+    --muted: #d1d5db;
+    --bg: #f0f2f5;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; font-family: "Manrope", sans-serif; }
+body { width: 100%; height: 100vh; display: flex; overflow: hidden; background: var(--bg); }
+
+/* =========================================
+   ESTRUTURA DA ANIMAÇÃO (O MÁGICO)
+========================================= */
+
+/* Container principal que segura tudo */
+.main-container {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    overflow: hidden; /* Esconde o que estiver fora da tela */
+    perspective: 1200px; /* suaviza camadas 3D sutis */
+}
+
+/* Decorative animated blobs (performáticos: usam transform/opacity) */
+.main-container::before,
+.main-container::after{
+    content: '';
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(36px);
+    opacity: 0.28;
+    will-change: transform, opacity;
+    pointer-events: none;
+}
+.main-container::before{
+    width: 520px; height: 520px; left: -160px; top: -120px;
+    background: radial-gradient(circle at 30% 30%, rgba(156,76,25,0.95), rgba(156,76,25,0.45) 40%, transparent 60%);
+    transform: translate3d(0,0,0);
+    animation: floatBlobA 8s ease-in-out infinite;
+}
+.main-container::after{
+    width: 420px; height: 420px; right: -120px; bottom: -100px;
+    background: radial-gradient(circle at 70% 70%, rgba(86,120,140,0.18), rgba(86,120,140,0.06) 40%, transparent 60%);
+    transform: translate3d(0,0,0);
+    animation: floatBlobB 10s ease-in-out infinite;
+}
+
+@keyframes floatBlobA{
+    0%{ transform: translate3d(0,0,0) scale(1); opacity:0.28 }
+    50%{ transform: translate3d(18px,14px,0) scale(1.03); opacity:0.36 }
+    100%{ transform: translate3d(0,0,0) scale(1); opacity:0.28 }
+}
+@keyframes floatBlobB{
+    0%{ transform: translate3d(0,0,0) scale(1); opacity:0.18 }
+    50%{ transform: translate3d(-14px,-8px,0) scale(1.02); opacity:0.22 }
+    100%{ transform: translate3d(0,0,0) scale(1); opacity:0.18 }
+}
+
+/* O container de cada visualização (Login e Cadastro) */
+.view-container {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    /* Transição usando transform/opacity para performance */
+    transition: transform 0.8s cubic-bezier(.2,.9,.25,1), opacity 0.6s ease;
+    backface-visibility: hidden;
+}
+
+/* --- ESTADO INICIAL (Mostrando Login) --- */
+
+/* Login está na posição 0 (visível) */
+.login-view {
+    transform: translateX(0) scale(1);
+    opacity: 1;
+    z-index: 2; /* Fica por cima durante a transição */
+}
+
+/* Cadastro está 100% para a direita (escondido) */
+.signup-view {
+    transform: translateX(100%) scale(0.98);
+    opacity: 0;
+    z-index: 1;
+}
+
+/* --- ESTADO "MODO CADASTRO" (Ativado pelo JS) --- */
+/* Quando a classe .sign-up-mode é adicionada ao main-container: */
+
+/* Login vai para -100% (esquerda, escondido) */
+.main-container.sign-up-mode .login-view {
+    transform: translateX(-100%) scale(0.98);
+    opacity: 0;
+    filter: none;
+}
+
+/* Cadastro vem para 0 (centro, visível) */
+.main-container.sign-up-mode .signup-view {
+    transform: translateX(0) scale(1);
+    opacity: 1;
+    z-index: 3;
+    box-shadow: 0 20px 40px rgba(12,12,12,0.08);
+}
+
+/* Small shine animation when switching modes */
+.main-container.sign-up-mode .form-wrapper,
+.main-container .form-wrapper{
+    transition: transform 0.6s cubic-bezier(.2,.9,.25,1), box-shadow 0.4s ease;
+}
+.main-container.sign-up-mode .form-wrapper{ transform: translateZ(0) translateY(-4px); }
+
+
+/* =========================================
+   ESTILOS GERAIS DAS SEÇÕES (Baseado nos seus códigos anteriores)
+========================================= */
+
+/* Lados com conteúdo flexível */
+.left-banner, .right-form, .left-section, .right-section {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 3rem;
+    text-align: center;
+}
+
+/* Cores de Fundo */
+.light-bg { background: #EFF4F4; color: #1a1a1a; }
+.white-bg { background: #ffffff; color: #333; text-align: left; align-items: flex-start; }
+.dark-bg { background: #9c4c19; color: white; }
+
+
+/* Estilos de Conteúdo (Formulários e Banners) */
+.banner-content, .form-wrapper { max-width: 420px; width: 100%; margin: 0 auto; }
+
+.logo-big { width: 140px; margin-bottom: 2rem; transform-origin: center; animation: logoPop 700ms ease both; }
+.logo-small { width: 90px; display: block; margin: 0 auto 1.8rem auto; }
+
+@keyframes logoPop{
+    0%{ transform: scale(.9) translateY(-6px); opacity: 0 }
+    60%{ transform: scale(1.05) translateY(2px); opacity: 1 }
+    100%{ transform: scale(1) translateY(0); opacity: 1 }
+}
+
+.banner-title, .right-title, .title, .form-title {
+    font-size: 32px; font-weight: 700; margin-bottom: 1rem;
+}
+.banner-desc, .right-desc, .subtitle, .form-subtitle {
+    font-size: 15px; margin-bottom: 2rem; opacity: 0.9; line-height: 1.5;
+}
+
+.illustration { width: 100%; max-width: 300px; margin-top: 2rem; border-radius: 8px; transform-origin: center; will-change: transform; animation: floatIllustration 6s ease-in-out infinite; }
+
+@keyframes floatIllustration{
+    0%{ transform: translateY(0) rotate(0deg) }
+    50%{ transform: translateY(-10px) rotate(-0.6deg) }
+    100%{ transform: translateY(0) rotate(0deg) }
+}
+
+/* Inputs */
+.input-group { margin-bottom: 1.2rem; }
+label { font-size: 13px; font-weight: 600; margin-bottom: 0.4rem; display: block; }
+.input-wrapper {
+    background: #fff; border: 1px solid var(--muted); padding: 12px; border-radius: 8px;
+    display: flex; align-items: center; gap: 10px; transition: box-shadow 0.18s ease, border-color 0.18s ease, transform 0.18s ease;
+}
+.input-wrapper:focus-within { border-color: var(--accent); box-shadow: 0 6px 18px rgba(156,76,25,0.06); transform: translateY(-2px); }
+.icon { width: 22px; height: 22px; stroke: #9ca3af; fill: none; flex-shrink: 0; }
+.input-wrapper input { border: none; outline: none; width: 100%; font-size: 14px; background: transparent; }
+
+/* Botões e Links */
+.toggle-password { background: transparent; border: none; cursor: pointer; display: flex; padding: 2px; }
+.eye-icon { width: 20px; height: 20px; stroke: #9ca3af; fill: none; }
+.forgot-pass { text-align: right; margin-top: -10px; margin-bottom: 20px; font-size: 13px; }
+.forgot-pass a { color: #64748b; text-decoration: underline; }
+
+.btn-submit {
+    width: 100%; padding: 14px; background: var(--accent); border: none; color: white;
+    font-size: 15px; font-weight: 600; border-radius: 10px; cursor: pointer;
+    /* much slower, smoother transitions for transform, shadow and background */
+    transition: transform 1200ms cubic-bezier(.22,.9,.35,1), box-shadow 1200ms cubic-bezier(.22,.9,.35,1), background 800ms ease;
+    /* default subtle drop shadow */
+    box-shadow: 0 8px 20px rgba(12,12,12,0.06);
+    will-change: transform, box-shadow;
+}
+.btn-submit:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 32px 64px rgba(12,12,12,0.16);
+    background: var(--accent-600);
+}
+.btn-submit:active {
+    transform: translateY(-3px) scale(.997);
+    box-shadow: 0 14px 34px rgba(12,12,12,0.11);
+}
+.btn-submit:focus {
+    outline: none;
+    box-shadow: 0 32px 64px rgba(12,12,12,0.16), 0 0 0 6px rgba(156,76,25,0.07);
+}
+
+/* Estado visual enquanto o botão está desabilitado (não deve reagir ao hover) */
+.btn-submit:disabled {
+    cursor: default;
+    opacity: 0.86;
+    transform: translateY(0) !important;
+    box-shadow: 0 8px 20px rgba(12,12,12,0.04) !important;
+}
+
+.switch-text { text-align: center; margin-top: 20px; font-size: 14px; color: #666; }
+.switch-text a { color: #9c4c19; text-decoration: none; font-weight: 700; }
+
+/* Responsividade para a Animação */
+@media (max-width: 900px) {
+    body { height: auto; overflow-x: hidden; overflow-y: auto;}
+    .main-container { height: auto; min-height: 100vh; }
+    /* No mobile, em vez de lado a lado, eles ficam um sobre o outro */
+    .view-container { flex-direction: column; position: relative; height: auto; }
+    
+    /* Ajuste da animação no mobile (opcional, pode ficar estranho deslizar verticalmente) */
+    /* Você pode simplificar e apenas esconder/mostrar com display:none/block no mobile */
+    .login-view { flex-direction: column-reverse; } /* Form em cima do banner no login */
+    
+    .light-bg, .white-bg, .dark-bg { padding: 40px 20px; }
+    .illustration { max-width: 200px; }
+}

@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const salarioController = require('../controllers/salarioController');
 const { validateSalario } = require('../middlewares/validatorsMiddleware');
-const authMiddleware = require('../middlewares/authMiddleware');
+const authMiddleware = require('../../../middlewares/authMiddleware.js');
 
 // Rotas Base: /api/users (definido no api.js)
 router.post('/', authMiddleware, validateSalario, salarioController.create);           // Cria um usuario

@@ -1,19 +1,5 @@
 module.exports = {
-    // 1. Validação de USUÁRIO
-    validateUser: (req, res, next) => {
-        const { nome, email, senha } = req.body;
-        
-        // Se for a rota de LOGIN, a gente ignora a validação de nome
-        if (req.path === '/login') return next();
 
-        if (!nome || !email || !senha) {
-            if (req.passo) req.passo('⚠️', 'Validação User falhou: Dados incompletos');
-            return res.status(400).json({ error: "Campos nome, email e senha são obrigatórios." });
-        }
-        
-        if (req.passo) req.passo('📝', 'Validação User: OK');
-        next();
-    },
 
     // 2. Validação de SALÁRIO
     validateSalario: (req, res, next) => {
@@ -62,6 +48,36 @@ module.exports = {
 
         if (req.passo) req.passo('📝', 'Validação Gasto Fixo: OK');
         next();
-    }
+    },
+
+    // NOVA: Validação de Gasto Variável
+    validateGastoVariavel: (req, res, next) => {
+        const { categoria_id, nome, valor, data_gasto } = req.body;
+
+        // 1. Checa se tudo veio no JSON
+        if (!categoria_id || !nome || !valor || !data_gasto) {
+            if (req.passo) req.passo('⚠️', 'Validação Gasto Var falhou: Campos faltando');
+            return res.status(400).json({ 
+                error: "Todos os campos são obrigatórios: categoria_id, nome, valor e data_gasto." 
+            });
+        }
+
+        // 2. O valor tem que ser dinheiro de verdade (> 0)
+        if (parseFloat(valor) <= 0) {
+            if (req.passo) req.passo('⚠️', 'Validação Gasto Var falhou: Valor incorreto');
+            return res.status(400).json({ error: "O valor do gasto deve ser maior que zero." });
+        }
+
+        // 3. Validação de Formato de Data (AAAA-MM-DD)
+        // Isso evita que o usuário mande "05/10/2025" que quebra o banco
+        const regexData = /^\d{4}-\d{2}-\d{2}$/;
+        if (!regexData.test(data_gasto)) {
+            if (req.passo) req.passo('⚠️', 'Validação Gasto Var falhou: Data inválida');
+            return res.status(400).json({ error: "Data inválida. Use o formato AAAA-MM-DD (ex: 2025-12-31)." });
+        }
+
+        if (req.passo) req.passo('📝', 'Validação Gasto Variável: OK');
+        next();
+    },
 
 }; 

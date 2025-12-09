@@ -1,0 +1,25 @@
+/* Padrão de Grid no fundo */
+.bg-grid-pattern {
+    background-image: radial-gradient(circle at 1px 1px, rgba(160, 67, 10, 0.05) 1px, transparent 0);
+    background-size: 24px 24px;
+}
+
+.dark .bg-grid-pattern {
+    background-image: radial-gradient(circle at 1px 1px, rgba(223, 232, 230, 0.05) 1px, transparent 0);
+}
+
+/* Fonte Global */
+.font-display {
+    font-family: Manrope, "Noto Sans", sans-serif;
+}
+
+/* Ajustes finos do Avatar */
+.user-avatar {
+    /* Mantém o comportamento de background-image quando definido via JS */
+    background-size: cover; 
+    background-position: center;
+}
+
+.user-avatar-wrapper .absolute {
+    pointer-events: none;
+}
