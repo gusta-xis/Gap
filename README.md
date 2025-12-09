@@ -11,7 +11,7 @@
 
 ## 📌 Sobre o Projeto
 
-O **GAP** (Gestão de Acompanhamento Pessoal) é um sistema web criado para auxiliar usuários no **controle financeiro**, permitindo registrar transações, visualizar relatórios, acompanhar gastos por categoria e obter insights sobre sua saúde financeira.
+O **GAP** (Gestão e Administração Pessoal) é um sistema web criado para auxiliar usuários no **controle financeiro**, permitindo registrar transações, visualizar relatórios, acompanhar gastos por categoria e obter insights sobre sua saúde financeira.
 
 O projeto está sendo desenvolvido com o objetivo de:
 
@@ -40,7 +40,7 @@ Construir um sistema completo de controle financeiro, com:
 
 Este projeto foi pensado para:
 
-- Usuários que desejam organizar suas finanças
+- Usuários que desejam gerenciar sua vida pessoal e financeira
 - Pequenos empreendedores
 - Estudantes que querem aprender Node.js na prática
 - Pessoas buscando controle e clareza financeira
