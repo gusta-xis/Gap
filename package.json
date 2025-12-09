@@ -25,6 +25,7 @@
   "devDependencies": {
     "md-to-pdf": "^5.2.5",
     "nodemon": "^3.1.11",
-    "prettier": "^3.7.4"
+    "prettier": "^3.7.4",
+    "puppeteer": "^24.32.1"
   }
 }
