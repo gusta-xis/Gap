@@ -25,3 +25,6 @@ Desktop.ini
 # --- IDE / Editores ---
 .vscode/
 .idea/
+
+# Ignore generated reports and PDFs
+docs/*.pdf

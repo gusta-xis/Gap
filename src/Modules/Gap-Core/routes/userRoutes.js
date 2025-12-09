@@ -1,8 +1,8 @@
 const express = require('express');
 const router = express.Router();
 const userController = require('../controllers/userController');
-const { validateUser } = require('../middlewares/validatorsMiddleware');
-const authMiddleware = require('../middlewares/authMiddleware');
+const { validateUser } = require('../middlewares/userMiddleware');
+const authMiddleware = require('../../../middlewares/authMiddleware');
 
 // Rotas Públicas
 router.post('/login', userController.login);

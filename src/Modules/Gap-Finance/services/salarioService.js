@@ -24,5 +24,5 @@ module.exports = {
 
   delete: (id, callback) => {
     salarioModel.remove(id, callback);
-  }
+  },
 };

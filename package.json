@@ -5,6 +5,9 @@
   "scripts": {
     "dev": "nodemon server.js",
     "start": "node server.js",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "report:pdf": "md-to-pdf docs/code-review-report.md",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
@@ -20,6 +23,8 @@
     "mysql2": "^3.9.7"
   },
   "devDependencies": {
-    "nodemon": "^3.1.11"
+    "md-to-pdf": "^5.2.5",
+    "nodemon": "^3.1.11",
+    "prettier": "^3.7.4"
   }
 }
