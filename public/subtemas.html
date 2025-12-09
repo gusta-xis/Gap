@@ -1,118 +1,220 @@
-<!DOCTYPE html>
+<!doctype html>
 <html class="light" lang="pt-br">
-<head>
-    <meta charset="utf-8"/>
-    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+  <head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
     <title>Gap - Menu de Subsistemas</title>
-    
+
     <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
-    <link href="https://fonts.googleapis.com" rel="preconnect"/>
-    <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
-    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&display=swap" rel="stylesheet"/>
-    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
-    
-    <link rel="stylesheet" href="styles/subtemas.css">
-</head>
-<body class="font-display">
-    <div class="relative flex min-h-screen w-full flex-col overflow-hidden bg-background-light dark:bg-background-dark text-text-light dark:text-text-dark group/design-root">
-        
-        <div class="fixed inset-0 pointer-events-none z-0">
-            <div class="absolute inset-0 bg-grid-pattern opacity-60"></div>
-            <div class="absolute -top-[20%] -right-[10%] w-[600px] h-[600px] rounded-full bg-primary/5 blur-[100px] animate-pulse"></div>
-            <div class="absolute -bottom-[20%] -left-[10%] w-[500px] h-[500px] rounded-full bg-card-light/50 dark:bg-card-light/5 blur-[80px]"></div>
-        </div>
+    <link href="https://fonts.googleapis.com" rel="preconnect" />
+    <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
+      rel="stylesheet"
+    />
 
-        <div class="relative z-10 flex h-full grow flex-col">
-            <header class="flex items-center justify-between whitespace-nowrap px-6 py-4 lg:px-12 backdrop-blur-md border-b border-text-light/5 sticky top-0 z-50">
-                <div class="flex items-center gap-3 transition-transform hover:scale-105 duration-300 cursor-pointer">
-                    <img src="img/burnt-cooper.svg" alt="Gap" class="h-8 w-auto" />
+    <link rel="stylesheet" href="styles/subtemas.css" />
+  </head>
+  <body class="font-display">
+    <div
+      class="relative flex min-h-screen w-full flex-col overflow-hidden bg-background-light dark:bg-background-dark text-text-light dark:text-text-dark group/design-root"
+    >
+      <div class="fixed inset-0 pointer-events-none z-0">
+        <div class="absolute inset-0 bg-grid-pattern opacity-60"></div>
+        <div
+          class="absolute -top-[20%] -right-[10%] w-[600px] h-[600px] rounded-full bg-primary/5 blur-[100px] animate-pulse"
+        ></div>
+        <div
+          class="absolute -bottom-[20%] -left-[10%] w-[500px] h-[500px] rounded-full bg-card-light/50 dark:bg-card-light/5 blur-[80px]"
+        ></div>
+      </div>
+
+      <div class="relative z-10 flex h-full grow flex-col">
+        <header
+          class="flex items-center justify-between whitespace-nowrap px-6 py-4 lg:px-12 backdrop-blur-md border-b border-text-light/5 sticky top-0 z-50"
+        >
+          <div
+            class="flex items-center gap-3 transition-transform hover:scale-105 duration-300 cursor-pointer"
+          >
+            <img src="img/burnt-cooper.svg" alt="Gap" class="h-8 w-auto" />
+          </div>
+
+          <div class="flex items-center gap-6">
+            <span
+              id="userGreeting"
+              class="hidden sm:inline text-sm font-medium text-text-secondary-light dark:text-text-secondary-dark"
+              >Olá, Usuário</span
+            >
+            <div class="flex items-center gap-3">
+              <div class="relative group cursor-pointer user-avatar-wrapper">
+                <div
+                  class="absolute -inset-0.5 rounded-full bg-gradient-to-r from-primary to-card-light opacity-50 blur group-hover:opacity-100 transition duration-200"
+                ></div>
+                <div
+                  id="userAvatar"
+                  class="relative flex items-center justify-center bg-card-light dark:bg-card-dark aspect-square rounded-full size-10 border-2 border-background-light dark:border-background-dark overflow-hidden user-avatar"
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    class="h-6 w-6 text-text-secondary-light dark:text-text-secondary-dark opacity-50"
+                    viewBox="0 0 24 24"
+                    fill="currentColor"
+                  >
+                    <path
+                      fill-rule="evenodd"
+                      d="M7.5 6a4.5 4.5 0 119 0 4.5 4.5 0 01-9 0zM3.751 20.105a8.25 8.25 0 0116.498 0 .75.75 0 01-.437.695A18.683 18.683 0 0112 22.5c-2.786 0-5.433-.608-7.812-1.7a.75.75 0 01-.437-.695z"
+                      clip-rule="evenodd"
+                    />
+                  </svg>
                 </div>
-                
-                <div class="flex items-center gap-6">
-                    <span id="userGreeting" class="hidden sm:inline text-sm font-medium text-text-secondary-light dark:text-text-secondary-dark">Olá, Usuário</span>
-                    <div class="flex items-center gap-3">
-                        <div class="relative group cursor-pointer user-avatar-wrapper">
-                            <div class="absolute -inset-0.5 rounded-full bg-gradient-to-r from-primary to-card-light opacity-50 blur group-hover:opacity-100 transition duration-200"></div>
-                            <div id="userAvatar" class="relative flex items-center justify-center bg-card-light dark:bg-card-dark aspect-square rounded-full size-10 border-2 border-background-light dark:border-background-dark overflow-hidden user-avatar">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-text-secondary-light dark:text-text-secondary-dark opacity-50" viewBox="0 0 24 24" fill="currentColor">
-                                    <path fill-rule="evenodd" d="M7.5 6a4.5 4.5 0 119 0 4.5 4.5 0 01-9 0zM3.751 20.105a8.25 8.25 0 0116.498 0 .75.75 0 01-.437.695A18.683 18.683 0 0112 22.5c-2.786 0-5.433-.608-7.812-1.7a.75.75 0 01-.437-.695z" clip-rule="evenodd" />
-                                </svg>
-                            </div>
-                        </div>
+              </div>
 
-                        <button id="logoutBtn" class="flex items-center justify-center rounded-lg size-10 text-primary hover:bg-primary/10 transition-colors" aria-label="Sair" title="Sair">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
-                                <polyline points="16 17 21 12 16 7" />
-                                <line x1="21" y1="12" x2="9" y2="12" />
-                            </svg>
-                        </button>
+              <button
+                id="logoutBtn"
+                class="flex items-center justify-center rounded-lg size-10 text-primary hover:bg-primary/10 transition-colors"
+                aria-label="Sair"
+                title="Sair"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  class="h-6 w-6"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+                  <polyline points="16 17 21 12 16 7" />
+                  <line x1="21" y1="12" x2="9" y2="12" />
+                </svg>
+              </button>
+            </div>
+          </div>
+        </header>
+
+        <main
+          class="flex flex-1 flex-col items-center justify-center px-4 py-12 md:px-8"
+        >
+          <div class="w-full max-w-5xl flex flex-col items-center">
+            <div class="text-center mb-16 animate-fade-in-up">
+              <h1
+                class="text-text-light dark:text-text-dark text-4xl md:text-5xl lg:text-6xl font-extrabold tracking-tight leading-[1.1] mb-6"
+              >
+                O que vamos
+                <span
+                  class="text-transparent bg-clip-text bg-gradient-to-r from-primary to-orange-400"
+                  >gerenciar</span
+                >
+                hoje?
+              </h1>
+              <p
+                class="text-text-secondary-light dark:text-text-secondary-dark text-lg md:text-xl font-medium max-w-2xl mx-auto leading-relaxed"
+              >
+                Organize sua vida de forma simples e inteligente, mantendo tudo
+                alinhado em um só lugar.
+              </p>
+            </div>
+
+            <div
+              class="grid w-full grid-cols-1 md:grid-cols-2 gap-8 lg:gap-12 px-4 max-w-4xl"
+            >
+              <a
+                class="group relative flex flex-col rounded-3xl bg-white dark:bg-[#2A2420] p-1 transition-all duration-500 hover:-translate-y-2 hover:shadow-2xl hover:shadow-primary/20"
+                href="#"
+              >
+                <div
+                  class="absolute -inset-[1px] rounded-3xl bg-gradient-to-b from-primary/20 to-transparent opacity-0 group-hover:opacity-100 transition duration-500"
+                ></div>
+                <div
+                  class="relative flex flex-col h-full rounded-[22px] bg-white dark:bg-[#2A2420] border border-card-light dark:border-white/5 p-8 overflow-hidden"
+                >
+                  <div
+                    class="absolute -right-12 -top-12 size-40 rounded-full bg-card-light/30 dark:bg-card-light/5 blur-2xl transition-transform duration-500 group-hover:scale-150"
+                  ></div>
+                  <div class="mb-8 flex items-start justify-between">
+                    <div
+                      class="flex size-16 items-center justify-center rounded-2xl bg-primary/10 text-primary group-hover:bg-primary group-hover:text-white transition-colors duration-300"
+                    >
+                      <span class="material-symbols-outlined text-[32px]"
+                        >account_balance_wallet</span
+                      >
                     </div>
+                    <div
+                      class="flex size-10 items-center justify-center rounded-full border border-text-light/10 text-text-light/30 transition-colors group-hover:border-primary/30 group-hover:text-primary"
+                    >
+                      <span class="material-symbols-outlined text-xl"
+                        >arrow_outward</span
+                      >
+                    </div>
+                  </div>
+                  <div class="mt-auto">
+                    <h2
+                      class="text-2xl font-bold text-text-light dark:text-text-dark mb-3 group-hover:text-primary transition-colors"
+                    >
+                      Financeiro
+                    </h2>
+                    <p
+                      class="text-text-secondary-light dark:text-text-secondary-dark leading-relaxed"
+                    >
+                      Acompanhe salários, categorize despesas e visualize
+                      relatórios detalhados do seu patrimônio.
+                    </p>
+                  </div>
                 </div>
-            </header>
+              </a>
 
-            <main class="flex flex-1 flex-col items-center justify-center px-4 py-12 md:px-8">
-                <div class="w-full max-w-5xl flex flex-col items-center">
-                    <div class="text-center mb-16 animate-fade-in-up">
-                        <h1 class="text-text-light dark:text-text-dark text-4xl md:text-5xl lg:text-6xl font-extrabold tracking-tight leading-[1.1] mb-6">
-                            O que vamos <span class="text-transparent bg-clip-text bg-gradient-to-r from-primary to-orange-400">gerenciar</span> hoje?
-                        </h1>
-                        <p class="text-text-secondary-light dark:text-text-secondary-dark text-lg md:text-xl font-medium max-w-2xl mx-auto leading-relaxed">
-                            Organize sua vida de forma simples e inteligente, mantendo tudo alinhado em um só lugar.
-                        </p>
+              <div
+                class="relative group flex flex-col rounded-3xl p-1 cursor-default select-none"
+              >
+                <div
+                  class="absolute inset-0 rounded-3xl bg-white/40 dark:bg-white/5 backdrop-blur-sm border border-white/20 dark:border-white/5 shadow-sm"
+                ></div>
+                <div
+                  class="relative flex flex-col h-full rounded-[22px] p-8 z-10"
+                >
+                  <div class="absolute top-6 right-6">
+                    <span
+                      class="inline-flex items-center rounded-full bg-card-light dark:bg-white/10 px-3 py-1 text-xs font-bold uppercase tracking-wider text-text-secondary-light dark:text-text-secondary-dark shadow-sm"
+                    >
+                      Em Breve
+                    </span>
+                  </div>
+                  <div class="mb-8 flex items-start">
+                    <div
+                      class="flex size-16 items-center justify-center rounded-2xl bg-text-secondary-light/10 text-text-secondary-light dark:text-text-secondary-dark grayscale opacity-70"
+                    >
+                      <span class="material-symbols-outlined text-[32px]"
+                        >event_note</span
+                      >
                     </div>
-
-                    <div class="grid w-full grid-cols-1 md:grid-cols-2 gap-8 lg:gap-12 px-4 max-w-4xl">
-                        
-                        <a class="group relative flex flex-col rounded-3xl bg-white dark:bg-[#2A2420] p-1 transition-all duration-500 hover:-translate-y-2 hover:shadow-2xl hover:shadow-primary/20" href="#">
-                            <div class="absolute -inset-[1px] rounded-3xl bg-gradient-to-b from-primary/20 to-transparent opacity-0 group-hover:opacity-100 transition duration-500"></div>
-                            <div class="relative flex flex-col h-full rounded-[22px] bg-white dark:bg-[#2A2420] border border-card-light dark:border-white/5 p-8 overflow-hidden">
-                                <div class="absolute -right-12 -top-12 size-40 rounded-full bg-card-light/30 dark:bg-card-light/5 blur-2xl transition-transform duration-500 group-hover:scale-150"></div>
-                                <div class="mb-8 flex items-start justify-between">
-                                    <div class="flex size-16 items-center justify-center rounded-2xl bg-primary/10 text-primary group-hover:bg-primary group-hover:text-white transition-colors duration-300">
-                                        <span class="material-symbols-outlined text-[32px]">account_balance_wallet</span>
-                                    </div>
-                                    <div class="flex size-10 items-center justify-center rounded-full border border-text-light/10 text-text-light/30 transition-colors group-hover:border-primary/30 group-hover:text-primary">
-                                        <span class="material-symbols-outlined text-xl">arrow_outward</span>
-                                    </div>
-                                </div>
-                                <div class="mt-auto">
-                                    <h2 class="text-2xl font-bold text-text-light dark:text-text-dark mb-3 group-hover:text-primary transition-colors">Financeiro</h2>
-                                    <p class="text-text-secondary-light dark:text-text-secondary-dark leading-relaxed">
-                                        Acompanhe salários, categorize despesas e visualize relatórios detalhados do seu patrimônio.
-                                    </p>
-                                </div>
-                            </div>
-                        </a>
-
-                        <div class="relative group flex flex-col rounded-3xl p-1 cursor-default select-none">
-                            <div class="absolute inset-0 rounded-3xl bg-white/40 dark:bg-white/5 backdrop-blur-sm border border-white/20 dark:border-white/5 shadow-sm"></div>
-                            <div class="relative flex flex-col h-full rounded-[22px] p-8 z-10">
-                                <div class="absolute top-6 right-6">
-                                    <span class="inline-flex items-center rounded-full bg-card-light dark:bg-white/10 px-3 py-1 text-xs font-bold uppercase tracking-wider text-text-secondary-light dark:text-text-secondary-dark shadow-sm">
-                                        Em Breve
-                                    </span>
-                                </div>
-                                <div class="mb-8 flex items-start">
-                                    <div class="flex size-16 items-center justify-center rounded-2xl bg-text-secondary-light/10 text-text-secondary-light dark:text-text-secondary-dark grayscale opacity-70">
-                                        <span class="material-symbols-outlined text-[32px]">event_note</span>
-                                    </div>
-                                </div>
-                                <div class="mt-auto opacity-60">
-                                    <h2 class="text-2xl font-bold text-text-light dark:text-text-dark mb-3">Agenda</h2>
-                                    <p class="text-text-secondary-light dark:text-text-secondary-dark leading-relaxed">
-                                        Um módulo completo para organizar seus compromissos financeiros e datas importantes.
-                                    </p>
-                                </div>
-                            </div>
-                        </div>
-
-                    </div>
+                  </div>
+                  <div class="mt-auto opacity-60">
+                    <h2
+                      class="text-2xl font-bold text-text-light dark:text-text-dark mb-3"
+                    >
+                      Agenda
+                    </h2>
+                    <p
+                      class="text-text-secondary-light dark:text-text-secondary-dark leading-relaxed"
+                    >
+                      Um módulo completo para organizar seus compromissos
+                      financeiros e datas importantes.
+                    </p>
+                  </div>
                 </div>
-            </main>
-        </div>
+              </div>
+            </div>
+          </div>
+        </main>
+      </div>
     </div>
-    
+
     <script src="scripts/subtemas.js"></script>
-</body>
+  </body>
 </html>
