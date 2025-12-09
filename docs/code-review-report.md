@@ -57,7 +57,7 @@ Ou abra `docs\code-review-report.md` em um editor que suporte exportar para PDF 
 
 - `server.js`: entrada da aplicação Express — carrega `dotenv`, configura middlewares (`express.json`, logger), serve a raiz `/` (login), rota `/subtemas`, arquivos estáticos (`public`) e monta as rotas da API em `/api`.
 - `package.json`: dependências e scripts (`dev`, `start`). Removi dependências não usadas e adicionei `prettier` como devDependency durante a revisão.
- - `package.json`: dependências e scripts (`dev`, `start`). Removi dependências não usadas e adicionei `prettier` e `md-to-pdf` como devDependencies durante a revisão; adicionei scripts `format`, `format:check` e `report:pdf`.
+- `package.json`: dependências e scripts (`dev`, `start`). Removi dependências não usadas e adicionei `prettier` e `md-to-pdf` como devDependencies durante a revisão; adicionei scripts `format`, `format:check` e `report:pdf`.
 - `src/api.js`: agrega rotas de módulos (`/users`, `/salarios`, `/gastos-fixos`).
 - `src/config/db.js`: configura conexão MySQL (`mysql2`).
 - `src/middlewares/logger.js`: middleware de logging que adiciona `req.passo` para passos de log e tempo de execução.
@@ -71,6 +71,7 @@ Ou abra `docs\code-review-report.md` em um editor que suporte exportar para PDF 
 - `src/Modules/Gap-Core/models/userModel.js`: abstração de acesso ao banco (queries SQL) — mantém callbacks.
 
 Nota rápida: alguns arquivos de configuração adicionais existem no repositório e vale mencioná-los:
+
 - `.prettierrc` (formatação)
 - `.editorconfig` (indentação/encoding)
 - `.hintrc` (htmlhint config)
@@ -78,6 +79,7 @@ Nota rápida: alguns arquivos de configuração adicionais existem no repositór
 
 Nota: durante a revisão padronizei o tratamento de erros dos controllers do módulo `Gap-Finance`.
 Os arquivos atualizados foram:
+
 - `src/Modules/Gap-Finance/controllers/salarioController.js`
 - `src/Modules/Gap-Finance/controllers/fixoController.js`
 - `src/Modules/Gap-Finance/controllers/variaveisController.js` (implementado durante a revisão)
@@ -85,6 +87,7 @@ Os arquivos atualizados foram:
 Todos esses controllers agora usam `src/utils/errorHandler.js` (`sendError`) para lidar com erros de serviço.
 
 Observação sobre uso de `res.status(...)` no código atual:
+
 - Uso direto de `res.status(...)` permanece em respostas de sucesso (`200`, `201`) e em casos `404` (registro não encontrado) — isso é esperado e apropriado.
 - Middlewares de validação (`src/Modules/Gap-Finance/middlewares/validatorsMiddleware.js`) continuam retornando `res.status(400)` para erros de validação (correto).
 - Não foram encontradas ocorrências de `res.status(500).json({ error: err.message })` espalhadas após a normalização; as respostas de erro agora são centralizadas via `sendError` onde aplicável.
@@ -105,7 +108,6 @@ Correções/ações extras realizadas durante a revisão
 - Gere i o PDF (`docs/code-review-report.pdf`) com `md-to-pdf`.
 - Adicionei `docs/*.pdf` ao `.gitignore` para evitar commitar relatórios gerados.
 
-
 Recomendações adicionais (correções que você pode querer aplicar agora)
 
 - Verificar e migrar quaisquer controllers menores restantes para `sendError` caso seja desejado (a maioria dos controllers principais já foi atualizada).
@@ -120,7 +122,7 @@ Checklist rápido para revisão manual antes de merge
 - [ ] Adicionar `README.md` e `.env.example`.
 
 Se quiser, eu aplico automaticamente as mudanças da checklist (A — commit + PR), ou aplico e deixo pronto para você revisar localmente (B).
- 
+
 Atualização: substituí o `README.md` pelo conteúdo que você forneceu (versão pública do GitHub). O `README.md` agora contém:
 
 - Descrição do projeto e objetivos
@@ -130,7 +132,7 @@ Atualização: substituí o `README.md` pelo conteúdo que você forneceu (vers�
 - Informação sobre banco de dados e contribuição
 
 Recomendo revisar o bloco de rotas no README e alinhá-lo com as rotas atuais do projeto (algumas rotas no README usam caminhos como `/api/users/save` enquanto no código atual as rotas estão montadas em `/api/users` com endpoints diferentes — verifique os nomes e ajuste para evitar confusão externa).
- 
+
 Verificação após alinhamento do `README`:
 
 - Atualizei o `README.md` para refletir as rotas reais implementadas pelo projeto (ex.: `/api/users/login`, `POST /api/users`, `GET /api/users`, `GET /api/users/:id`, `PUT /api/users/:id`, `DELETE /api/users/:id`).

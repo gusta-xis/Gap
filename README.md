@@ -1,4 +1,5 @@
 # 📊 GAP — Sistema de Gestão Financeira
+
 **Gerencie, acompanhe e entenda sua vida financeira de forma simples e eficiente.**
 
 ![Status](https://img.shields.io/badge/STATUS-EM_DESENVOLVIMENTO-orange?style=for-the-badge)
@@ -17,7 +18,7 @@ O projeto está sendo desenvolvido com o objetivo de:
 ✔ Melhorar o controle financeiro diário  
 ✔ Facilitar a visualização de gastos  
 ✔ Automatizar cálculos e análises  
-✔ Criar um painel intuitivo e funcional  
+✔ Criar um painel intuitivo e funcional
 
 ---
 
@@ -25,13 +26,13 @@ O projeto está sendo desenvolvido com o objetivo de:
 
 Construir um sistema completo de controle financeiro, com:
 
-- Dashboard interativo  
-- Cadastro de receitas e despesas  
-- Sistema de categorias  
-- Histórico e relatórios  
-- API organizada em MVC  
-- Persistência em banco MySQL  
-- Interface web responsiva  
+- Dashboard interativo
+- Cadastro de receitas e despesas
+- Sistema de categorias
+- Histórico e relatórios
+- API organizada em MVC
+- Persistência em banco MySQL
+- Interface web responsiva
 
 ---
 
@@ -39,32 +40,35 @@ Construir um sistema completo de controle financeiro, com:
 
 Este projeto foi pensado para:
 
-- Usuários que desejam organizar suas finanças  
-- Pequenos empreendedores  
-- Estudantes que querem aprender Node.js na prática  
-- Pessoas buscando controle e clareza financeira  
+- Usuários que desejam organizar suas finanças
+- Pequenos empreendedores
+- Estudantes que querem aprender Node.js na prática
+- Pessoas buscando controle e clareza financeira
 
 ---
 
 ## 🛠 Tecnologias Utilizadas
 
 ### **Frontend**
-- HTML5  
-- CSS3  
-- JavaScript  
+
+- HTML5
+- CSS3
+- JavaScript
 
 ### **Backend**
-- Node.js  
-- Express.js  
-- MySQL / MySQL2  
-- Dotenv  
-- Nodemon  
+
+- Node.js
+- Express.js
+- MySQL / MySQL2
+- Dotenv
+- Nodemon
 
 ### **Ferramentas**
-- Visual Studio Code  
-- Git & GitHub  
-- Insomnia / Postman  
-- MySQL Workbench  
+
+- Visual Studio Code
+- Git & GitHub
+- Insomnia / Postman
+- MySQL Workbench
 
 ---
 
@@ -72,7 +76,7 @@ Este projeto foi pensado para:
 
 ```bash
 /Gap
- ├── public/               
+ ├── public/
  │    ├── styles/          # CSS files
  │    ├── scripts/         # Frontend JS files
  │    └── img/             # Images and SVGs
@@ -90,7 +94,7 @@ Este projeto foi pensado para:
  ├── server.js             # Inicialização do servidor
  ├── .env                  # Variáveis de ambiente
  ├── package.json          # Dependências
- └── README.md             
+ └── README.md
 ```
 
 ---
@@ -98,14 +102,15 @@ Este projeto foi pensado para:
 ## 🔌 Rotas da API (Endpoints)
 
 ### **Usuários**
-| Método | Rota | Descrição |
-|---|---|---|
-| POST | `/api/users/login` | Login (retorna `token` e `user`) |
-| POST | `/api/users` | Cria novo usuário (corpo JSON: `{ nome, email, senha }`) |
-| GET | `/api/users` | Lista todos os usuários (protegido - requer token) |
-| GET | `/api/users/:id` | Busca usuário pelo ID (protegido) |
-| PUT | `/api/users/:id` | Atualiza usuário por ID (protegido) |
-| DELETE | `/api/users/:id` | Remove usuário por ID (protegido) |
+
+| Método | Rota               | Descrição                                                |
+| ------ | ------------------ | -------------------------------------------------------- |
+| POST   | `/api/users/login` | Login (retorna `token` e `user`)                         |
+| POST   | `/api/users`       | Cria novo usuário (corpo JSON: `{ nome, email, senha }`) |
+| GET    | `/api/users`       | Lista todos os usuários (protegido - requer token)       |
+| GET    | `/api/users/:id`   | Busca usuário pelo ID (protegido)                        |
+| PUT    | `/api/users/:id`   | Atualiza usuário por ID (protegido)                      |
+| DELETE | `/api/users/:id`   | Remove usuário por ID (protegido)                        |
 
 Nota: As rotas reais estão montadas em `src/Modules/Gap-Core/routes/userRoutes.js` e são expostas sob o prefixo `/api` (ou seja, `/api/users`). Atualizei a tabela acima para refletir as rotas reais implementadas no código.
 
@@ -114,34 +119,39 @@ Nota: As rotas reais estão montadas em `src/Modules/Gap-Core/routes/userRoutes.
 ## 📊 Funcionalidades do Sistema
 
 ### ✔ Implementadas
-- API modular em MVC  
-- CRUD completo de usuários  
-- Conexão confiável com MySQL  
-- Rotas bem estruturadas  
+
+- API modular em MVC
+- CRUD completo de usuários
+- Conexão confiável com MySQL
+- Rotas bem estruturadas
 
 ### 🚀 Em Desenvolvimento
-- Cadastro de transações financeiras  
-- Dashboard com gráficos  
-- Relatórios financeiros  
-- Login e autenticação JWT  
-- Telas completas do frontend  
+
+- Cadastro de transações financeiras
+- Dashboard com gráficos
+- Relatórios financeiros
+- Login e autenticação JWT
+- Telas completas do frontend
 
 ---
 
 ## 🚀 Como Rodar o Projeto
 
 ### 1️⃣ Clonar o repositório
+
 ```bash
 git clone https://github.com/gusta-xis/gap.git
 cd gap
 ```
 
 ### 2️⃣ Instalar dependências
+
 ```bash
 npm install
 ```
 
 ### 3️⃣ Criar o arquivo `.env`
+
 ```env
 PORT=3000
 DB_HOST=localhost
@@ -151,6 +161,7 @@ DB_NAME=gap_financeiro
 ```
 
 ### 4️⃣ Iniciar o servidor
+
 ```bash
 npm run dev
 ```
@@ -171,12 +182,12 @@ As tabelas serão adicionadas conforme o avanço do projeto.
 
 ## 🤝 Contribuições
 
-1. Fork  
-2. Crie uma branch  
-3. Commit  
-4. Pull request  
+1. Fork
+2. Crie uma branch
+3. Commit
+4. Pull request
 
-Contribuições são bem-vindas!  
+Contribuições são bem-vindas!
 
 ---
 
@@ -208,4 +219,3 @@ Contribuições são bem-vindas!
 
 Este projeto está sob a licença **MIT**.  
 Sinta-se livre para usar e modificar.
-
