@@ -73,9 +73,9 @@ Este projeto foi pensado para:
 ```bash
 /Gap
  ├── public/               
- │    ├── css/
- │    ├── js/
- │    └── assets/
+ │    ├── styles/          # CSS files
+ │    ├── scripts/         # Frontend JS files
+ │    └── img/             # Images and SVGs
  │
  ├── src/
  │    ├── controllers/     # Regras de negócio
@@ -98,15 +98,16 @@ Este projeto foi pensado para:
 ## 🔌 Rotas da API (Endpoints)
 
 ### **Usuários**
-| Método | Rota                 | Descrição |
-|-------|----------------------|-----------|
-| POST  | `/api/users/save`    | Salva novo usuário |
-| GET   | `/api/users/findAll` | Lista todos os usuários |
-| GET   | `/api/users/findById/:id` | Busca usuário pelo ID |
-| DELETE | `/api/users/deleteById/:id` | Remove um usuário |
-| PUT   | `/api/users/updateById/:id` | Atualização completa |
-| PATCH | `/api/users/updatePartial/:id` | Atualização parcial |
-| GET | `/api/users/findByEmail?email=` | Busca por email |
+| Método | Rota | Descrição |
+|---|---|---|
+| POST | `/api/users/login` | Login (retorna `token` e `user`) |
+| POST | `/api/users` | Cria novo usuário (corpo JSON: `{ nome, email, senha }`) |
+| GET | `/api/users` | Lista todos os usuários (protegido - requer token) |
+| GET | `/api/users/:id` | Busca usuário pelo ID (protegido) |
+| PUT | `/api/users/:id` | Atualiza usuário por ID (protegido) |
+| DELETE | `/api/users/:id` | Remove usuário por ID (protegido) |
+
+Nota: As rotas reais estão montadas em `src/Modules/Gap-Core/routes/userRoutes.js` e são expostas sob o prefixo `/api` (ou seja, `/api/users`). Atualizei a tabela acima para refletir as rotas reais implementadas no código.
 
 ---
 
@@ -145,7 +146,7 @@ npm install
 PORT=3000
 DB_HOST=localhost
 DB_USER=root
-DB_PASS=sua_senha
+DB_PASSWORD=sua_senha
 DB_NAME=gap_financeiro
 ```
 

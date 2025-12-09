@@ -127,5 +127,13 @@ Atualização: substituí o `README.md` pelo conteúdo que você forneceu (vers�
 - Informação sobre banco de dados e contribuição
 
 Recomendo revisar o bloco de rotas no README e alinhá-lo com as rotas atuais do projeto (algumas rotas no README usam caminhos como `/api/users/save` enquanto no código atual as rotas estão montadas em `/api/users` com endpoints diferentes — verifique os nomes e ajuste para evitar confusão externa).
+ 
+Verificação após alinhamento do `README`:
+
+- Atualizei o `README.md` para refletir as rotas reais implementadas pelo projeto (ex.: `/api/users/login`, `POST /api/users`, `GET /api/users`, `GET /api/users/:id`, `PUT /api/users/:id`, `DELETE /api/users/:id`).
+- Ajustei o exemplo de `.env` no `README` para usar `DB_PASSWORD` (o código e `.env.example` usam `DB_PASSWORD`, o `README` antigo usava `DB_PASS`).
+- Atualizei a estrutura do diretório `public/` no `README` para `styles/`, `scripts/` e `img/` (o repositório usa `public/styles`, `public/scripts` e `public/img`).
+
+Com isso, o `README` agora está consistente com o código atual. Ainda recomendo que, se você pretende expor a documentação pública do API, adicione um bloco detalhado de exemplos de requests/responses (ex.: payload de login e exemplo de resposta contendo `token` e `user`).
 
 Observação: os arquivos acima são os pontos centrais do repositório; se desejar posso gerar um `docs/overview.md` com checklist detalhado por arquivo (ex.: variáveis `.env` necessárias, endpoints, payloads esperados).
