@@ -1,123 +1,203 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="pt-BR">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>GAP - Acesso</title>
-    <link rel="stylesheet" href="styles/style.css">
-    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-</head>
+    <link rel="stylesheet" href="styles/style.css" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+  </head>
 
-<body>
-
+  <body>
     <div class="main-container">
-
-        <div class="view-container login-view">
-            
-            <div class="left-banner light-bg">
-                <div class="banner-content">
-                    <img src="img/burnt-cooper.svg" class="logo-big" alt="Logo GAP">
-                    <h1 class="banner-title">Sua gestão, sempre com você.</h1>
-                    <p class="banner-desc">
-                      Acesse na sua conta e mantenha sua organização em dia, de forma simples e segura.
-                    </p>
-                    <img src="img/login.svg" class="illustration" alt="Gráfico Financeiro">
-                </div>
-            </div>
-
-            <div class="right-form white-bg">
-                <div class="form-wrapper">
-                    <h2 class="form-title">Bem-vindo de volta!</h2>
-                    <p class="form-subtitle">Acesse sua conta para continuar.</p>
-
-                    <form id="loginForm" class="form-box">
-                        <div class="input-group">
-                            <label for="login-email">Email</label>
-                            <div class="input-wrapper">
-                                <svg class="icon" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
-                                <input type="email" placeholder="Digite seu email" id="login-email" required>
-                            </div>
-                        </div>
-                        <div class="input-group">
-                            <label for="login-senha">Senha</label>
-                            <div class="input-wrapper">
-                                <svg class="icon" viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
-                                <input type="password" placeholder="Digite sua senha" id="login-senha" required>
-                                <button type="button" class="toggle-password" data-target="login-senha">
-                                    <svg viewBox="0 0 24 24" class="eye-icon"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
-                                </button>
-                            </div>
-                        </div>
-                        <div class="forgot-pass"><a href="#">Esqueceu sua senha?</a></div>
-                        <button class="btn-submit">Entrar</button>
-                    </form>
-
-                    <p class="switch-text">Não tem uma conta? <a href="#" id="linkToSignup">Crie uma conta</a></p>
-                </div>
-            </div>
+      <div class="view-container login-view">
+        <div class="left-banner light-bg">
+          <div class="banner-content">
+            <img src="img/burnt-cooper.svg" class="logo-big" alt="Logo GAP" />
+            <h1 class="banner-title">Sua gestão, sempre com você.</h1>
+            <p class="banner-desc">
+              Acesse na sua conta e mantenha sua organização em dia, de forma
+              simples e segura.
+            </p>
+            <img
+              src="img/login.svg"
+              class="illustration"
+              alt="Gráfico Financeiro"
+            />
+          </div>
         </div>
 
+        <div class="right-form white-bg">
+          <div class="form-wrapper">
+            <h2 class="form-title">Bem-vindo de volta!</h2>
+            <p class="form-subtitle">Acesse sua conta para continuar.</p>
 
-        <div class="view-container signup-view">
-            
-            <div class="left-section white-bg">
-                <div class="form-wrapper">
-                    <img src="img/burnt-cooper.svg" class="logo-small" alt="Logo GAP">
-                    <h1 class="title">Crie sua conta</h1>
-                    <p class="subtitle">Organize sua rotina e potencialize seus resultados hoje mesmo.</p>
-
-                    <form id="signupForm" class="form-box">
-                        <div class="input-group">
-                            <label>Nome Completo</label>
-                            <div class="input-wrapper">
-                                <svg class="icon" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-                                <input type="text" placeholder="Digite seu nome" id="signup-nome" required>
-                            </div>
-                        </div>
-                        <div class="input-group">
-                            <label>Email</label>
-                            <div class="input-wrapper">
-                                <svg class="icon" viewBox="0 0 24 24"><path d="M4 4h16v16H4z"></path><polyline points="22,6 12,13 2,6"></polyline></svg>
-                                <input type="email" placeholder="Digite seu email" id="signup-email" required>
-                            </div>
-                        </div>
-                        <div class="input-group">
-                            <label>Senha</label>
-                            <div class="input-wrapper">
-                                <svg class="icon" viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
-                                <input type="password" placeholder="Crie uma senha" id="signup-senha" required>
-                                <button type="button" class="toggle-password" data-target="signup-senha">
-                                    <svg viewBox="0 0 24 24" class="eye-icon"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
-                                </button>
-                            </div>
-                        </div>
-                         <div class="input-group">
-                            <label>Confirmar Senha</label>
-                            <div class="input-wrapper">
-                                <svg class="icon" viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
-                                <input type="password" placeholder="Confirme a senha" id="signup-confSenha" required>
-                                <button type="button" class="toggle-password" data-target="signup-confSenha">
-                                    <svg viewBox="0 0 24 24" class="eye-icon"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
-                                </button>
-                            </div>
-                        </div>
-                        <button class="btn-submit">Começar Agora</button>
-                    </form>
-
-                     <p class="switch-text">Já possui cadastro? <a href="#" id="linkToLogin">Acesse sua conta</a></p>
+            <form id="loginForm" class="form-box">
+              <div class="input-group">
+                <label for="login-email">Email</label>
+                <div class="input-wrapper">
+                  <svg class="icon" viewBox="0 0 24 24">
+                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                    <circle cx="12" cy="7" r="4"></circle>
+                  </svg>
+                  <input
+                    type="email"
+                    placeholder="Digite seu email"
+                    id="login-email"
+                    required
+                  />
                 </div>
-            </div>
+              </div>
+              <div class="input-group">
+                <label for="login-senha">Senha</label>
+                <div class="input-wrapper">
+                  <svg class="icon" viewBox="0 0 24 24">
+                    <rect x="3" y="11" width="18" height="11" rx="2"></rect>
+                    <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                  </svg>
+                  <input
+                    type="password"
+                    placeholder="Digite sua senha"
+                    id="login-senha"
+                    required
+                  />
+                  <button
+                    type="button"
+                    class="toggle-password"
+                    data-target="login-senha"
+                  >
+                    <svg viewBox="0 0 24 24" class="eye-icon">
+                      <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                      <circle cx="12" cy="12" r="3" />
+                    </svg>
+                  </button>
+                </div>
+              </div>
+              <div class="forgot-pass"><a href="#">Esqueceu sua senha?</a></div>
+              <button class="btn-submit">Entrar</button>
+            </form>
 
-            <div class="right-section dark-bg">
-                <img src="/img/sea-mist.svg" class="logo-big" alt="Logo GAP Grande">
-                <h2 class="right-title">Sua vida, sob total controle</h2>
-                <p class="right-desc">Simplifique sua gestão pessoal em um único lugar seguro e intuitivo.</p>
-                 <img src="img/cadastro.svg" class="illustration" alt="Ilustração">
-            </div>
+            <p class="switch-text">
+              Não tem uma conta?
+              <a href="#" id="linkToSignup">Crie uma conta</a>
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div class="view-container signup-view">
+        <div class="left-section white-bg">
+          <div class="form-wrapper">
+            <h1 class="title">Crie sua conta</h1>
+            <p class="subtitle">
+              Organize sua rotina e potencialize seus resultados hoje mesmo.
+            </p>
+
+            <form id="signupForm" class="form-box">
+              <div class="input-group">
+                <label>Nome Completo</label>
+                <div class="input-wrapper">
+                  <svg class="icon" viewBox="0 0 24 24">
+                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                    <circle cx="12" cy="7" r="4" />
+                  </svg>
+                  <input
+                    type="text"
+                    placeholder="Digite seu nome"
+                    id="signup-nome"
+                    required
+                  />
+                </div>
+              </div>
+              <div class="input-group">
+                <label>Email</label>
+                <div class="input-wrapper">
+                  <svg class="icon" viewBox="0 0 24 24">
+                    <path d="M4 4h16v16H4z"></path>
+                    <polyline points="22,6 12,13 2,6"></polyline>
+                  </svg>
+                  <input
+                    type="email"
+                    placeholder="Digite seu email"
+                    id="signup-email"
+                    required
+                  />
+                </div>
+              </div>
+              <div class="input-group">
+                <label>Senha</label>
+                <div class="input-wrapper">
+                  <svg class="icon" viewBox="0 0 24 24">
+                    <rect x="3" y="11" width="18" height="11" rx="2"></rect>
+                    <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                  </svg>
+                  <input
+                    type="password"
+                    placeholder="Crie uma senha"
+                    id="signup-senha"
+                    required
+                  />
+                  <button
+                    type="button"
+                    class="toggle-password"
+                    data-target="signup-senha"
+                  >
+                    <svg viewBox="0 0 24 24" class="eye-icon">
+                      <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                      <circle cx="12" cy="12" r="3" />
+                    </svg>
+                  </button>
+                </div>
+              </div>
+              <div class="input-group">
+                <label>Confirmar Senha</label>
+                <div class="input-wrapper">
+                  <svg class="icon" viewBox="0 0 24 24">
+                    <rect x="3" y="11" width="18" height="11" rx="2"></rect>
+                    <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                  </svg>
+                  <input
+                    type="password"
+                    placeholder="Confirme a senha"
+                    id="signup-confSenha"
+                    required
+                  />
+                  <button
+                    type="button"
+                    class="toggle-password"
+                    data-target="signup-confSenha"
+                  >
+                    <svg viewBox="0 0 24 24" class="eye-icon">
+                      <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                      <circle cx="12" cy="12" r="3" />
+                    </svg>
+                  </button>
+                </div>
+              </div>
+              <button class="btn-submit">Começar Agora</button>
+            </form>
+
+            <p class="switch-text">
+              Já possui cadastro?
+              <a href="#" id="linkToLogin">Acesse sua conta</a>
+            </p>
+          </div>
         </div>
 
+        <div class="right-section dark-bg">
+          <img src="/img/sea-mist.svg" class="logo-big" alt="Logo GAP Grande" />
+          <h2 class="right-title">Sua vida, sob total controle</h2>
+          <p class="right-desc">
+            Simplifique sua gestão pessoal em um único lugar seguro e intuitivo.
+          </p>
+          <img src="img/cadastro.svg" class="illustration" alt="Ilustração" />
+        </div>
+      </div>
     </div>
 
     <script src="scripts/script.js"></script>
-</body>
+  </body>
 </html>

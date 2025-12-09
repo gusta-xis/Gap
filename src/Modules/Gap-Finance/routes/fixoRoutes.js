@@ -9,7 +9,6 @@ const authMiddleware = require('../../../middlewares/authMiddleware.js');
 // Verifique se o nome do arquivo é 'validatorsMiddleware.js' ou 'validators.js'
 const { validateGastoFixo } = require('../middlewares/validatorsMiddleware.js');
 
-
 router.post('/', authMiddleware, validateGastoFixo, fixoController.create);
 router.get('/', authMiddleware, fixoController.findByUserId);
 router.get('/todos', authMiddleware, fixoController.findAll);
