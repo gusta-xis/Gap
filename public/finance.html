@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gap - Financeiro</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&family=Manuale:ital,wght@1,800&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="styles/finance.css">
+</head>
+<body>
+
+    <a class="back-link" href="/subsistemas" aria-label="Voltar para subsistemas">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M15 18l-6-6 6-6" />
+        </svg>
+        <span>Voltar</span>
+    </a>
+
+    <div class="card-container">
+        
+        <div class="hero-image-container">
+            <img class="hero-image" src="img/Imagef.svg" alt="Financeiro">
+        </div>
+
+        <div class="content-wrapper">
+            <div class="header-group">
+                <span class="title-text">Bem-vindo ao</span>
+                
+                <div class="logo-box">
+                    <img src="img/financel.svg" alt="Logo Finance">
+                </div>
+                
+                <span class="exclamation">!</span>
+            </div>
+
+            <div class="description-container">
+                <p class="description active" data-step-text="0">
+                    Sua nova ferramenta para organizar finanças pessoais. Cadastre seus<br>
+                    ganhos e despesas e tome o controle do seu dinheiro.
+                </p>
+                <p class="description" data-step-text="1">
+                    Visualize relatórios detalhados e acompanhe sua evolução<br>
+                    financeira de forma simples e visual.
+                </p>
+            </div>
+
+            <div class="action-area">
+                <button id="btn-continue" class="btn-continue">
+                    Continuar
+                </button>
+
+                <div class="stepper">
+                    <div id="btn-prev" class="arrow disabled">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M15 18l-6-6 6-6"/>
+                        </svg>
+                    </div>
+                    
+                    <div class="step-circle step-active" data-step="0">1</div>
+                    <div class="step-circle step-inactive" data-step="1">2</div>
+
+                    <div id="btn-next" class="arrow">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M9 18l6-6-6-6"/>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <script src="scripts/finance.js" defer></script>
+</body>
+</html>

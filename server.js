@@ -1,51 +1,74 @@
 const express = require('express');
 const cors = require('cors');
-const path = require('path'); // <--- 1. IMPORTANTE: Importe o módulo path
+const path = require('path');
+const fs = require('fs');
 require('dotenv').config();
-
-// Rotas
-const apiRoutes = require('./src/api');
-
-// Middlewares
-const errorMiddleware = require('./src/middlewares/errorMiddleware');
-const logger = require('./src/middlewares/logger');
 
 const app = express();
 
+// =======================================================
+// CONFIGURAÇÕES GERAIS
+// =======================================================
 app.use(cors());
-
-// 1. JSON vem primeiro
 app.use(express.json());
 
-// 2. Logger vem segundo
-app.use(logger);
-
-// Atende a rota raiz com a página de login
-app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'login.html'));
-});
-
-// Redireciona requests diretas para /login.html para manter a rota limpa '/'
-app.get('/login.html', (req, res) => {
-  res.redirect(301, '/');
-});
-
-// Serve a página de subtemas numa rota limpa '/subtemas' (evita mostrar 'subtemas.html')
-app.get('/subtemas', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'subtemas.html'));
-});
-
-// --- AQUI ESTÁ A MÁGICA ---
-// 3. Arquivos Estáticos (HTML, CSS, JS)
-// Isso diz: "Se a requisição não for JSON, procure na pasta 'public'"
+// =======================================================
+// 1. ARQUIVOS ESTÁTICOS (FRONT-END)
+// =======================================================
+// Serve a pasta 'public' (CSS, JS, Imagens)
 app.use(express.static(path.join(__dirname, 'public')));
 
-// 4. Rotas da API (onde o Auth e Validate são chamados)
-// Se não achou arquivo estático, ele tenta ver se é uma rota de API
-app.use('/api', apiRoutes);
+// =======================================================
+// 2. ROTAS DA API (BACK-END)
+// =======================================================
+// Verifica se o arquivo de rotas existe para não quebrar o servidor
+const routesPath = path.join(__dirname, 'src', 'Modules', 'Gap-Core', 'routes', 'userRoutes.js');
 
-// 5. Error Middleware por último
-app.use(errorMiddleware);
+if (fs.existsSync(routesPath)) {
+    const userRoutes = require(routesPath);
+    app.use('/api/users', userRoutes);
+    console.log('✅ API de usuários carregada com sucesso.');
+} else {
+    console.error('❌ ERRO: Arquivo de rotas não encontrado em:', routesPath);
+}
 
+// =======================================================
+// 3. ROTAS DE NAVEGAÇÃO (URLS LIMPAS)
+// =======================================================
+
+// Rota Raiz -> Carrega o Login (login.html)
+app.get('/', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'login.html'));
+});
+
+// Rota Explícita de Login
+app.get('/login', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'login.html'));
+});
+
+// Redirecionamento de segurança (acesso direto ao arquivo)
+app.get('/login.html', (req, res) => res.redirect(301, '/'));
+
+// Rota Dashboard (Sem .html)
+app.get('/subsistemas', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'subtemas.html'));
+});
+
+// Rota Financeiro (Sem .html)
+app.get('/financeiro', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'finance.html'));
+});
+
+// =======================================================
+// INICIALIZAÇÃO
+// =======================================================
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`🚀 Servidor rodando na porta ${PORT}`));
+app.listen(PORT, () => {
+    console.log(`--------------------------------------------------`);
+    console.log(`🚀 Servidor rodando em: http://localhost:${PORT}`);
+    console.log(`📂 Rotas Disponíveis:`);
+    console.log(`   - Login:      /`);
+    console.log(`   - Dashboard:  /subsistemas`);
+    console.log(`   - Financeiro: /financeiro`);
+    console.log(`--------------------------------------------------`);
+});

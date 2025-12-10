@@ -1,4 +1,29 @@
-// Tailwind config (kept from previous setup)
+// ======================================================
+// 1. SEGURANÇA IMEDIATA (RODA ANTES DE TUDO)
+// ======================================================
+
+// Função de verificação isolada
+function enforceSecurity() {
+    const token = localStorage.getItem('token');
+    if (!token) {
+        // Se não tem token, substitui a URL imediatamente para o login
+        window.location.replace('/'); 
+    }
+}
+
+// A. Executa agora mesmo (assim que o script é lido)
+enforceSecurity();
+
+// B. Proteção contra cache (Botões Voltar/Avançar)
+// O evento 'pageshow' é disparado mesmo se a página vier do cache do navegador
+window.addEventListener('pageshow', (event) => {
+    // Se a página persistiu (cache) ou se não tem token, verifica de novo
+    enforceSecurity();
+});
+
+// ======================================================
+// 2. CONFIGURAÇÃO VISUAL (TAILWIND)
+// ======================================================
 window.tailwind = window.tailwind || {};
 tailwind.config = {
   darkMode: 'class',
@@ -27,19 +52,16 @@ tailwind.config = {
   },
 };
 
-// Initialization for the subtemas page.
+// ======================================================
+// 3. LÓGICA DA INTERFACE (INIT)
+// ======================================================
 function initSubtemas() {
   try {
-    // If no token, force redirect to login — prevents viewing subtemas without auth
-    const token = localStorage.getItem('token');
-    if (!token) {
-      window.location.replace('/');
-      return;
-    }
-
-    // Fill greeting
+    // Recupera dados (A segurança já foi garantida acima, mas mantemos o fallback)
     const userJson = localStorage.getItem('user');
     const userName = localStorage.getItem('userName');
+
+    // 1. Preencher Saudação
     const greetingEl = document.getElementById('userGreeting');
     if (greetingEl) {
       if (userName) greetingEl.textContent = 'Olá, ' + userName;
@@ -47,14 +69,12 @@ function initSubtemas() {
         try {
           const u = JSON.parse(userJson);
           if (u && u.nome) greetingEl.textContent = 'Olá, ' + u.nome;
-        } catch (e) {
-          /* ignore */
-        }
+        } catch (e) { /* ignore */ }
       }
       greetingEl.classList.remove('hidden');
     }
 
-    // Avatar
+    // 2. Configurar Avatar
     const avatarEl = document.getElementById('userAvatar');
     if (avatarEl) {
       let avatarUrl = null;
@@ -62,12 +82,9 @@ function initSubtemas() {
       if (userJson) {
         try {
           const u = JSON.parse(userJson);
-          avatarUrl =
-            u.avatar || u.foto || u.photoUrl || u.profilePicture || null;
+          avatarUrl = u.avatar || u.foto || u.photoUrl || u.profilePicture || null;
           nameForInitials = u.nome || null;
-        } catch (e) {
-          /* ignore */
-        }
+        } catch (e) { /* ignore */ }
       }
       if (!nameForInitials && userName) nameForInitials = userName;
 
@@ -87,23 +104,21 @@ function initSubtemas() {
           avatarEl.style.fontWeight = '700';
           avatarEl.textContent = initial;
         }
-        // otherwise keep default CSS background (SVG)
       }
     }
 
-    // Logout behavior: support both button (#logoutBtn) and anchor (#logoutLink)
+    // 3. Configurar Logout
     const logoutBtn = document.getElementById('logoutBtn');
     const logoutLink = document.getElementById('logoutLink');
+    
     const doLogout = (openHref) => {
       try {
         localStorage.removeItem('token');
         localStorage.removeItem('user');
         localStorage.removeItem('userName');
-      } catch (err) {
-        /* ignore */
-      }
+      } catch (err) { /* ignore */ }
+      
       if (openHref) {
-        // open login page in new tab and redirect current window to login
         window.open(openHref, '_blank', 'noopener');
         window.location.replace('/');
       } else {
@@ -125,20 +140,14 @@ function initSubtemas() {
       });
     }
 
-    // When navigating back/forward, pages may be loaded from the bfcache — ensure auth still valid
-    window.addEventListener('pageshow', (ev) => {
-      if (!localStorage.getItem('token')) {
-        window.location.replace('/');
-      }
-    });
   } catch (err) {
     console.warn('Erro ao inicializar subtemas:', err);
   }
 }
 
+// Inicialização segura
 if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', initSubtemas);
 } else {
-  // Document already loaded (script appended dynamically) — run immediately
   initSubtemas();
 }
