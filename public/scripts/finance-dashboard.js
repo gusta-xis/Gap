@@ -27,6 +27,12 @@ let dashboardData = {
     historicoMensal: [] // Array com dados dos últimos 6 meses
 };
 
+function recordBelongsToUser(item, userId) {
+    if (!userId || !item) return false;
+    const candidates = [item.user_id, item.userId, item.usuario_id, item.usuarioId, item.user];
+    return candidates.some(val => Number(val) === Number(userId));
+}
+
 // Inicialização quando o DOM estiver pronto
 document.addEventListener('DOMContentLoaded', function() {
     try {
@@ -153,6 +159,9 @@ async function loadDashboardData() {
         // Buscar dados em paralelo
         let gastosFixos = [];
         let gastosVariaveis = [];
+        const userDataRaw = localStorage.getItem('user');
+        const userData = userDataRaw ? JSON.parse(userDataRaw) : null;
+        const currentUserId = userData && userData.id ? Number(userData.id) : null;
         
         console.log('Buscando gastos da API...');
         try {
@@ -161,6 +170,10 @@ async function loadDashboardData() {
                 apiService.getGastosVariaveis()
             ]);
             console.log('Gastos recebidos:', { gastosFixos, gastosVariaveis });
+            if (currentUserId) {
+                gastosFixos = (gastosFixos || []).filter(g => recordBelongsToUser(g, currentUserId));
+                gastosVariaveis = (gastosVariaveis || []).filter(g => recordBelongsToUser(g, currentUserId));
+            }
         } catch (error) {
             console.warn('Erro ao buscar gastos, usando dados vazios:', error);
             gastosFixos = [];
@@ -189,6 +202,8 @@ async function loadDashboardData() {
         dashboardData.salario = salario;
         dashboardData.gastosFixos = gastosFixos || [];
         dashboardData.gastosVariaveis = gastosVariaveis || [];
+        
+        console.log('📊 dashboardData completo:', dashboardData);
         
         console.log('Calculando totais...');
         calculateTotals();
@@ -227,12 +242,24 @@ async function loadDashboardData() {
  * Calcula os totais de receitas e despesas
  */
 function calculateTotals() {
-    // Total de receitas (apenas salário por enquanto)
-    dashboardData.totalReceitas = dashboardData.salario;
-    
-    // Total de despesas (fixos + variáveis do mês atual)
+    // Total de receitas (salário + entradas variáveis do mês)
     const mesAtual = new Date().getMonth() + 1;
     const anoAtual = new Date().getFullYear();
+
+    const totalEntradasVariaveis = dashboardData.gastosVariaveis
+        .filter(gasto => {
+            const dataStr = gasto.data_gasto || gasto.data;
+            const dataGasto = new Date(dataStr);
+            return (gasto.tipo === 'entrada') &&
+                   (dataGasto.getMonth() + 1 === mesAtual) &&
+                   (dataGasto.getFullYear() === anoAtual);
+        })
+        .reduce((sum, gasto) => sum + parseFloat(gasto.valor || 0), 0);
+
+    dashboardData.totalReceitas = dashboardData.salario + totalEntradasVariaveis;
+    
+    // Total de despesas (fixos + variáveis de saída do mês atual)
+    // reutiliza mesAtual/anoAtual já definidos acima
     
     const totalFixos = dashboardData.gastosFixos.reduce((sum, gasto) => {
         return sum + parseFloat(gasto.valor || 0);
@@ -240,9 +267,12 @@ function calculateTotals() {
     
     const totalVariaveis = dashboardData.gastosVariaveis
         .filter(gasto => {
-            const dataGasto = new Date(gasto.data);
-            return dataGasto.getMonth() + 1 === mesAtual && 
-                   dataGasto.getFullYear() === anoAtual;
+            // Aceitar tanto 'data_gasto' quanto 'data'
+            const dataStr = gasto.data_gasto || gasto.data;
+            const dataGasto = new Date(dataStr);
+            return (gasto.tipo !== 'entrada') &&
+                   (dataGasto.getMonth() + 1 === mesAtual) && 
+                   (dataGasto.getFullYear() === anoAtual);
         })
         .reduce((sum, gasto) => {
             return sum + parseFloat(gasto.valor || 0);
@@ -266,8 +296,18 @@ function calculateMonthlyHistory() {
         const ano = mes.getFullYear();
         const nomeMes = mes.toLocaleDateString('pt-BR', { month: 'short' }).replace('.', '');
         
-        // Calcular receitas do mês (salário)
-        const receitas = dashboardData.salario;
+        // Calcular receitas do mês (salário + entradas variáveis)
+        const receitasVariaveis = dashboardData.gastosVariaveis
+            .filter(gasto => {
+                const dataStr = gasto.data_gasto || gasto.data;
+                const dataGasto = new Date(dataStr);
+                return (gasto.tipo === 'entrada') &&
+                       (dataGasto.getMonth() + 1 === mesNumero) &&
+                       (dataGasto.getFullYear() === ano);
+            })
+            .reduce((sum, gasto) => sum + parseFloat(gasto.valor || 0), 0);
+
+        const receitas = dashboardData.salario + receitasVariaveis;
         
         // Calcular despesas fixas do mês
         const despesasFixas = dashboardData.gastosFixos.reduce((sum, gasto) => {
@@ -278,9 +318,11 @@ function calculateMonthlyHistory() {
         // Calcular despesas variáveis do mês
         const despesasVariaveis = dashboardData.gastosVariaveis
             .filter(gasto => {
-                const dataGasto = new Date(gasto.data);
-                return dataGasto.getMonth() + 1 === mesNumero && 
-                       dataGasto.getFullYear() === ano;
+                const dataStr = gasto.data_gasto || gasto.data;
+                const dataGasto = new Date(dataStr);
+                return (gasto.tipo !== 'entrada') &&
+                       (dataGasto.getMonth() + 1 === mesNumero) && 
+                       (dataGasto.getFullYear() === ano);
             })
             .reduce((sum, gasto) => {
                 return sum + parseFloat(gasto.valor || 0);
@@ -311,39 +353,41 @@ function updateBarChart() {
         console.warn('Sem dados históricos para o gráfico');
         return;
     }
-    
+
+    const incomeBars = document.querySelectorAll('[data-chart-income]');
+    const expenseBars = document.querySelectorAll('[data-chart-expense]');
+    const labels = document.querySelectorAll('[data-chart-label]');
+    const incomeValues = document.querySelectorAll('[data-chart-income-value]');
+    const expenseValues = document.querySelectorAll('[data-chart-expense-value]');
+
+    if (incomeBars.length === 0 || expenseBars.length === 0) {
+        console.warn('Elementos do gráfico não encontrados');
+        return;
+    }
+
     // Encontrar o valor máximo para normalização
     const maxValor = Math.max(
         ...dashboardData.historicoMensal.map(m => Math.max(m.receitas, m.despesas))
     );
-    
-    // Mapear meses para abreviações usadas no HTML
-    const mesesAbrev = ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez'];
-    
+
     dashboardData.historicoMensal.forEach((mes, index) => {
-        // Calcular alturas proporcionais (máximo 160px)
         const alturaReceita = maxValor > 0 ? Math.round((mes.receitas / maxValor) * 160) : 0;
         const alturaDespesa = maxValor > 0 ? Math.round((mes.despesas / maxValor) * 160) : 0;
-        
-        // Pegar o mês correto baseado no índice (últimos 6 meses)
-        const dataInicio = new Date();
-        dataInicio.setMonth(dataInicio.getMonth() - 5); // Voltar 5 meses
-        const mesAtual = new Date(dataInicio.getFullYear(), dataInicio.getMonth() + index, 1);
-        const mesAbrev = mesesAbrev[mesAtual.getMonth()];
-        
-        // Atualizar elementos do gráfico
-        const barReceita = document.querySelector(`.bar-height-${mesAbrev}-income`);
-        const barDespesa = document.querySelector(`.bar-height-${mesAbrev}-expense`);
-        
-        if (barReceita) {
-            barReceita.style.height = `${alturaReceita}px`;
-        }
-        if (barDespesa) {
-            barDespesa.style.height = `${alturaDespesa}px`;
-        }
+
+        const incomeBar = incomeBars[index];
+        const expenseBar = expenseBars[index];
+        const label = labels[index];
+        const incomeValue = incomeValues[index];
+        const expenseValue = expenseValues[index];
+
+        if (incomeBar) incomeBar.style.height = `${alturaReceita}px`;
+        if (expenseBar) expenseBar.style.height = `${alturaDespesa}px`;
+        if (label) label.textContent = mes.mes || mes.nomeMes || '';
+        if (incomeValue) incomeValue.textContent = formatCurrency(mes.receitas || 0);
+        if (expenseValue) expenseValue.textContent = `- ${formatCurrency(mes.despesas || 0)}`;
     });
-    
-    console.log('Gráfico de barras atualizado');
+
+    console.log('Gráfico de barras atualizado com dados do usuário');
 }
 
 /**
@@ -423,20 +467,26 @@ function updateRecentActivities() {
     // Combinar e ordenar todas as transações
     const allTransactions = [
         ...dashboardData.gastosFixos.map(g => ({
-            tipo: 'fixo',
-            descricao: g.descricao || 'Gasto Fixo',
+            tipo: 'despesa',
+            descricao: g.nome || g.descricao || 'Gasto Fixo',
             valor: parseFloat(g.valor || 0),
             data: g.data || new Date(),
             categoria: g.categoria || 'Geral'
         })),
         ...dashboardData.gastosVariaveis.map(g => ({
-            tipo: 'variavel',
-            descricao: g.descricao || 'Gasto Variável',
+            tipo: g.tipo === 'entrada' ? 'receita' : 'despesa',
+            descricao: g.nome || g.descricao || (g.tipo === 'entrada' ? 'Entrada' : 'Gasto Variável'),
             valor: parseFloat(g.valor || 0),
-            data: g.data || new Date(),
-            categoria: g.categoria || 'Geral'
+            data: g.data_gasto || g.data || new Date(),
+            categoria: normalizeCategorySlug(g.categoria_slug || g.categoria || '') || g.categoria || 'Geral',
+            id: g.id,
+            origem: 'variavel',
+            categoria_slug: normalizeCategorySlug(g.categoria_slug || g.categoria || ''),
+            tipoOriginal: g.tipo || 'saida'
         }))
     ];
+    
+    console.log('🔵 allTransactions:', allTransactions);
     
     // Adicionar salário se existir
     if (dashboardData.salario > 0) {
@@ -455,8 +505,8 @@ function updateRecentActivities() {
     // Ordenar por data (mais recente primeiro)
     allTransactions.sort((a, b) => new Date(b.data) - new Date(a.data));
     
-    // Mostrar apenas os 4 mais recentes
-    const recentTransactions = allTransactions.slice(0, 4);
+    // Mostrar os 6 mais recentes
+    const recentTransactions = allTransactions.slice(0, 6);
     
     // Limpar container
     activityContainer.innerHTML = '';
@@ -481,13 +531,14 @@ function updateRecentActivities() {
         const isLast = index === recentTransactions.length - 1;
         const borderClass = isLast ? '' : 'border-b border-black/10 dark:border-white/10';
         
-        const icon = getTransactionIcon(transaction.categoria);
-        const valorFormatado = transaction.tipo === 'receita' 
+        const icon = getTransactionIcon(transaction);
+        const isReceita = transaction.tipo === 'receita';
+        const valorFormatado = isReceita 
             ? `+ ${formatCurrency(transaction.valor)}`
             : `- ${formatCurrency(transaction.valor)}`;
-        const valorClass = transaction.tipo === 'receita'
+        const valorClass = isReceita
             ? 'text-green-600 dark:text-green-400'
-            : 'text-slate-800 dark:text-slate-200';
+            : 'text-red-600 dark:text-red-300';
         
         const dataFormatada = new Date(transaction.data).toLocaleDateString('pt-BR', {
             day: 'numeric',
@@ -495,17 +546,41 @@ function updateRecentActivities() {
             year: 'numeric'
         });
         
+        const serialized = transaction.origem === 'variavel' ? encodeURIComponent(JSON.stringify(transaction)) : '';
+        const actionButtons = transaction.origem === 'variavel' ? `
+            <div class="flex gap-2">
+                <button class="text-slate-500 hover:text-primary" aria-label="Editar" onclick="window.expenseModal && window.expenseModal.openExpenseModalForEdit(JSON.parse(decodeURIComponent('${serialized}')))">
+                    <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <path d="M12 20h9" />
+                        <path d="M16.5 3.5a2.121 2.121 0 1 1 3 3L7 19l-4 1 1-4Z" />
+                    </svg>
+                </button>
+                <button class="text-slate-500 hover:text-red-500" aria-label="Excluir" onclick="window.expenseModal && window.expenseModal.deleteExpense(${transaction.id})">
+                    <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <polyline points="3 6 5 6 21 6" />
+                        <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6" />
+                        <path d="M10 11v6" />
+                        <path d="M14 11v6" />
+                        <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2" />
+                    </svg>
+                </button>
+            </div>
+        ` : '';
+
         const html = `
             <div class="grid grid-cols-[auto_1fr_auto] sm:grid-cols-[auto_1fr_1fr_auto] items-center gap-4 py-3 ${borderClass}">
-                <div class="bg-primary/20 text-primary dark:bg-primary/30 dark:text-secondary rounded-full size-10 flex items-center justify-center">
-                    <span class="material-symbols-outlined">${icon}</span>
+                <div class="bg-primary/10 dark:bg-primary/20 text-primary dark:text-primary rounded-full size-10 flex items-center justify-center">
+                    ${icon}
                 </div>
                 <div class="flex flex-col">
                     <p class="text-slate-800 dark:text-slate-200 font-medium">${transaction.descricao}</p>
                     <p class="text-slate-500 dark:text-slate-400 text-sm">${dataFormatada}</p>
                 </div>
                 <p class="text-slate-500 dark:text-slate-400 text-sm hidden sm:block">${transaction.categoria}</p>
-                <p class="${valorClass} font-bold text-right">${valorFormatado}</p>
+                <div class="flex items-center justify-end gap-3">
+                    ${actionButtons}
+                    <p class="${valorClass} font-bold text-right">${valorFormatado}</p>
+                </div>
             </div>
         `;
         
@@ -516,34 +591,210 @@ function updateRecentActivities() {
 /**
  * Retorna o ícone baseado na categoria
  */
-function getTransactionIcon(categoria) {
-    const icons = {
-        'Alimentação': 'shopping_cart',
-        'Salário': 'receipt_long',
-        'Lazer': 'restaurant',
-        'Transporte': 'directions_car',
-        'Moradia': 'home',
-        'Saúde': 'local_hospital',
-        'Educação': 'school',
-        'Geral': 'category'
+function getTransactionIcon(transaction) {
+    const tipo = transaction.tipo === 'receita' ? 'receita' : 'despesa';
+    const catSource = transaction.categoria_slug || transaction.categoria || transaction.descricao || '';
+    const cat = catSource.toLowerCase();
+
+    const svg = {
+        receita: `<svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9" /><line x1="12" y1="8" x2="12" y2="16" /><line x1="8" y1="12" x2="16" y2="12" /></svg>`,
+        despesa: `<svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9" /><line x1="8" y1="12" x2="16" y2="12" /></svg>`,
+        mercado: `<svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="21" r="1" /><circle cx="20" cy="21" r="1" /><path d="M1 1h4l2.68 13.39a1 1 0 0 0 1 .81h9.72a1 1 0 0 0 .98-.8l1.2-6H6" /></svg>`,
+        transporte: `<svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="11" width="18" height="7" rx="2" /><path d="M3 11l2-4h14l2 4" /><circle cx="7.5" cy="18.5" r="1" /><circle cx="16.5" cy="18.5" r="1" /></svg>`,
+        moradia: `<svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 9.5 12 4l9 5.5V20a1 1 0 0 1-1 1h-5v-5H9v5H4a1 1 0 0 1-1-1Z" /></svg>`,
+        saude: `<svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78L12 21.23l8.84-8.84a5.5 5.5 0 0 0 0-7.78Z" /></svg>`,
+        educacao: `<svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 10L12 4 2 10l10 6 10-6Z" /><path d="M6 12v5c3 3 9 3 12 0v-5" /></svg>`,
+        entretenimento: `<svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2" /><path d="M7 5v14" /><path d="M17 5v14" /></svg>`,
+        default: `<svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9" /><path d="M9 12h6" /><path d="M12 9v6" /></svg>`
     };
-    return icons[categoria] || 'category';
+
+    if (cat.includes('merc') || cat.includes('super') || cat.includes('market') || cat.includes('alimen') || cat.includes('comida')) return svg.mercado;
+    if (cat.includes('transp')) return svg.transporte;
+    if (cat.includes('morad') || cat.includes('casa')) return svg.moradia;
+    if (cat.includes('saud')) return svg.saude;
+    if (cat.includes('educ')) return svg.educacao;
+    if (cat.includes('entreten') || cat.includes('lazer')) return svg.entretenimento;
+
+    return tipo === 'receita' ? svg.receita : svg.despesa;
+}
+
+function normalizeCategorySlug(value) {
+    const v = (value || '').toString().trim().toLowerCase();
+    if (!v) return '';
+    if (v.includes('aliment') || v.includes('merc')) return 'alimentacao';
+    if (v.includes('transp')) return 'transporte';
+    if (v.includes('saud')) return 'saude';
+    if (v.includes('educ')) return 'educacao';
+    if (v.includes('entreten') || v.includes('lazer')) return 'entretenimento';
+    if (v.includes('outros') || v.includes('outro')) return 'outros';
+    return v.replace(/\s+/g, '-');
 }
 
 /**
  * Manipula o clique no botão "Adicionar Despesa"
  */
 function handleAddExpense() {
-    // Redirecionar para página de financeiro
-    window.location.href = '/financeiro';
+    console.log('🔵 handleAddExpense chamado - abrindo modal');
+    // A modal é gerenciada pelo expense-modal.js
+    // Apenas log para debug
 }
 
 /**
  * Manipula o clique no botão "Ver Extrato Completo"
  */
 function handleViewStatement() {
-    // Redirecionar para página de financeiro
-    window.location.href = '/financeiro';
+    console.log('🔵 handleViewStatement chamado');
+    try {
+        const rows = buildStatementRows();
+        const userData = JSON.parse(localStorage.getItem('user') || '{}');
+        const userName = userData && userData.nome ? userData.nome : 'Usuário';
+        const html = renderStatementHTML(rows, userName);
+        const printWindow = window.open('', '_blank', 'width=1100,height=800');
+
+        if (!printWindow) {
+            showError('Não foi possível abrir a janela de impressão. Verifique se o bloqueador de pop-ups está ativo.');
+            return;
+        }
+
+        printWindow.document.write(html);
+        printWindow.document.close();
+
+        // Aguarda renderização antes de chamar print
+        printWindow.onload = () => {
+            printWindow.focus();
+            printWindow.print();
+        };
+    } catch (error) {
+        console.error('Erro ao gerar PDF do extrato:', error);
+        showError('Erro ao gerar o PDF do extrato. Tente novamente.');
+    }
+}
+
+// Monta todas as linhas do extrato com dados atuais
+function buildStatementRows() {
+    const rows = [];
+
+    // Gastos fixos
+    (dashboardData.gastosFixos || []).forEach(g => {
+        rows.push({
+            data: g.data || g.data_gasto || g.created_at || new Date(),
+            descricao: g.nome || g.descricao || 'Gasto Fixo',
+            categoria: g.categoria || 'Fixo',
+            tipo: 'Despesa',
+            valor: parseFloat(g.valor || 0)
+        });
+    });
+
+    // Gastos variáveis
+    (dashboardData.gastosVariaveis || []).forEach(g => {
+        const isEntrada = g.tipo === 'entrada';
+        rows.push({
+            data: g.data_gasto || g.data || g.created_at || new Date(),
+            descricao: g.nome || g.descricao || (isEntrada ? 'Entrada' : 'Gasto Variável'),
+            categoria: g.categoria || g.categoria_slug || 'Variável',
+            tipo: isEntrada ? 'Receita' : 'Despesa',
+            valor: parseFloat(g.valor || 0)
+        });
+    });
+
+    // Salário (se existir)
+    if (dashboardData.salario && dashboardData.salario > 0) {
+        const hoje = new Date();
+        rows.push({
+            data: hoje,
+            descricao: 'Salário',
+            categoria: 'Renda Fixa',
+            tipo: 'Receita',
+            valor: parseFloat(dashboardData.salario || 0)
+        });
+    }
+
+    // Ordenar por data desc
+    rows.sort((a, b) => new Date(b.data) - new Date(a.data));
+    return rows;
+}
+
+// Gera HTML amigável para impressão/exportação em PDF
+function renderStatementHTML(rows, userName = 'Usuário') {
+    const today = new Date();
+    const formatter = (value) => formatCurrency(value || 0);
+
+    const tableRows = rows.map(r => {
+        const data = new Date(r.data);
+        const dataStr = isNaN(data) ? '' : data.toLocaleDateString('pt-BR');
+        const tipoClass = r.tipo === 'Receita' ? 'tag tag-receita' : 'tag tag-despesa';
+        return `
+            <tr>
+                <td>${dataStr}</td>
+                <td>${r.descricao || ''}</td>
+                <td>${r.categoria || ''}</td>
+                <td><span class="${tipoClass}">${r.tipo}</span></td>
+                <td class="valor">${formatter(r.valor)}</td>
+            </tr>
+        `;
+    }).join('');
+
+    return `
+    <!DOCTYPE html>
+    <html lang="pt-BR">
+    <head>
+        <meta charset="utf-8" />
+        <title>Extrato Completo</title>
+        <style>
+            * { box-sizing: border-box; }
+            body { font-family: 'Manrope', Arial, sans-serif; margin: 24px; color: #0f172a; }
+            .header { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 12px; }
+            .brand { display: flex; align-items: center; gap: 10px; }
+            .brand img { height: 40px; width: auto; }
+            .title-group { display: flex; flex-direction: column; gap: 2px; }
+            h1 { margin: 0; font-size: 22px; }
+            p.sub { margin: 0; color: #475569; font-size: 13px; }
+            p.user { margin: 0; color: #0f172a; font-weight: 700; font-size: 14px; }
+            table { width: 100%; border-collapse: collapse; margin-top: 12px; }
+            thead { background: #f1f5f9; }
+            th, td { padding: 10px 12px; text-align: left; font-size: 13px; }
+            th { color: #0f172a; border-bottom: 1px solid #e2e8f0; }
+            td { border-bottom: 1px solid #e2e8f0; }
+            tr:nth-child(even) td { background: #f8fafc; }
+            .valor { text-align: right; font-weight: 700; }
+            .tag { padding: 4px 10px; border-radius: 999px; font-weight: 700; font-size: 11px; display: inline-block; }
+            .tag-receita { background: #dcfce7; color: #166534; }
+            .tag-despesa { background: #fee2e2; color: #b91c1c; }
+            @media print {
+                body { margin: 12mm; }
+                table { page-break-inside: auto; }
+                tr { page-break-inside: avoid; page-break-after: auto; }
+            }
+        </style>
+    </head>
+    <body>
+        <div class="header">
+            <div class="brand">
+                <img src="/img/financel.svg" alt="Logo" />
+                <div class="title-group">
+                    <h1>Extrato Completo</h1>
+                    <p class="sub">Gerado em ${today.toLocaleDateString('pt-BR')} às ${today.toLocaleTimeString('pt-BR')}</p>
+                </div>
+            </div>
+            <p class="user">${userName}</p>
+        </div>
+        <table>
+            <thead>
+                <tr>
+                    <th style="width: 120px;">Data</th>
+                    <th>Descrição</th>
+                    <th style="width: 160px;">Categoria</th>
+                    <th style="width: 120px;">Tipo</th>
+                    <th style="width: 140px; text-align: right;">Valor</th>
+                </tr>
+            </thead>
+            <tbody>
+                ${tableRows || '<tr><td colspan="5" style="text-align:center; padding:20px; color:#94a3b8;">Nenhuma transação encontrada.</td></tr>'}
+            </tbody>
+        </table>
+    </body>
+    </html>
+    `;
 }
 
 /**

@@ -11,7 +11,12 @@ module.exports = {
 
   findByUserId(userId, callback) {
     db.query(
-      'SELECT * FROM gastos_variaveis WHERE user_id = ?',
+             `SELECT gv.*, c.nome as categoria, 
+               LOWER(REPLACE(c.nome, 'ç', 'c')) as categoria_slug
+       FROM gastos_variaveis gv
+       LEFT JOIN categorias c ON gv.categoria_id = c.id
+       WHERE gv.user_id = ?
+       ORDER BY gv.data_gasto DESC`,
       [userId],
       callback
     );

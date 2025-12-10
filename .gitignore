@@ -1,6 +1,6 @@
 # --- Dependências ---
 node_modules/
-package-lock.json # (Opcional: alguns preferem manter, outros ignorar. Se for trabalhar em equipe, é bom manter. Pode remover essa linha se quiser versionar)
+package-lock.json
 
 # --- Segurança & Ambiente (NUNCA ENVIE ISSO) ---
 .env
@@ -26,5 +26,8 @@ Desktop.ini
 .vscode/
 .idea/
 
-# Ignore generated reports and PDFs
+# --- Build Artifacts & Generated Files ---
+
+# --- Generated Reports ---
 docs/*.pdf
+ANALISE_ARQUIVOS_DETALHADA.md

@@ -69,14 +69,21 @@ aside {
     top: 0;
     right: 0;
     left: 16rem;
-    background: rgba(248, 247, 246, 0.85);
-    -webkit-backdrop-filter: blur(4px);
-    backdrop-filter: blur(4px);
+    background: linear-gradient(120deg, rgba(255, 255, 255, 0.82), rgba(255, 255, 255, 0.72));
+    -webkit-backdrop-filter: blur(4px) saturate(1.15) brightness(0.98);
+    backdrop-filter: blur(4px) saturate(1.15) brightness(0.98);
     z-index: 40;
     padding: 1rem 2rem;
     height: 4rem;
     gap: 1rem;
     width: calc(100% - 16rem);
+}
+
+.dark .header-fixed {
+    background: linear-gradient(120deg, rgba(26, 32, 44, 0.78), rgba(26, 32, 44, 0.68));
+    -webkit-backdrop-filter: blur(14px) saturate(1.1) brightness(1.05);
+    backdrop-filter: blur(14px) saturate(1.1) brightness(1.05);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
 }
 
 @media (max-width: 1023px) {
@@ -117,12 +124,12 @@ aside {
 /* Gráfico de barras em tons pastel */
 .bar-chart-income {
     background-color: #a7f3d0;
-    min-height: 2rem;
+    height: 0;
 }
 
 .bar-chart-expense {
     background-color: #fecaca;
-    min-height: 2rem;
+    height: 0;
 }
 
 /* Alturas das barras */
@@ -176,4 +183,28 @@ aside {
 
 .dark .logout-btn:hover {
     background: rgba(160, 67, 10, 0.15);
+}
+
+/* Modal de Despesa */
+#addExpenseModal {
+    display: none !important;
+    position: fixed !important;
+    inset: 0 !important;
+    background-color: rgba(0, 0, 0, 0.5) !important;
+    align-items: center !important;
+    justify-content: center !important;
+    z-index: 50 !important;
+}
+
+#addExpenseModal.hidden {
+    display: none !important;
+}
+
+#addExpenseModal:not(.hidden) {
+    display: flex !important;
+}
+
+#addExpenseModal > div {
+    position: relative;
+    z-index: 51;
 }

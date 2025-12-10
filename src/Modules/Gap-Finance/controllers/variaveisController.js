@@ -7,6 +7,9 @@ module.exports = {
 
     const dados = { ...req.body, user_id: req.user.id };
 
+    // Garantir categoria opcional como null se vier vazia
+    if (!dados.categoria_id) dados.categoria_id = null;
+
     variaveisService.create(dados, (err, result) => {
       if (err) return sendError(res, err);
       if (req.passo) req.passo('💾', `Salvo no Banco (ID: ${result.insertId})`);

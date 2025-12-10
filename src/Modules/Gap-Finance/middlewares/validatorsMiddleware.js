@@ -60,15 +60,18 @@ module.exports = {
 
   // NOVA: Validação de Gasto Variável
   validateGastoVariavel: (req, res, next) => {
-    const { categoria_id, nome, valor, data_gasto } = req.body;
+    const { categoria_id, nome, valor, data_gasto, data } = req.body;
+    
+    // Aceitar tanto data_gasto quanto data (compatibilidade)
+    const dataFinal = data_gasto || data;
 
-    // 1. Checa se tudo veio no JSON
-    if (!categoria_id || !nome || !valor || !data_gasto) {
+    // 1. Campos obrigatórios: nome, valor, data
+    if (!nome || !valor || !dataFinal) {
       if (req.passo)
         req.passo('⚠️', 'Validação Gasto Var falhou: Campos faltando');
       return res.status(400).json({
         error:
-          'Todos os campos são obrigatórios: categoria_id, nome, valor e data_gasto.',
+          'Campos obrigatórios: nome, valor e data.',
       });
     }
 
@@ -84,12 +87,22 @@ module.exports = {
     // 3. Validação de Formato de Data (AAAA-MM-DD)
     // Isso evita que o usuário mande "05/10/2025" que quebra o banco
     const regexData = /^\d{4}-\d{2}-\d{2}$/;
-    if (!regexData.test(data_gasto)) {
+    if (!regexData.test(dataFinal)) {
       if (req.passo)
         req.passo('⚠️', 'Validação Gasto Var falhou: Data inválida');
       return res.status(400).json({
         error: 'Data inválida. Use o formato AAAA-MM-DD (ex: 2025-12-31).',
       });
+    }
+    
+    // Normalizar para data_gasto no req.body para o controller
+    if (!req.body.data_gasto && req.body.data) {
+      req.body.data_gasto = req.body.data;
+    }
+
+    // Categoria opcional: se vier vazia, seta null para persistir
+    if (!categoria_id) {
+      req.body.categoria_id = null;
     }
 
     if (req.passo) req.passo('📝', 'Validação Gasto Variável: OK');
