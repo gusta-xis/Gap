@@ -8,6 +8,14 @@ function enforceSecurity() {
     if (!token) {
         // Se não tem token, substitui a URL imediatamente para o login
         window.location.replace('/'); 
+        return;
+    }
+    
+    // Se é o primeiro acesso, redireciona para a introdução do financeiro
+    const financeIntroSeen = localStorage.getItem('financeIntroSeen');
+    if (financeIntroSeen !== 'true') {
+        window.location.replace('/financeiro');
+        return;
     }
 }
 
@@ -77,31 +85,18 @@ function initSubtemas() {
     // 2. Configurar Avatar
     const avatarEl = document.getElementById('userAvatar');
     if (avatarEl) {
-      let avatarUrl = null;
       let nameForInitials = null;
       if (userJson) {
         try {
           const u = JSON.parse(userJson);
-          avatarUrl = u.avatar || u.foto || u.photoUrl || u.profilePicture || null;
           nameForInitials = u.nome || null;
         } catch (e) { /* ignore */ }
       }
       if (!nameForInitials && userName) nameForInitials = userName;
 
-      if (avatarUrl) {
-        avatarEl.style.backgroundImage = `url("${avatarUrl}")`;
-        avatarEl.style.backgroundColor = 'transparent';
-        avatarEl.textContent = '';
-      } else if (nameForInitials) {
+      if (nameForInitials) {
         const initial = nameForInitials.trim().charAt(0).toUpperCase();
         if (initial) {
-          avatarEl.style.backgroundImage = 'none';
-          avatarEl.style.backgroundColor = '#C45B1A';
-          avatarEl.style.color = '#fff';
-          avatarEl.style.display = 'flex';
-          avatarEl.style.alignItems = 'center';
-          avatarEl.style.justifyContent = 'center';
-          avatarEl.style.fontWeight = '700';
           avatarEl.textContent = initial;
         }
       }
@@ -116,6 +111,7 @@ function initSubtemas() {
         localStorage.removeItem('token');
         localStorage.removeItem('user');
         localStorage.removeItem('userName');
+        // NÃO remove financeIntroSeen aqui - ela é persistente por usuário
       } catch (err) { /* ignore */ }
       
       if (openHref) {

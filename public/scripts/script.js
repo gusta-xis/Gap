@@ -94,9 +94,16 @@ document.addEventListener('DOMContentLoaded', () => {
                     
                     alert('Login com sucesso! Redirecionando...');
                     
-                    // --- O PULO DO GATO ---
-                    // Redireciona para a rota limpa configurada no server.js
-                    window.location.replace('/subsistemas'); 
+                    // Verificar se é o primeiro acesso ao financeiro
+                    const financeIntroSeen = localStorage.getItem('financeIntroSeen');
+                    
+                    if (financeIntroSeen === 'true') {
+                        // Já viu a introdução, vai direto para subsistemas
+                        window.location.replace('/subsistemas');
+                    } else {
+                        // Primeiro acesso, vai para a introdução do financeiro
+                        window.location.replace('/financeiro');
+                    } 
                     
                 } else {
                     alert(result.error || 'Falha no login.');

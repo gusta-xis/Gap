@@ -1,0 +1,179 @@
+/* Dashboard CSS - Estilos customizados */
+
+/* Transições suaves globais */
+* {
+    transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+}
+
+button, a, [role="button"] {
+    transition: all 0.3s ease;
+}
+
+button:hover, a:hover {
+    transform: translateY(-2px);
+}
+
+svg, img[src*="svg"] {
+    transition: all 0.3s ease;
+}
+
+svg:hover, img[src*="svg"]:hover {
+    filter: drop-shadow(0 4px 6px rgba(160, 67, 10, 0.1));
+}
+
+/* Layout Container */
+.layout-container {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    height: 100%;
+    margin-left: 16rem;
+}
+
+@media (max-width: 1023px) {
+    .layout-container {
+        margin-left: 0;
+    }
+}
+
+.layout-content-container {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    max-width: 80rem;
+    flex: 1;
+    padding-top: 4rem;
+}
+
+main {
+    display: block;
+    flex: 1;
+    width: 100%;
+}
+
+aside {
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 100vh;
+    overflow-y: auto;
+    z-index: 10;
+}
+
+/* Header Fixed Styles */
+.header-fixed {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    position: fixed;
+    top: 0;
+    right: 0;
+    left: 16rem;
+    background: rgba(248, 247, 246, 0.85);
+    -webkit-backdrop-filter: blur(4px);
+    backdrop-filter: blur(4px);
+    z-index: 40;
+    padding: 1rem 2rem;
+    height: 4rem;
+    gap: 1rem;
+    width: calc(100% - 16rem);
+}
+
+@media (max-width: 1023px) {
+    .header-fixed {
+        left: 0;
+        width: 100%;
+    }
+}
+
+@media (max-width: 1023px) {
+    .header-fixed {
+        left: 0;
+    }
+}
+
+.header-user-name {
+    color: #334155;
+    font-size: 0.875rem;
+    font-weight: 500;
+    margin: 0;
+    display: block;
+}
+
+.header-avatar {
+    width: 2.5rem;
+    height: 2.5rem;
+    border-radius: 50%;
+    background: #A0430A;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: 600;
+    font-size: 1rem;
+    flex-shrink: 0;
+}
+
+/* Gráfico de barras em tons pastel */
+.bar-chart-income {
+    background-color: #a7f3d0;
+    min-height: 2rem;
+}
+
+.bar-chart-expense {
+    background-color: #fecaca;
+    min-height: 2rem;
+}
+
+/* Alturas das barras */
+.bar-height-jan-income { height: 40%; }
+.bar-height-jan-expense { height: 20%; }
+.bar-height-fev-income { height: 60%; }
+.bar-height-fev-expense { height: 40%; }
+.bar-height-mar-income { height: 55%; }
+.bar-height-mar-expense { height: 65%; }
+.bar-height-abr-income { height: 70%; }
+.bar-height-abr-expense { height: 30%; }
+.bar-height-mai-income { height: 80%; }
+.bar-height-mai-expense { height: 45%; }
+.bar-height-jun-income { height: 60%; }
+.bar-height-jun-expense { height: 50%; }
+
+/* Botão de logout */
+.logout-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.5rem;
+    height: 2.5rem;
+    border-radius: 0.5rem;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    color: #A0430A;
+    padding: 0.5rem;
+}
+
+.logout-btn:hover {
+    background: rgba(160, 67, 10, 0.1);
+    color: #A0430A;
+}
+
+.logout-btn svg {
+    width: 1.5rem;
+    height: 1.5rem;
+    transition: all 0.3s ease;
+}
+
+.logout-btn:hover svg {
+    filter: drop-shadow(0 2px 4px rgba(160, 67, 10, 0.2));
+}
+
+.dark .logout-btn {
+    color: #A0430A;
+}
+
+.dark .logout-btn:hover {
+    background: rgba(160, 67, 10, 0.15);
+}

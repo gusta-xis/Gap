@@ -9,7 +9,29 @@ window.addEventListener('pageshow', function(event) {
     const token = localStorage.getItem('token');
     if (!token) {
         window.location.replace('/');
+        return;
     }
+
+    // Obter ID do usuário para armazenar flag por usuário
+    const userJson = localStorage.getItem('user');
+    let userId = null;
+    if (userJson) {
+        try {
+            const userData = JSON.parse(userJson);
+            userId = userData.id;
+        } catch (e) { /* ignore */ }
+    }
+
+    // Se já viu a introdução, pula direto para o dashboard
+    const introSeenKey = userId ? `financeIntroSeen_${userId}` : 'financeIntroSeen';
+    const introSeen = localStorage.getItem(introSeenKey) === 'true';
+    if (introSeen) {
+        window.location.replace('/financeiro/dashboard');
+        return;
+    }
+    
+    // Mostrar a página se passou nas verificações
+    document.body.style.display = 'flex';
 })();
 
 // 2. LÓGICA DO STEPPER
@@ -74,8 +96,18 @@ document.addEventListener('DOMContentLoaded', () => {
         if (currentStep < maxSteps) {
             goToStep(currentStep + 1);
         } else {
-            // Fim do Wizard -> Vai para o Dashboard
-            window.location.href = '/financeiro'; 
+            // Fim do Wizard -> marca intro como vista e vai para o dashboard
+            const userJson = localStorage.getItem('user');
+            let userId = null;
+            if (userJson) {
+                try {
+                    const userData = JSON.parse(userJson);
+                    userId = userData.id;
+                } catch (e) { /* ignore */ }
+            }
+            const introSeenKey = userId ? `financeIntroSeen_${userId}` : 'financeIntroSeen';
+            localStorage.setItem(introSeenKey, 'true');
+            window.location.replace('/financeiro/dashboard');
         }
     }
 
@@ -100,6 +132,25 @@ document.addEventListener('DOMContentLoaded', () => {
             goToStep(index);
         });
     });
+
+    // Botão "Pular introdução"
+    const skipIntroBtn = document.getElementById('skip-intro');
+    if (skipIntroBtn) {
+        skipIntroBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            const userJson = localStorage.getItem('user');
+            let userId = null;
+            if (userJson) {
+                try {
+                    const userData = JSON.parse(userJson);
+                    userId = userData.id;
+                } catch (e) { /* ignore */ }
+            }
+            const introSeenKey = userId ? `financeIntroSeen_${userId}` : 'financeIntroSeen';
+            localStorage.setItem(introSeenKey, 'true');
+            window.location.replace('/financeiro/dashboard');
+        });
+    }
 
     // Inicializa o estado correto
     updateUI();

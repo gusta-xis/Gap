@@ -21,16 +21,10 @@ app.use(express.static(path.join(__dirname, 'public')));
 // =======================================================
 // 2. ROTAS DA API (BACK-END)
 // =======================================================
-// Verifica se o arquivo de rotas existe para não quebrar o servidor
-const routesPath = path.join(__dirname, 'src', 'Modules', 'Gap-Core', 'routes', 'userRoutes.js');
-
-if (fs.existsSync(routesPath)) {
-    const userRoutes = require(routesPath);
-    app.use('/api/users', userRoutes);
-    console.log('✅ API de usuários carregada com sucesso.');
-} else {
-    console.error('❌ ERRO: Arquivo de rotas não encontrado em:', routesPath);
-}
+// Carrega as rotas centralizadas
+const apiRoutes = require('./src/api');
+app.use('/api', apiRoutes);
+console.log('✅ APIs carregadas com sucesso.');
 
 // =======================================================
 // 3. ROTAS DE NAVEGAÇÃO (URLS LIMPAS)
@@ -57,6 +51,11 @@ app.get('/subsistemas', (req, res) => {
 // Rota Financeiro (Sem .html)
 app.get('/financeiro', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'finance.html'));
+});
+
+// Rota Financeiro Dashboard
+app.get('/financeiro/dashboard', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'finance-dashboard.html'));
 });
 
 // =======================================================

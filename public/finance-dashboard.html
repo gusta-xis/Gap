@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html class="light" lang="pt-br">
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>Financeiro: Dashboard com Menu Lateral</title>
+    
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <script>
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#A0430A",
+                        "secondary": "#DFE8E6",
+                        "background-light": "#f8f7f6",
+                        "background-dark": "#1C1C1C",
+                        "text-light": "#1a1a1a",
+                        "text-dark": "#f5f5f5",
+                        "text-secondary-light": "#666666",
+                        "text-secondary-dark": "#999999",
+                        "card-light": "#ffffff",
+                        "card-dark": "#2a2a2a",
+                    },
+                    fontFamily: {
+                        "display": ["Manrope", "sans-serif"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        };
+    </script>
+    
+    <link href="https://fonts.googleapis.com" rel="preconnect"/>
+    <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+    <link rel="stylesheet" href="/styles/dashboard.css">
+</head>
+<body class="font-display bg-background-light dark:bg-background-dark text-text-light dark:text-text-dark">
+
+    <div class="relative flex h-auto min-h-screen w-full group/design-root overflow-x-hidden">
+        <div class="flex h-full grow">
+            <aside class="flex-col bg-white dark:bg-slate-900/50 border-r border-black/10 dark:border-white/10 w-64 p-6 hidden lg:flex">
+                <div class="flex items-center gap-3">
+                    <img src="/img/financel.svg" alt="Finance Icon" class="h-12 w-auto">
+                </div>
+                <nav class="flex flex-col gap-2 mt-8 flex-1">
+                    <a class="flex items-center gap-3 px-4 py-2 rounded-lg bg-secondary dark:bg-slate-800 text-primary dark:text-white" href="#">
+                        <span class="material-symbols-outlined text-xl">dashboard</span>
+                        <span class="text-sm font-bold">Dashboard</span>
+                    </a>
+                    <a class="flex items-center gap-3 px-4 py-2 rounded-lg text-slate-700 dark:text-slate-300 hover:bg-secondary dark:hover:bg-slate-800" href="#">
+                        <span class="material-symbols-outlined text-xl">receipt_long</span>
+                        <span class="text-sm font-medium">Minhas Transações</span>
+                    </a>
+                    <a class="flex items-center gap-3 px-4 py-2 rounded-lg text-slate-700 dark:text-slate-300 hover:bg-secondary dark:hover:bg-slate-800" href="#">
+                        <span class="material-symbols-outlined text-xl">event_repeat</span>
+                        <span class="text-sm font-medium">Gastos Fixos</span>
+                    </a>
+                    <a class="flex items-center gap-3 px-4 py-2 rounded-lg text-slate-700 dark:text-slate-300 hover:bg-secondary dark:hover:bg-slate-800" href="#">
+                        <span class="material-symbols-outlined text-xl">category</span>
+                        <span class="text-sm font-medium">Categorias</span>
+                    </a>
+                    <a class="flex items-center gap-3 px-4 py-2 rounded-lg text-slate-700 dark:text-slate-300 hover:bg-secondary dark:hover:bg-slate-800" href="#">
+                        <span class="material-symbols-outlined text-xl">trending_up</span>
+                        <span class="text-sm font-medium">Metas Financeiras</span>
+                    </a>
+                </nav>
+                <div class="mt-auto">
+                    <a class="flex items-center gap-3 px-4 py-2 rounded-lg text-slate-700 dark:text-slate-300 hover:bg-secondary dark:hover:bg-slate-800" href="#">
+                        <span class="material-symbols-outlined text-xl">settings</span>
+                        <span class="text-sm font-medium">Configurações</span>
+                    </a>
+                </div>
+            </aside>
+
+            <div class="layout-container flex h-full grow flex-col flex-1">
+                <div class="px-4 sm:px-6 lg:px-8 xl:px-10 flex flex-1 justify-center py-5">
+                    <div class="layout-content-container flex flex-col w-full max-w-7xl flex-1">
+                        <header class="header-fixed">
+                            <p id="headerUserName" class="header-user-name">Usuario</p>
+                            <div id="headerAvatar" class="header-avatar">U</div>
+                            <button class="logout-btn" title="Voltar para Subtemas" onclick="window.location.href='/subsistemas'">
+                                <svg
+                                  xmlns="http://www.w3.org/2000/svg"
+                                  class="h-6 w-6"
+                                  viewBox="0 0 24 24"
+                                  fill="none"
+                                  stroke="currentColor"
+                                  stroke-width="2"
+                                  stroke-linecap="round"
+                                  stroke-linejoin="round"
+                                >
+                                  <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+                                  <polyline points="16 17 21 12 16 7" />
+                                  <line x1="21" y1="12" x2="9" y2="12" />
+                                </svg>
+                            </button>
+                        </header>
+                        <main class="flex-1 mt-4">
+                            <div class="flex flex-wrap justify-between gap-4 p-4 items-end">
+                                <div class="flex min-w-72 flex-col gap-1">
+                                    <p class="text-slate-800 dark:text-slate-200 tracking-light text-[32px] font-bold leading-tight" data-user-greeting>Olá, Marcos!</p>
+                                    <p class="text-slate-500 dark:text-slate-400 text-base font-normal leading-normal">Seja bem-vindo de volta.</p>
+                                </div>
+                                <div class="flex flex-1 gap-3 flex-wrap justify-start sm:justify-end">
+                                    <button class="flex min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-lg h-10 px-4 bg-primary text-white text-sm font-bold leading-normal tracking-[0.015em] gap-2" data-action="add-expense">
+                                        <span class="material-symbols-outlined text-base">add</span>
+                                        <span class="truncate">Adicionar Despesa</span>
+                                    </button>
+                                    <button class="flex min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-lg h-10 px-4 bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-200 text-sm font-bold leading-normal tracking-[0.015em] border border-black/10 dark:border-white/10" data-action="view-statement">
+                                        <span class="truncate">Ver Extrato Completo</span>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div class="p-4 grid grid-cols-1 lg:grid-cols-3 gap-6">
+                                <div class="lg:col-span-1 flex flex-col gap-6">
+                                    <div class="bg-white dark:bg-slate-900/50 p-6 rounded-xl border border-black/10 dark:border-white/10">
+                                        <p class="text-slate-500 dark:text-slate-400 text-sm font-medium leading-normal">Saldo Atual</p>
+                                        <p class="text-slate-800 dark:text-slate-200 tracking-tight text-4xl font-bold leading-tight mt-1" data-value="balance">R$ 0,00</p>
+                                    </div>
+                                    <div class="flex flex-col gap-4">
+                                        <div class="flex min-w-[158px] flex-1 flex-col gap-2 rounded-xl p-6 border border-black/10 dark:border-white/10 bg-white dark:bg-slate-900/50">
+                                            <p class="text-slate-700 dark:text-slate-300 text-base font-medium leading-normal">Receitas (Mês Atual)</p>
+                                            <p class="text-green-600 dark:text-green-400 tracking-light text-2xl font-bold leading-tight" data-value="income">R$ 0,00</p>
+                                        </div>
+                                        <div class="flex min-w-[158px] flex-1 flex-col gap-2 rounded-xl p-6 border border-black/10 dark:border-white/10 bg-white dark:bg-slate-900/50">
+                                            <p class="text-slate-700 dark:text-slate-300 text-base font-medium leading-normal">Despesas (Mês Atual)</p>
+                                            <p class="text-red-600 dark:text-red-400 tracking-light text-2xl font-bold leading-tight" data-value="expense">R$ 0,00</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="lg:col-span-2 flex flex-col gap-6 p-6 rounded-xl border border-black/10 dark:border-white/10 bg-white dark:bg-slate-900/50">
+                                    <p class="text-slate-800 dark:text-slate-200 text-lg font-bold leading-normal">Balanço dos Últimos Meses</p>
+                                    <div class="grid min-h-[240px] grid-flow-col gap-6 grid-rows-[1fr_auto] items-end justify-items-center px-3">
+                                        <div class="flex flex-col items-center justify-end w-full h-full gap-1">
+                                            <div class="bar-chart-income w-full rounded-sm bar-height-jan-income"></div>
+                                            <div class="bar-chart-expense w-full rounded-sm bar-height-jan-expense"></div>
+                                        </div>
+                                        <p class="text-slate-500 dark:text-slate-400 text-xs font-medium leading-normal tracking-[0.015em]">Jan</p>
+                                        <div class="flex flex-col items-center justify-end w-full h-full gap-1">
+                                            <div class="bar-chart-income w-full rounded-sm bar-height-fev-income"></div>
+                                            <div class="bar-chart-expense w-full rounded-sm bar-height-fev-expense"></div>
+                                        </div>
+                                        <p class="text-slate-500 dark:text-slate-400 text-xs font-medium leading-normal tracking-[0.015em]">Fev</p>
+                                        <div class="flex flex-col items-center justify-end w-full h-full gap-1">
+                                            <div class="bar-chart-income w-full rounded-sm bar-height-mar-income"></div>
+                                            <div class="bar-chart-expense w-full rounded-sm bar-height-mar-expense"></div>
+                                        </div>
+                                        <p class="text-slate-500 dark:text-slate-400 text-xs font-medium leading-normal tracking-[0.015em]">Mar</p>
+                                        <div class="flex flex-col items-center justify-end w-full h-full gap-1">
+                                            <div class="bar-chart-income w-full rounded-sm bar-height-abr-income"></div>
+                                            <div class="bar-chart-expense w-full rounded-sm bar-height-abr-expense"></div>
+                                        </div>
+                                        <p class="text-slate-500 dark:text-slate-400 text-xs font-medium leading-normal tracking-[0.015em]">Abr</p>
+                                        <div class="flex flex-col items-center justify-end w-full h-full gap-1">
+                                            <div class="bar-chart-income w-full rounded-sm bar-height-mai-income"></div>
+                                            <div class="bar-chart-expense w-full rounded-sm bar-height-mai-expense"></div>
+                                        </div>
+                                        <p class="text-slate-500 dark:text-slate-400 text-xs font-medium leading-normal tracking-[0.015em]">Mai</p>
+                                        <div class="flex flex-col items-center justify-end w-full h-full gap-1">
+                                            <div class="bar-chart-income w-full rounded-sm bar-height-jun-income"></div>
+                                            <div class="bar-chart-expense w-full rounded-sm bar-height-jun-expense"></div>
+                                        </div>
+                                        <p class="text-slate-500 dark:text-slate-400 text-xs font-medium leading-normal tracking-[0.015em]">Jun</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="p-4 mt-4">
+                                <div class="bg-white dark:bg-slate-900/50 p-6 rounded-xl border border-black/10 dark:border-white/10">
+                                    <h3 class="text-slate-800 dark:text-slate-200 text-lg font-bold leading-normal mb-4">Atividade Recente</h3>
+                                    <div class="flex flex-col" id="recent-activities-container">
+                                        <div class="text-center py-8">
+                                            <div class="text-slate-400 dark:text-slate-500 mb-2">
+                                                <span class="material-symbols-outlined text-5xl">receipt_long</span>
+                                            </div>
+                                            <p class="text-slate-500 dark:text-slate-400 text-sm">Nenhuma transação registrada ainda</p>
+                                            <p class="text-slate-400 dark:text-slate-500 text-xs mt-1">Adicione despesas para visualizar suas atividades</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </main>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script src="/scripts/api-service.js"></script>
+    <script src="/scripts/finance-dashboard.js"></script>
+</body>
+</html>

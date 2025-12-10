@@ -8,13 +8,13 @@ const authMiddleware = require('../../../middlewares/authMiddleware.js');
 
 // Verifique se o nome do arquivo é 'validatorsMiddleware.js' ou 'validators.js'
 const {
-  validateGastovariavel,
+  validateGastoVariavel,
 } = require('../middlewares/validatorsMiddleware.js');
 
 router.post(
   '/',
   authMiddleware,
-  validateGastovariavel,
+  validateGastoVariavel,
   variaveisController.create
 );
 router.get('/', authMiddleware, variaveisController.findByUserId);
@@ -23,7 +23,7 @@ router.get('/:id', authMiddleware, variaveisController.findById);
 router.put(
   '/:id',
   authMiddleware,
-  validateGastovariavel,
+  validateGastoVariavel,
   variaveisController.update
 );
 router.patch('/:id', authMiddleware, variaveisController.update);

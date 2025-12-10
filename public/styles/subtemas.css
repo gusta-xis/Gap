@@ -32,6 +32,29 @@
   pointer-events: none;
 }
 
+/* Transições suaves para cards e elementos */
+button, a, .card {
+  transition: all 0.3s ease;
+}
+
+button:hover, a:hover {
+  transform: translateY(-2px);
+}
+
+/* Transições para SVGs */
+svg {
+  transition: all 0.3s ease;
+}
+
+svg:hover {
+  transform: scale(1.05);
+  filter: drop-shadow(0 4px 6px rgba(160, 67, 10, 0.1));
+}
+
+img[src*="svg"]:hover {
+  filter: drop-shadow(0 4px 6px rgba(160, 67, 10, 0.1));
+}
+
 @media (max-width: 640px) {
   header {
     padding: 12px 16px;
