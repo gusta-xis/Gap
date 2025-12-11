@@ -1,5 +1,10 @@
 // Dashboard JavaScript - Lógica da aplicação
 
+// Esconde o corpo até confirmar autenticação (evita exibir tela para demo/sem login)
+if (document && document.body) {
+    document.body.style.display = 'none';
+}
+
 // Tratamento de erros global
 window.addEventListener('error', function(e) {
     console.error('Erro global capturado:', e.error);
@@ -37,7 +42,10 @@ function recordBelongsToUser(item, userId) {
 document.addEventListener('DOMContentLoaded', function() {
     try {
         console.log('Iniciando dashboard...');
-        checkAuthentication();
+        const isAuthenticated = checkAuthentication();
+        if (!isAuthenticated) return;
+        // Autenticado: libera a renderização
+        document.body.style.display = '';
         initializeDashboard();
     } catch (error) {
         console.error('Erro na inicialização:', error);
@@ -50,20 +58,26 @@ document.addEventListener('DOMContentLoaded', function() {
 function checkAuthentication() {
     const token = localStorage.getItem('token');
     const user = localStorage.getItem('user');
+    const redirectToLogin = () => {
+        try {
+            localStorage.removeItem('token');
+            localStorage.removeItem('user');
+            localStorage.removeItem('userName');
+        } catch (e) { /* ignore */ }
+        window.location.replace('/');
+    };
     
     if (!token || !user) {
-        console.warn('Usuário não autenticado. Usando modo demonstração.');
-        // Criar usuário de demonstração apenas se não existir
-        const demoUser = JSON.stringify({
-            id: 1,
-            nome: 'Usuário Demo',
-            email: 'demo@example.com'
-        });
-        
-        // Verificar se já não é o usuário demo para evitar loop
-        if (user !== demoUser) {
-            localStorage.setItem('user', demoUser);
-        }
+        console.warn('Usuário não autenticado. Redirecionando para login.');
+        redirectToLogin();
+        return false;
+    }
+
+    try {
+        JSON.parse(user);
+    } catch (e) {
+        console.warn('Dados de usuário corrompidos. Limpando sessão.');
+        redirectToLogin();
         return false;
     }
     
@@ -151,8 +165,9 @@ async function loadDashboardData() {
         console.log('Token encontrado:', !!token);
         
         if (!token) {
-            console.warn('Token não encontrado. Usando dados vazios.');
+            console.warn('Token não encontrado. Redirecionando para login.');
             showLoading(false);
+            window.location.replace('/');
             return;
         }
         
