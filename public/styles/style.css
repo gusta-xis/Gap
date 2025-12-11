@@ -133,6 +133,13 @@ body {
   z-index: 1;
 }
 
+/* Recuperação de senha está -100% para a esquerda (escondido) */
+.forgot-password-view {
+  transform: translateX(-100%) scale(0.98);
+  opacity: 0;
+  z-index: 1;
+}
+
 /* --- ESTADO "MODO CADASTRO" (Ativado pelo JS) --- */
 /* Quando a classe .sign-up-mode é adicionada ao main-container: */
 
@@ -151,8 +158,21 @@ body {
   box-shadow: 0 20px 40px rgba(12, 12, 12, 0.08);
 }
 
+/* --- ESTADO "MODO RECUPERAÇÃO DE SENHA" --- */
+.main-container.forgot-password-mode .login-view {
+  transform: translateX(100%) scale(0.98);
+  opacity: 0;
+}
+
+.main-container.forgot-password-mode .forgot-password-view {
+  transform: translateX(0) scale(1);
+  opacity: 1;
+  z-index: 3;
+}
+
 /* Small shine animation when switching modes */
 .main-container.sign-up-mode .form-wrapper,
+.main-container.forgot-password-mode .form-wrapper,
 .main-container .form-wrapper {
   transition:
     transform 0.6s cubic-bezier(0.2, 0.9, 0.25, 1),
@@ -280,6 +300,13 @@ label {
   font-weight: 600;
   margin-bottom: 0.4rem;
   display: block;
+}
+.password-hint {
+  display: block;
+  margin-top: 0.4rem;
+  font-size: 11px;
+  color: #6b7280;
+  line-height: 1.4;
 }
 .input-wrapper {
   background: #fff;

@@ -174,6 +174,11 @@ app.get('/financeiro/dashboard', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'finance-dashboard.html'));
 });
 
+// Rota Reset Password
+app.get('/reset-password', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'reset-password.html'));
+});
+
 // =======================================================
 // 7. TRATAMENTO DE ERROS GLOBAL
 // =======================================================

@@ -76,7 +76,7 @@
                   </button>
                 </div>
               </div>
-              <div class="forgot-pass"><a href="#">Esqueceu sua senha?</a></div>
+              <div class="forgot-pass"><a href="#" id="linkToForgotPassword">Esqueceu sua senha?</a></div>
               <button class="btn-submit" type="submit">Entrar</button>
             </form>
 
@@ -151,6 +151,9 @@
                     </svg>
                   </button>
                 </div>
+                <small class="password-hint">
+                  Mínimo 8 caracteres, incluindo: letra maiúscula e caractere especial (!@#$%...)
+                </small>
               </div>
               <div class="input-group">
                 <label>Confirmar Senha</label>
@@ -194,6 +197,55 @@
             Simplifique sua gestão pessoal em um único lugar seguro e intuitivo.
           </p>
           <img src="img/cadastro.svg" class="illustration" alt="Ilustração" />
+        </div>
+      </div>
+
+      <!-- View de Recuperação de Senha -->
+      <div class="view-container forgot-password-view">
+        <div class="left-banner light-bg">
+          <div class="banner-content">
+            <img src="img/burnt-cooper.svg" class="logo-big" alt="Logo GAP" />
+            <h1 class="banner-title">Recupere sua senha</h1>
+            <p class="banner-desc">
+              Não se preocupe! Digite seu email e enviaremos instruções para redefinir sua senha.
+            </p>
+            <img
+              src="img/login.svg"
+              class="illustration"
+              alt="Recuperação de senha"
+            />
+          </div>
+        </div>
+
+        <div class="right-form white-bg">
+          <div class="form-wrapper">
+            <h2 class="form-title">Esqueceu sua senha?</h2>
+            <p class="form-subtitle">Digite seu email para receber o link de recuperação.</p>
+
+            <form id="forgotPasswordForm" class="form-box">
+              <div class="input-group">
+                <label for="forgot-email">Email</label>
+                <div class="input-wrapper">
+                  <svg class="icon" viewBox="0 0 24 24">
+                    <path d="M4 4h16v16H4z"></path>
+                    <polyline points="22,6 12,13 2,6"></polyline>
+                  </svg>
+                  <input
+                    type="email"
+                    placeholder="Digite seu email"
+                    id="forgot-email"
+                    required
+                  />
+                </div>
+              </div>
+              <button class="btn-submit" type="submit">Enviar Link de Recuperação</button>
+            </form>
+
+            <p class="switch-text">
+              Lembrou sua senha?
+              <a href="#" id="linkBackToLogin">Fazer login</a>
+            </p>
+          </div>
         </div>
       </div>
     </div>

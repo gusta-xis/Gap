@@ -1,6 +1,32 @@
 // ========================================================
 // VALIDAÇÃO DE USUÁRIO COM REGEX E FORÇA DE SENHA
 // ========================================================
+
+/**
+ * Valida força da senha
+ */
+function validatePasswordStrength(senha) {
+  const errors = [];
+
+  if (senha.length < 8) {
+    errors.push('Senha deve ter no mínimo 8 caracteres.');
+  }
+
+  if (senha.length > 128) {
+    errors.push('Senha muito longa.');
+  }
+
+  if (!/[A-Z]/.test(senha)) {
+    errors.push('Senha deve conter pelo menos uma letra MAIÚSCULA.');
+  }
+
+  if (!/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(senha)) {
+    errors.push('Senha deve conter pelo menos um caractere especial (!@#$%^&*...).');
+  }
+
+  return errors;
+}
+
 module.exports = {
   validateUser: (req, res, next) => {
     const { nome, email, senha } = req.body;
@@ -64,43 +90,38 @@ module.exports = {
       return res.status(400).json({ error: 'Senha deve ser um texto válido.' });
     }
 
-    if (senha.length < 8) {
+    const passwordErrors = validatePasswordStrength(senha);
+    if (passwordErrors.length > 0) {
       return res.status(400).json({ 
-        error: 'Senha deve ter no mínimo 8 caracteres.' 
-      });
-    }
-
-    if (senha.length > 128) {
-      return res.status(400).json({ 
-        error: 'Senha muito longa.' 
-      });
-    }
-
-    if (!/[A-Z]/.test(senha)) {
-      return res.status(400).json({ 
-        error: 'Senha deve conter pelo menos uma letra MAIÚSCULA.' 
-      });
-    }
-
-    if (!/[a-z]/.test(senha)) {
-      return res.status(400).json({ 
-        error: 'Senha deve conter pelo menos uma letra minúscula.' 
-      });
-    }
-
-    if (!/[0-9]/.test(senha)) {
-      return res.status(400).json({ 
-        error: 'Senha deve conter pelo menos um número.' 
-      });
-    }
-
-    if (!/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(senha)) {
-      return res.status(400).json({ 
-        error: 'Senha deve conter pelo menos um caractere especial (!@#$%^&*...).' 
+        error: passwordErrors[0] 
       });
     }
 
     if (req.passo) req.passo('📝', 'Validação User: OK');
+    next();
+  },
+
+  /**
+   * Valida requisição de reset de senha
+   */
+  validateResetPassword: (req, res, next) => {
+    const { token, newPassword } = req.body;
+
+    if (!token) {
+      return res.status(400).json({ error: 'Token obrigatório.' });
+    }
+
+    if (!newPassword || typeof newPassword !== 'string') {
+      return res.status(400).json({ error: 'Nova senha obrigatória.' });
+    }
+
+    const passwordErrors = validatePasswordStrength(newPassword);
+    if (passwordErrors.length > 0) {
+      return res.status(400).json({ 
+        error: passwordErrors[0] 
+      });
+    }
+
     next();
   },
 };

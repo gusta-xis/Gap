@@ -52,15 +52,18 @@ document.addEventListener('DOMContentLoaded', () => {
   clearUserSession();
 
   // =========================================
-  // ANIMAÇÃO LOGIN/SIGNUP
+  // ANIMAÇÃO LOGIN/SIGNUP/FORGOT PASSWORD
   // =========================================
   const mainContainer = document.querySelector('.main-container');
   const linkToSignup = document.getElementById('linkToSignup');
   const linkToLogin = document.getElementById('linkToLogin');
+  const linkToForgotPassword = document.getElementById('linkToForgotPassword');
+  const linkBackToLogin = document.getElementById('linkBackToLogin');
 
   if (linkToSignup) {
     linkToSignup.addEventListener('click', (e) => {
       e.preventDefault();
+      mainContainer.classList.remove('forgot-password-mode');
       mainContainer.classList.add('sign-up-mode');
     });
   }
@@ -69,6 +72,22 @@ document.addEventListener('DOMContentLoaded', () => {
     linkToLogin.addEventListener('click', (e) => {
       e.preventDefault();
       mainContainer.classList.remove('sign-up-mode');
+      mainContainer.classList.remove('forgot-password-mode');
+    });
+  }
+
+  if (linkToForgotPassword) {
+    linkToForgotPassword.addEventListener('click', (e) => {
+      e.preventDefault();
+      mainContainer.classList.remove('sign-up-mode');
+      mainContainer.classList.add('forgot-password-mode');
+    });
+  }
+
+  if (linkBackToLogin) {
+    linkBackToLogin.addEventListener('click', (e) => {
+      e.preventDefault();
+      mainContainer.classList.remove('forgot-password-mode');
     });
   }
 
@@ -236,6 +255,62 @@ document.addEventListener('DOMContentLoaded', () => {
         const confSenhaInput = document.getElementById('signup-confSenha');
         if (confSenhaInput) confSenhaInput.value = '';
 
+        btn.innerText = txtOriginal;
+        btn.disabled = false;
+      }
+    });
+  }
+
+  // =========================================
+  // FORMULÁRIO DE RECUPERAÇÃO DE SENHA
+  // =========================================
+  const forgotPasswordForm = document.getElementById('forgotPasswordForm');
+  if (forgotPasswordForm) {
+    forgotPasswordForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const btn = forgotPasswordForm.querySelector('button[type="submit"]');
+      const txtOriginal = btn.innerText;
+      btn.innerText = 'Enviando...';
+      btn.disabled = true;
+
+      const email = sanitizeInput(document.getElementById('forgot-email').value);
+
+      try {
+        const response = await fetch('/api/v1/users/forgot-password', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email }),
+        });
+
+        const result = await response.json();
+
+        if (response.ok) {
+          // Em produção, o token seria enviado por email
+          // Por ora, mostramos o link direto para teste
+          if (result.token) {
+            const resetLink = `${window.location.origin}/reset-password.html?token=${result.token}`;
+            
+            // Copia automaticamente para clipboard
+            try {
+              await navigator.clipboard.writeText(resetLink);
+              alert(`✅ Link de recuperação copiado!\n\nCole no navegador para redefinir sua senha.\n\n⚠️ Em produção, este link seria enviado por email.`);
+            } catch (clipboardErr) {
+              // Fallback se clipboard falhar
+              alert(`✅ Link de recuperação:\n\n${resetLink}\n\n📋 Copie o link acima\n⚠️ Em produção, este link seria enviado por email.`);
+            }
+          } else {
+            alert(`✅ ${result.message || 'Se o email existir, um link de recuperação foi enviado.'}`);
+          }
+          forgotPasswordForm.reset();
+          mainContainer.classList.remove('forgot-password-mode');
+        } else {
+          alert(`❌ ${result.error || 'Falha ao enviar link de recuperação.'}`);
+        }
+      } catch (error) {
+        console.error('❌ Erro de conexão:', error);
+        alert('❌ Erro de conexão com o servidor.');
+      } finally {
         btn.innerText = txtOriginal;
         btn.disabled = false;
       }

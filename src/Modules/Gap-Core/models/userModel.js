@@ -147,4 +147,19 @@ module.exports = {
 
     db.query('DELETE FROM users WHERE id = ?', [id], callback);
   },
+
+  /**
+   * Atualiza apenas a senha do usuário (para recuperação de senha)
+   */
+  updatePassword(id, hashedPassword, callback) {
+    if (!Number.isInteger(id) || id <= 0) {
+      return callback(new Error('ID deve ser um número inteiro válido'));
+    }
+
+    if (!hashedPassword) {
+      return callback(new Error('Senha hash obrigatória'));
+    }
+
+    db.query('UPDATE users SET senha = ? WHERE id = ?', [hashedPassword, id], callback);
+  },
 };

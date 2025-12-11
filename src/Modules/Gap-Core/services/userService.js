@@ -174,4 +174,93 @@ module.exports = {
    * Deleta usuário
    */
   delete: (id, cb) => userModel.remove(id, cb),
+
+  /**
+   * Gera token de recuperação de senha (válido por 1 hora)
+   */
+  generatePasswordResetToken: (email, callback) => {
+    userModel.findByEmail(email, (err, user) => {
+      if (err) {
+        console.error('❌ Erro ao buscar usuário:', err.message);
+        return callback({ 
+          status: 500, 
+          message: 'Erro ao processar recuperação' 
+        });
+      }
+
+      // Por segurança, não revelamos se o email existe ou não
+      if (!user) {
+        // Retorna sucesso mesmo se usuário não existe (previne enumeração de emails)
+        return callback(null, { 
+          message: 'Se o email existir, um link será enviado.' 
+        });
+      }
+
+      // Gera token de reset válido por 1 hora
+      const resetToken = jwt.sign(
+        { 
+          id: user.id, 
+          email: user.email,
+          type: 'reset'
+        },
+        process.env.JWT_SECRET,
+        { expiresIn: '1h' }
+      );
+
+      // Em produção, aqui você enviaria o email com o link
+      // Por ora, retornamos o token para teste
+      callback(null, { 
+        token: resetToken,
+        message: 'Token de recuperação gerado'
+      });
+    });
+  },
+
+  /**
+   * Reseta senha usando token de recuperação
+   */
+  resetPassword: (token, newPassword, callback) => {
+    // Verifica se o token é válido
+    jwt.verify(token, process.env.JWT_SECRET, (err, decoded) => {
+      if (err) {
+        return callback({ 
+          status: 401, 
+          message: 'Token inválido ou expirado' 
+        });
+      }
+
+      // Verifica se é um token de reset
+      if (decoded.type !== 'reset') {
+        return callback({ 
+          status: 401, 
+          message: 'Token inválido' 
+        });
+      }
+
+      // Hash da nova senha
+      bcrypt.hash(newPassword, 10, (hashErr, hash) => {
+        if (hashErr) {
+          console.error('❌ Erro ao gerar hash:', hashErr.message);
+          return callback({ 
+            status: 500, 
+            message: 'Erro ao processar nova senha' 
+          });
+        }
+
+        // Atualiza a senha no banco
+        userModel.updatePassword(decoded.id, hash, (updateErr) => {
+          if (updateErr) {
+            return callback({ 
+              status: 500, 
+              message: 'Erro ao atualizar senha' 
+            });
+          }
+
+          callback(null, { 
+            message: 'Senha redefinida com sucesso' 
+          });
+        });
+      });
+    });
+  },
 };

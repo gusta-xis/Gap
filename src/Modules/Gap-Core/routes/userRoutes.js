@@ -5,7 +5,7 @@
 const express = require('express');
 const router = express.Router();
 const userController = require('../controllers/userController');
-const { validateUser } = require('../middlewares/userMiddleware');
+const { validateUser, validateResetPassword } = require('../middlewares/userMiddleware');
 const authMiddleware = require('../../../middlewares/authMiddleware');
 
 // ========== ROTAS PÚBLICAS ==========
@@ -17,6 +17,12 @@ router.post('/', validateUser, userController.create);
 
 // POST /api/v1/users/refresh - Refresh Token (sem auth, usa refresh token do body)
 router.post('/refresh', userController.refreshToken);
+
+// POST /api/v1/users/forgot-password - Solicitar recuperação de senha
+router.post('/forgot-password', userController.forgotPassword);
+
+// POST /api/v1/users/reset-password - Resetar senha com token
+router.post('/reset-password', validateResetPassword, userController.resetPassword);
 
 // ========== ROTAS PROTEGIDAS (Requerem Access Token) ==========
 // GET /api/v1/users - Listar todos (apenas admin)

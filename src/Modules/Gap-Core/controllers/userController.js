@@ -118,4 +118,47 @@ module.exports = {
       });
     });
   },
+
+  /**
+   * Forgot Password - Envia token de recuperação
+   */
+  forgotPassword(req, res) {
+    const { email } = req.body;
+
+    if (!email) {
+      return res.status(400).json({
+        error: 'Email obrigatório'
+      });
+    }
+
+    userService.generatePasswordResetToken(email, (err, result) => {
+      if (err) return sendError(res, err);
+
+      return res.json({
+        message: 'Se o email existir, um link de recuperação será enviado.',
+        token: result.token // Em produção, este token seria enviado por email
+      });
+    });
+  },
+
+  /**
+   * Reset Password - Reseta senha com token
+   */
+  resetPassword(req, res) {
+    const { token, newPassword } = req.body;
+
+    if (!token || !newPassword) {
+      return res.status(400).json({
+        error: 'Token e nova senha são obrigatórios'
+      });
+    }
+
+    userService.resetPassword(token, newPassword, (err, result) => {
+      if (err) return sendError(res, err);
+
+      return res.json({
+        message: 'Senha redefinida com sucesso'
+      });
+    });
+  },
 };
