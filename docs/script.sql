@@ -74,6 +74,7 @@ CREATE TABLE gastos_variaveis (
     nome VARCHAR(100) NOT NULL,
     valor DECIMAL(10,2) NOT NULL,
     data_gasto DATE NOT NULL,
+    tipo ENUM('entrada','saida') DEFAULT 'saida',
     criado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,

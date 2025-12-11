@@ -133,6 +133,13 @@ body {
   z-index: 1;
 }
 
+/* Recuperação de senha está -100% para a esquerda (escondido) */
+.forgot-password-view {
+  transform: translateX(-100%) scale(0.98);
+  opacity: 0;
+  z-index: 1;
+}
+
 /* --- ESTADO "MODO CADASTRO" (Ativado pelo JS) --- */
 /* Quando a classe .sign-up-mode é adicionada ao main-container: */
 
@@ -151,8 +158,21 @@ body {
   box-shadow: 0 20px 40px rgba(12, 12, 12, 0.08);
 }
 
+/* --- ESTADO "MODO RECUPERAÇÃO DE SENHA" --- */
+.main-container.forgot-password-mode .login-view {
+  transform: translateX(100%) scale(0.98);
+  opacity: 0;
+}
+
+.main-container.forgot-password-mode .forgot-password-view {
+  transform: translateX(0) scale(1);
+  opacity: 1;
+  z-index: 3;
+}
+
 /* Small shine animation when switching modes */
 .main-container.sign-up-mode .form-wrapper,
+.main-container.forgot-password-mode .form-wrapper,
 .main-container .form-wrapper {
   transition:
     transform 0.6s cubic-bezier(0.2, 0.9, 0.25, 1),
@@ -281,6 +301,13 @@ label {
   margin-bottom: 0.4rem;
   display: block;
 }
+.password-hint {
+  display: block;
+  margin-top: 0.4rem;
+  font-size: 11px;
+  color: #6b7280;
+  line-height: 1.4;
+}
 .input-wrapper {
   background: #fff;
   border: 1px solid var(--muted);
@@ -400,6 +427,7 @@ label {
     height: auto;
     overflow-x: hidden;
     overflow-y: auto;
+    padding: 12px;
   }
   .main-container {
     height: auto;
@@ -421,9 +449,60 @@ label {
   .light-bg,
   .white-bg,
   .dark-bg {
-    padding: 40px 20px;
+    padding: 32px 18px;
   }
   .illustration {
     max-width: 200px;
+  }
+}
+
+@media (max-width: 600px) {
+  .banner-title,
+  .right-title,
+  .title,
+  .form-title {
+    font-size: 26px;
+  }
+  .banner-desc,
+  .right-desc,
+  .subtitle,
+  .form-subtitle {
+    font-size: 14px;
+  }
+  .form-wrapper,
+  .banner-content {
+    max-width: 360px;
+    width: 100%;
+  }
+  .input-wrapper {
+    padding: 12px;
+  }
+  .btn-submit {
+    padding: 14px;
+  }
+  .main-container::before,
+  .main-container::after {
+    opacity: 0.2;
+    filter: blur(30px);
+  }
+}
+
+@media (max-width: 420px) {
+  body {
+    padding: 8px;
+  }
+  .light-bg,
+  .white-bg,
+  .dark-bg {
+    padding: 28px 14px;
+  }
+  .logo-big {
+    width: 120px;
+  }
+  .illustration {
+    max-width: 170px;
+  }
+  .switch-text {
+    font-size: 13px;
   }
 }
