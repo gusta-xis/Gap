@@ -231,9 +231,10 @@ async function submitExpense(event) {
     successDiv.classList.add('hidden');
     
     try {
+        // ⚠️ SEGURANÇA: Usa sessionStorage em vez de localStorage
         // Obter token e dados do usuário
-        const userString = localStorage.getItem('user');
-        const tokenString = localStorage.getItem('token');
+        const userString = sessionStorage.getItem('user') || localStorage.getItem('user');
+        const tokenString = sessionStorage.getItem('accessToken') || localStorage.getItem('token');
         
         if (!userString || !tokenString) {
             console.log('📦 localStorage completo:', Object.keys(localStorage));
@@ -262,20 +263,21 @@ async function submitExpense(event) {
         
         // Preparar dados para envio (formato esperado pela API)
         const expenseData = {
-            nome: description,
+            nome: description,  // Campo 'nome' conforme banco de dados
             valor: amount,
             categoria_id: category ? (categoriaMap[category] || null) : null,
             data_gasto: date,
-            tipo: type  // Adicionar tipo (entrada ou saída)
+            tipo: type,  // Adicionar tipo (entrada ou saída)
+            user_id: user.id  // Adicionar user_id obrigatório
         };
         
         console.log('📤 Enviando despesa:', expenseData);
         
         const isEdit = !!editingExpenseId;
-        const url = isEdit ? `/api/gastos-variaveis/${editingExpenseId}` : '/api/gastos-variaveis';
+        const url = isEdit ? `/api/v1/gastos-variaveis/${editingExpenseId}` : '/api/v1/gastos-variaveis';
         const method = isEdit ? 'PUT' : 'POST';
 
-        const response = await fetch(url, {
+        let response = await fetch(url, {
             method,
             headers: {
                 'Content-Type': 'application/json',
@@ -283,6 +285,35 @@ async function submitExpense(event) {
             },
             body: JSON.stringify(expenseData)
         });
+        
+        // Se token expirou (401), tenta renovar com refresh token
+        if (response.status === 401) {
+            const refreshToken = sessionStorage.getItem('refreshToken');
+            if (refreshToken) {
+                console.log('🔄 Token expirado, tentando renovar...');
+                const refreshResponse = await fetch('/api/v1/users/refresh', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ refreshToken })
+                });
+                
+                if (refreshResponse.ok) {
+                    const refreshData = await refreshResponse.json();
+                    sessionStorage.setItem('accessToken', refreshData.accessToken);
+                    console.log('✅ Token renovado com sucesso');
+                    
+                    // Tentar novamente com novo token
+                    response = await fetch(url, {
+                        method,
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${refreshData.accessToken}`
+                        },
+                        body: JSON.stringify(expenseData)
+                    });
+                }
+            }
+        }
         
         console.log('📥 Status da resposta:', response.status);
         console.log('📥 Content-Type:', response.headers.get('content-type'));
@@ -295,7 +326,7 @@ async function submitExpense(event) {
         const contentType = response.headers.get('content-type');
         if (!contentType || !contentType.includes('application/json')) {
             console.log('❌ Resposta não é JSON:', responseText.substring(0, 500));
-            throw new Error('Servidor retornou resposta inválida. A rota /api/gastos-variaveis pode não estar configurada.');
+            throw new Error('Servidor retornou resposta inválida. A rota /api/v1/gastos-variaveis pode não estar configurada.');
         }
         
         if (!response.ok) {
@@ -365,10 +396,11 @@ function initializeExpenseModal() {
 
 // Expor funções para edição/deleção
 async function deleteExpense(id) {
-    const token = localStorage.getItem('token');
+    // ⚠️ SEGURANÇA: Usa sessionStorage para tokens
+    const token = sessionStorage.getItem('accessToken') || localStorage.getItem('token');
     if (!token) return alert('Usuário não autenticado');
     if (!confirm('Deseja realmente excluir esta despesa?')) return;
-    const response = await fetch(`/api/gastos-variaveis/${id}`, {
+    const response = await fetch(`/api/v1/gastos-variaveis/${id}`, {
         method: 'DELETE',
         headers: {
             'Authorization': `Bearer ${token}`

@@ -4,17 +4,10 @@
 
 // Função de verificação isolada
 function enforceSecurity() {
-    const token = localStorage.getItem('token');
+    const token = sessionStorage.getItem('accessToken') || localStorage.getItem('token');
     if (!token) {
         // Se não tem token, substitui a URL imediatamente para o login
         window.location.replace('/'); 
-        return;
-    }
-    
-    // Se é o primeiro acesso, redireciona para a introdução do financeiro
-    const financeIntroSeen = localStorage.getItem('financeIntroSeen');
-    if (financeIntroSeen !== 'true') {
-        window.location.replace('/financeiro');
         return;
     }
 }
@@ -65,9 +58,9 @@ tailwind.config = {
 // ======================================================
 function initSubtemas() {
   try {
-    // Recupera dados (A segurança já foi garantida acima, mas mantemos o fallback)
-    const userJson = localStorage.getItem('user');
-    const userName = localStorage.getItem('userName');
+    // Recupera dados do sessionStorage (com fallback para localStorage)
+    const userJson = sessionStorage.getItem('user') || localStorage.getItem('user');
+    const userName = sessionStorage.getItem('userName') || localStorage.getItem('userName');
 
     // 1. Preencher Saudação
     const greetingEl = document.getElementById('userGreeting');
@@ -141,9 +134,71 @@ function initSubtemas() {
   }
 }
 
+// ======================================================
+// 4. LÓGICA DO CARD FINANCEIRO (PRIMEIRO ACESSO)
+// ======================================================
+function setupFinanceCard() {
+  const financeCard = document.querySelector('a[href="/financeiro"]');
+  
+  if (financeCard) {
+    financeCard.addEventListener('click', (e) => {
+      e.preventDefault();
+      
+      // Obter userId para verificar se este usuário já viu a introdução
+      const userJson = sessionStorage.getItem('user') || localStorage.getItem('user');
+      let userId = null;
+      
+      if (userJson) {
+        try {
+          const userData = JSON.parse(userJson);
+          userId = userData.id;
+        } catch (e) {
+          console.warn('❌ Erro ao parsear dados do usuário:', e);
+        }
+      }
+      
+      // Verifica se já viu a introdução (usa localStorage para persistir)
+      const introSeenKey = userId ? `financeIntroSeen_${userId}` : 'financeIntroSeen';
+      const financeIntroSeen = localStorage.getItem(introSeenKey) === 'true';
+      
+      if (financeIntroSeen) {
+        // Já viu, vai direto para dashboard
+        window.location.href = '/financeiro/dashboard';
+      } else {
+        // Primeiro acesso, mostra introdução/wizard
+        window.location.href = '/financeiro';
+      }
+    });
+  }
+}
+
+// ======================================================
+// 5. BOTÃO DE LOGOUT (SAIR DO SISTEMA)
+// ======================================================
+function setupLogout() {
+  const logoutBtn = document.getElementById('logoutBtn');
+  
+  if (logoutBtn) {
+    logoutBtn.addEventListener('click', () => {
+      // Limpa toda a sessão
+      sessionStorage.clear();
+      localStorage.clear();
+      
+      // Redireciona para login
+      window.location.replace('/');
+    });
+  }
+}
+
 // Inicialização segura
 if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', initSubtemas);
+  document.addEventListener('DOMContentLoaded', () => {
+    initSubtemas();
+    setupFinanceCard();
+    setupLogout();
+  });
 } else {
   initSubtemas();
+  setupFinanceCard();
+  setupLogout();
 }

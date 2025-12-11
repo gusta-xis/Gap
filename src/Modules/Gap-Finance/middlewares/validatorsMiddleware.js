@@ -60,12 +60,12 @@ module.exports = {
 
   // NOVA: Validação de Gasto Variável
   validateGastoVariavel: (req, res, next) => {
-    const { categoria_id, nome, valor, data_gasto, data } = req.body;
+    const { nome, valor, data_gasto, data, categoria_id } = req.body;
     
     // Aceitar tanto data_gasto quanto data (compatibilidade)
     const dataFinal = data_gasto || data;
 
-    // 1. Campos obrigatórios: nome, valor, data
+    // 1. Campos obrigatórios: nome, valor, data (categoria_id é opcional)
     if (!nome || !valor || !dataFinal) {
       if (req.passo)
         req.passo('⚠️', 'Validação Gasto Var falhou: Campos faltando');

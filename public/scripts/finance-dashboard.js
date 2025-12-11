@@ -1,5 +1,13 @@
 // Dashboard JavaScript - Lógica da aplicação
 
+// ========================================================
+// FUNÇÃO GLOBAL PARA VOLTAR A SUBTEMAS
+// ========================================================
+window.voltarParaSubtemas = function() {
+    console.log('🔙 Voltando para subtemas...');
+    window.location.href = '/subsistemas';
+};
+
 // Esconde o corpo até confirmar autenticação (evita exibir tela para demo/sem login)
 if (document && document.body) {
     document.body.style.display = 'none';
@@ -54,12 +62,17 @@ document.addEventListener('DOMContentLoaded', function() {
 
 /**
  * Verifica se o usuário está autenticado
+ * ⚠️ SEGURANÇA: Usa sessionStorage em vez de localStorage
  */
 function checkAuthentication() {
-    const token = localStorage.getItem('token');
-    const user = localStorage.getItem('user');
+    const token = sessionStorage.getItem('accessToken') || localStorage.getItem('token');
+    const user = sessionStorage.getItem('user') || localStorage.getItem('user');
     const redirectToLogin = () => {
         try {
+            sessionStorage.removeItem('accessToken');
+            sessionStorage.removeItem('refreshToken');
+            sessionStorage.removeItem('user');
+            sessionStorage.removeItem('userName');
             localStorage.removeItem('token');
             localStorage.removeItem('user');
             localStorage.removeItem('userName');
@@ -96,11 +109,12 @@ async function initializeDashboard() {
 
 /**
  * Atualiza o nome do usuário na interface
+ * ⚠️ SEGURANÇA: Usa sessionStorage
  */
 function updateUserName() {
     console.log('🔵 updateUserName foi chamado');
     try {
-        const userDataString = localStorage.getItem('user');
+        const userDataString = sessionStorage.getItem('user') || localStorage.getItem('user');
         console.log('🔵 userDataString:', userDataString);
         
         if (!userDataString) {
@@ -154,6 +168,7 @@ function updateUserName() {
 
 /**
  * Carrega todos os dados do dashboard
+ * ⚠️ SEGURANÇA: Usa sessionStorage e refresh token automático
  */
 async function loadDashboardData() {
     try {
@@ -161,7 +176,7 @@ async function loadDashboardData() {
         showLoading(true);
         
         // Verificar se há token antes de tentar buscar dados
-        const token = localStorage.getItem('token');
+        const token = sessionStorage.getItem('accessToken') || localStorage.getItem('token');
         console.log('Token encontrado:', !!token);
         
         if (!token) {
@@ -174,7 +189,7 @@ async function loadDashboardData() {
         // Buscar dados em paralelo
         let gastosFixos = [];
         let gastosVariaveis = [];
-        const userDataRaw = localStorage.getItem('user');
+        const userDataRaw = sessionStorage.getItem('user') || localStorage.getItem('user');
         const userData = userDataRaw ? JSON.parse(userDataRaw) : null;
         const currentUserId = userData && userData.id ? Number(userData.id) : null;
         
@@ -199,13 +214,15 @@ async function loadDashboardData() {
         let salario = 0;
         console.log('Tentando buscar salário...');
         try {
-            const userData = JSON.parse(localStorage.getItem('user'));
+            const userData = JSON.parse(sessionStorage.getItem('user') || localStorage.getItem('user'));
             console.log('UserData:', userData);
             if (userData && userData.id) {
-                console.log('Buscando salário para user_id:', userData.id);
-                const salarioData = await apiService.getSalarioByUserId(userData.id);
-                console.log('Salário recebido:', salarioData);
-                salario = salarioData.valor || 0;
+                console.log('Buscando salários para user_id:', userData.id);
+                const salarioList = await apiService.getSalarios();
+                console.log('Salários recebidos:', salarioList);
+                if (Array.isArray(salarioList) && salarioList.length > 0) {
+                    salario = salarioList[0].valor || 0;
+                }
             }
         } catch (error) {
             console.warn('Salário não encontrado, usando valor 0:', error);
@@ -661,7 +678,7 @@ function handleViewStatement() {
     console.log('🔵 handleViewStatement chamado');
     try {
         const rows = buildStatementRows();
-        const userData = JSON.parse(localStorage.getItem('user') || '{}');
+        const userData = JSON.parse(sessionStorage.getItem('user') || localStorage.getItem('user') || '{}');
         const userName = userData && userData.nome ? userData.nome : 'Usuário';
         const html = renderStatementHTML(rows, userName);
         const printWindow = window.open('', '_blank', 'width=1100,height=800');
