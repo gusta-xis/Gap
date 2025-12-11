@@ -1,5 +1,4 @@
 module.exports = {
-  // 2. Validação de SALÁRIO
   validateSalario: (req, res, next) => {
     const { valor, referencia_mes } = req.body;
 
@@ -20,7 +19,6 @@ module.exports = {
     next();
   },
 
-  // 3. Validação de CATEGORIA (Não esqueça dessa!)
   validateCategoria: (req, res, next) => {
     const { nome } = req.body;
 
@@ -35,7 +33,6 @@ module.exports = {
     next();
   },
 
-  // 4. Validação de GASTOS FIXOS (A que você queria adicionar)
   validateGastoFixo: (req, res, next) => {
     const { nome, valor, categoria_id, dia_vencimento } = req.body;
 
@@ -47,7 +44,6 @@ module.exports = {
       });
     }
 
-    // Valida se o dia é lógico (1 a 31)
     if (dia_vencimento < 1 || dia_vencimento > 31) {
       return res
         .status(400)
@@ -58,14 +54,11 @@ module.exports = {
     next();
   },
 
-  // NOVA: Validação de Gasto Variável
   validateGastoVariavel: (req, res, next) => {
     const { nome, valor, data_gasto, data, categoria_id } = req.body;
     
-    // Aceitar tanto data_gasto quanto data (compatibilidade)
     const dataFinal = data_gasto || data;
 
-    // 1. Campos obrigatórios: nome, valor, data (categoria_id é opcional)
     if (!nome || !valor || !dataFinal) {
       if (req.passo)
         req.passo('⚠️', 'Validação Gasto Var falhou: Campos faltando');
@@ -75,7 +68,6 @@ module.exports = {
       });
     }
 
-    // 2. O valor tem que ser dinheiro de verdade (> 0)
     if (parseFloat(valor) <= 0) {
       if (req.passo)
         req.passo('⚠️', 'Validação Gasto Var falhou: Valor incorreto');
@@ -84,8 +76,6 @@ module.exports = {
         .json({ error: 'O valor do gasto deve ser maior que zero.' });
     }
 
-    // 3. Validação de Formato de Data (AAAA-MM-DD)
-    // Isso evita que o usuário mande "05/10/2025" que quebra o banco
     const regexData = /^\d{4}-\d{2}-\d{2}$/;
     if (!regexData.test(dataFinal)) {
       if (req.passo)
@@ -95,12 +85,10 @@ module.exports = {
       });
     }
     
-    // Normalizar para data_gasto no req.body para o controller
     if (!req.body.data_gasto && req.body.data) {
       req.body.data_gasto = req.body.data;
     }
 
-    // Categoria opcional: se vier vazia, seta null para persistir
     if (!categoria_id) {
       req.body.categoria_id = null;
     }

@@ -1,14 +1,7 @@
-// ========================================================
-// USER CONTROLLER - COM REFRESH TOKEN
-// ========================================================
-
 const userService = require('../services/userService');
 const { sendError } = require('../../../utils/errorHandler');
 
 module.exports = {
-  /**
-   * Login - Retorna Access Token + Refresh Token
-   */
   login(req, res) {
     if (req.passo) req.passo('🔑', 'Tentativa de Login');
 
@@ -17,7 +10,6 @@ module.exports = {
 
       if (req.passo) req.passo('✅', 'Login Sucesso');
 
-      // Retorna tokens e dados do usuário
       return res.json({
         accessToken: result.accessToken,
         refreshToken: result.refreshToken,
@@ -26,9 +18,6 @@ module.exports = {
     });
   },
 
-  /**
-   * Refresh Token - Gera novo Access Token
-   */
   refreshToken(req, res) {
     const { refreshToken } = req.body;
 
@@ -48,9 +37,6 @@ module.exports = {
     });
   },
 
-  /**
-   * Create - Cria novo usuário
-   */
   create(req, res) {
     if (req.passo) req.passo('⚙️', 'Criando Usuário');
 
@@ -66,9 +52,6 @@ module.exports = {
     });
   },
 
-  /**
-   * Find All - Lista todos os usuários (admin only)
-   */
   findAll(req, res) {
     userService.findAll((err, r) => {
       if (err) return sendError(res, err);
@@ -76,9 +59,6 @@ module.exports = {
     });
   },
 
-  /**
-   * Find By ID - Busca usuário por ID
-   */
   findById(req, res) {
     userService.findById(req.params.id, (err, r) => {
       if (err) return sendError(res, err);
@@ -93,9 +73,6 @@ module.exports = {
     });
   },
 
-  /**
-   * Update - Atualiza usuário
-   */
   update(req, res) {
     userService.update(req.params.id, req.body, (err, r) => {
       if (err) return sendError(res, err);
@@ -106,9 +83,6 @@ module.exports = {
     });
   },
 
-  /**
-   * Delete - Deleta usuário
-   */
   delete(req, res) {
     userService.delete(req.params.id, (err, r) => {
       if (err) return sendError(res, err);
@@ -119,9 +93,6 @@ module.exports = {
     });
   },
 
-  /**
-   * Forgot Password - Envia token de recuperação
-   */
   forgotPassword(req, res) {
     const { email } = req.body;
 
@@ -136,14 +107,11 @@ module.exports = {
 
       return res.json({
         message: 'Se o email existir, um link de recuperação será enviado.',
-        token: result.token // Em produção, este token seria enviado por email
+        token: result.token
       });
     });
   },
 
-  /**
-   * Reset Password - Reseta senha com token
-   */
   resetPassword(req, res) {
     const { token, newPassword } = req.body;
 

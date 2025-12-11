@@ -1,20 +1,12 @@
-// ========================================================
-// VARIAVEIS CONTROLLER - COM VALIDAÇÃO DE IDOR
-// ========================================================
-
 const variaveisService = require('../services/variaveisService');
 const { sendError } = require('../../../utils/errorHandler');
 
 module.exports = {
-  /**
-   * Create - Cria novo gasto variável
-   */
   create(req, res) {
     if (req.passo) req.passo('⚙️', 'Criando Gasto Variável');
 
     const dados = { ...req.body, user_id: req.user.id };
 
-    // Categoria é opcional, define como null se não fornecida
     if (!dados.categoria_id) dados.categoria_id = null;
 
     variaveisService.create(dados, (err, result) => {
@@ -29,23 +21,16 @@ module.exports = {
     });
   },
 
-  /**
-   * Find By User ID - Busca gastos variáveis do usuário logado
-   */
   findByUserId(req, res) {
     const userId = req.user.id;
 
     variaveisService.findByUserId(userId, (err, rows) => {
       if (err) return sendError(res, err);
 
-      // Array vazio é OK (usuário sem gastos variáveis)
       return res.status(200).json(rows || []);
     });
   },
 
-  /**
-   * Find All - Busca todos (apenas admin)
-   */
   findAll(req, res) {
     variaveisService.findAll((err, rows) => {
       if (err) return sendError(res, err);
@@ -53,26 +38,19 @@ module.exports = {
     });
   },
 
-  /**
-   * Find By ID - Busca gasto específico
-   * ⚠️ IDOR PROTECTION: Valida que o gasto pertence ao usuário
-   */
   findById(req, res) {
     const id = parseInt(req.params.id, 10);
 
-    // Validação de ID
     if (!Number.isInteger(id) || id <= 0) {
       return res.status(400).json({
         error: 'ID deve ser um número inteiro válido'
       });
     }
 
-    // Usa findByIdAndUser para garantir que o usuário tem acesso
     variaveisService.findByIdAndUser(id, req.user.id, (err, row) => {
       if (err) return sendError(res, err);
 
       if (!row) {
-        // Retorna 403 (Forbidden) em vez de 404 para não vazar informações
         return res.status(403).json({
           error: 'Acesso negado ou gasto não encontrado'
         });
@@ -82,25 +60,17 @@ module.exports = {
     });
   },
 
-  /**
-   * Update - Atualiza gasto variável
-   * ⚠️ IDOR PROTECTION: Valida que o gasto pertence ao usuário
-   */
   update(req, res) {
     const id = parseInt(req.params.id, 10);
 
-    // Validação de ID
     if (!Number.isInteger(id) || id <= 0) {
       return res.status(400).json({
         error: 'ID deve ser um número inteiro válido'
       });
     }
 
-    // Usa updateByIdAndUser para garantir autorização
     variaveisService.updateByIdAndUser(id, req.user.id, req.body, (err, result) => {
       if (err) return sendError(res, err);
-
-      // Se nenhuma linha foi afetada, usuário não tem acesso
       if (result.affectedRows === 0) {
         return res.status(403).json({
           error: 'Acesso negado ou gasto não encontrado'
@@ -113,25 +83,17 @@ module.exports = {
     });
   },
 
-  /**
-   * Delete - Deleta gasto variável
-   * ⚠️ IDOR PROTECTION: Valida que o gasto pertence ao usuário
-   */
   delete(req, res) {
     const id = parseInt(req.params.id, 10);
-
-    // Validação de ID
     if (!Number.isInteger(id) || id <= 0) {
       return res.status(400).json({
         error: 'ID deve ser um número inteiro válido'
       });
     }
 
-    // Usa deleteByIdAndUser para garantir autorização
     variaveisService.deleteByIdAndUser(id, req.user.id, (err, result) => {
       if (err) return sendError(res, err);
 
-      // Se nenhuma linha foi afetada, usuário não tem acesso
       if (result.affectedRows === 0) {
         return res.status(403).json({
           error: 'Acesso negado ou gasto não encontrado'

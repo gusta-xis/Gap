@@ -1,35 +1,25 @@
-// Dashboard JavaScript - Lógica da aplicação
-
-// ========================================================
-// FUNÇÃO GLOBAL PARA VOLTAR A SUBTEMAS
-// ========================================================
 window.voltarParaSubtemas = function() {
     console.log('🔙 Voltando para subtemas...');
     window.location.href = '/subsistemas';
 };
 
-// Esconde o corpo até confirmar autenticação (evita exibir tela para demo/sem login)
 if (document && document.body) {
     document.body.style.display = 'none';
 }
 
-// Tratamento de erros global
 window.addEventListener('error', function(e) {
     console.error('Erro global capturado:', e.error);
-    return true; // Previne que o erro quebre a aplicação
+    return true;
 });
 
-// Debug: verificar se há reload sendo chamado
 window.addEventListener('beforeunload', function(e) {
     console.log('Página está sendo recarregada!');
 });
 
-// Debug: verificar mudanças no localStorage
 window.addEventListener('storage', function(e) {
     console.log('Storage mudou:', e.key, e.oldValue, e.newValue);
 });
 
-// Estado global do dashboard
 let dashboardData = {
     salario: 0,
     gastosFixos: [],
@@ -37,7 +27,7 @@ let dashboardData = {
     totalReceitas: 0,
     totalDespesas: 0,
     saldoAtual: 0,
-    historicoMensal: [] // Array com dados dos últimos 6 meses
+    historicoMensal: []
 };
 
 function recordBelongsToUser(item, userId) {
@@ -46,13 +36,11 @@ function recordBelongsToUser(item, userId) {
     return candidates.some(val => Number(val) === Number(userId));
 }
 
-// Inicialização quando o DOM estiver pronto
 document.addEventListener('DOMContentLoaded', function() {
     try {
         console.log('Iniciando dashboard...');
         const isAuthenticated = checkAuthentication();
         if (!isAuthenticated) return;
-        // Autenticado: libera a renderização
         document.body.style.display = '';
         initializeDashboard();
     } catch (error) {
@@ -60,10 +48,6 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 });
 
-/**
- * Verifica se o usuário está autenticado
- * ⚠️ SEGURANÇA: Usa sessionStorage em vez de localStorage
- */
 function checkAuthentication() {
     const token = sessionStorage.getItem('accessToken') || localStorage.getItem('token');
     const user = sessionStorage.getItem('user') || localStorage.getItem('user');
@@ -76,7 +60,7 @@ function checkAuthentication() {
             localStorage.removeItem('token');
             localStorage.removeItem('user');
             localStorage.removeItem('userName');
-        } catch (e) { /* ignore */ }
+        } catch (e) { }
         window.location.replace('/');
     };
     
@@ -103,14 +87,10 @@ function checkAuthentication() {
 async function initializeDashboard() {
     setupMobileMenu();
     setupButtons();
-    updateUserName(); // Atualizar nome imediatamente
+    updateUserName();
     await loadDashboardData();
 }
 
-/**
- * Atualiza o nome do usuário na interface
- * ⚠️ SEGURANÇA: Usa sessionStorage
- */
 function updateUserName() {
     console.log('🔵 updateUserName foi chamado');
     try {
@@ -126,7 +106,6 @@ function updateUserName() {
         console.log('🔵 userData parseado:', userData);
         
         if (userData && userData.nome) {
-            // Atualizar saudação (apenas primeiro nome)
             const greetingElement = document.querySelector('[data-user-greeting]');
             if (greetingElement) {
                 const primeiroNome = userData.nome.split(' ')[0];
@@ -136,7 +115,6 @@ function updateUserName() {
                 console.warn('Elemento [data-user-greeting] não encontrado');
             }
             
-            // Atualizar nome completo no header
             console.log('🔵 Procurando elemento headerUserName...');
             const headerUserName = document.getElementById('headerUserName');
             console.log('🔵 headerUserName encontrado:', !!headerUserName);
@@ -147,7 +125,6 @@ function updateUserName() {
                 console.warn('❌ Elemento headerUserName não encontrado');
             }
             
-            // Atualizar avatar com inicial do nome
             console.log('🔵 Procurando elemento headerAvatar...');
             const headerAvatar = document.getElementById('headerAvatar');
             console.log('🔵 headerAvatar encontrado:', !!headerAvatar);
@@ -269,12 +246,7 @@ async function loadDashboardData() {
 }
 
 
-
-/**
- * Calcula os totais de receitas e despesas
- */
 function calculateTotals() {
-    // Total de receitas (salário + entradas variáveis do mês)
     const mesAtual = new Date().getMonth() + 1;
     const anoAtual = new Date().getFullYear();
 
@@ -290,16 +262,12 @@ function calculateTotals() {
 
     dashboardData.totalReceitas = dashboardData.salario + totalEntradasVariaveis;
     
-    // Total de despesas (fixos + variáveis de saída do mês atual)
-    // reutiliza mesAtual/anoAtual já definidos acima
-    
     const totalFixos = dashboardData.gastosFixos.reduce((sum, gasto) => {
         return sum + parseFloat(gasto.valor || 0);
     }, 0);
     
     const totalVariaveis = dashboardData.gastosVariaveis
         .filter(gasto => {
-            // Aceitar tanto 'data_gasto' quanto 'data'
             const dataStr = gasto.data_gasto || gasto.data;
             const dataGasto = new Date(dataStr);
             return (gasto.tipo !== 'entrada') &&
@@ -314,9 +282,6 @@ function calculateTotals() {
     dashboardData.saldoAtual = dashboardData.totalReceitas - dashboardData.totalDespesas;
 }
 
-/**
- * Calcula o histórico mensal dos últimos 6 meses
- */
 function calculateMonthlyHistory() {
     const hoje = new Date();
     const historicoMensal = [];
@@ -377,9 +342,6 @@ function calculateMonthlyHistory() {
     console.log('Histórico mensal calculado:', historicoMensal);
 }
 
-/**
- * Atualiza o gráfico de barras com dados históricos
- */
 function updateBarChart() {
     if (!dashboardData.historicoMensal || dashboardData.historicoMensal.length === 0) {
         console.warn('Sem dados históricos para o gráfico');
@@ -397,7 +359,6 @@ function updateBarChart() {
         return;
     }
 
-    // Encontrar o valor máximo para normalização
     const maxValor = Math.max(
         ...dashboardData.historicoMensal.map(m => Math.max(m.receitas, m.despesas))
     );
@@ -422,25 +383,19 @@ function updateBarChart() {
     console.log('Gráfico de barras atualizado com dados do usuário');
 }
 
-/**
- * Atualiza a interface com os dados calculados
- */
 function updateUI() {
-    // Atualizar valores principais
     updateDashboardData({
         balance: dashboardData.saldoAtual,
         income: dashboardData.totalReceitas,
         expense: dashboardData.totalDespesas
     });
     
-    // Atualizar atividades recentes
     try {
         updateRecentActivities();
     } catch (error) {
         console.error('Erro ao atualizar atividades:', error);
     }
     
-    // Mostrar mensagem se não houver dados
     if (dashboardData.salario === 0 && 
         dashboardData.gastosFixos.length === 0 && 
         dashboardData.gastosVariaveis.length === 0) {
@@ -448,9 +403,6 @@ function updateUI() {
     }
 }
 
-/**
- * Configura o menu mobile
- */
 function setupMobileMenu() {
     const menuButton = document.querySelector('.lg\\:hidden button');
     const sidebar = document.querySelector('aside');
@@ -463,11 +415,7 @@ function setupMobileMenu() {
     }
 }
 
-/**
- * Configura os botões de ação
- */
 function setupButtons() {
-    // Botão "Adicionar Despesa"
     const addExpenseBtn = document.querySelector('button[data-action="add-expense"]');
     if (addExpenseBtn) {
         addExpenseBtn.addEventListener('click', function() {
@@ -475,7 +423,6 @@ function setupButtons() {
         });
     }
     
-    // Botão "Ver Extrato Completo"
     const viewStatementBtn = document.querySelector('button[data-action="view-statement"]');
     if (viewStatementBtn) {
         viewStatementBtn.addEventListener('click', function() {
@@ -520,10 +467,9 @@ function updateRecentActivities() {
     
     console.log('🔵 allTransactions:', allTransactions);
     
-    // Adicionar salário se existir
     if (dashboardData.salario > 0) {
         const ultimoDiaMes = new Date();
-        ultimoDiaMes.setDate(25); // Simular dia de pagamento
+        ultimoDiaMes.setDate(25);
         
         allTransactions.push({
             tipo: 'receita',
@@ -534,16 +480,12 @@ function updateRecentActivities() {
         });
     }
     
-    // Ordenar por data (mais recente primeiro)
     allTransactions.sort((a, b) => new Date(b.data) - new Date(a.data));
     
-    // Mostrar os 6 mais recentes
     const recentTransactions = allTransactions.slice(0, 6);
     
-    // Limpar container
     activityContainer.innerHTML = '';
     
-    // Se não houver transações, mostrar mensagem
     if (recentTransactions.length === 0) {
         console.log('Nenhuma transação para exibir');
         activityContainer.innerHTML = `
@@ -558,7 +500,6 @@ function updateRecentActivities() {
         return;
     }
     
-    // Adicionar transações
     recentTransactions.forEach((transaction, index) => {
         const isLast = index === recentTransactions.length - 1;
         const borderClass = isLast ? '' : 'border-b border-black/10 dark:border-white/10';
@@ -620,9 +561,6 @@ function updateRecentActivities() {
     });
 }
 
-/**
- * Retorna o ícone baseado na categoria
- */
 function getTransactionIcon(transaction) {
     const tipo = transaction.tipo === 'receita' ? 'receita' : 'despesa';
     const catSource = transaction.categoria_slug || transaction.categoria || transaction.descricao || '';
@@ -662,18 +600,10 @@ function normalizeCategorySlug(value) {
     return v.replace(/\s+/g, '-');
 }
 
-/**
- * Manipula o clique no botão "Adicionar Despesa"
- */
 function handleAddExpense() {
     console.log('🔵 handleAddExpense chamado - abrindo modal');
-    // A modal é gerenciada pelo expense-modal.js
-    // Apenas log para debug
 }
 
-/**
- * Manipula o clique no botão "Ver Extrato Completo"
- */
 function handleViewStatement() {
     console.log('🔵 handleViewStatement chamado');
     try {
@@ -691,7 +621,6 @@ function handleViewStatement() {
         printWindow.document.write(html);
         printWindow.document.close();
 
-        // Aguarda renderização antes de chamar print
         printWindow.onload = () => {
             printWindow.focus();
             printWindow.print();
@@ -702,11 +631,9 @@ function handleViewStatement() {
     }
 }
 
-// Monta todas as linhas do extrato com dados atuais
 function buildStatementRows() {
     const rows = [];
 
-    // Gastos fixos
     (dashboardData.gastosFixos || []).forEach(g => {
         rows.push({
             data: g.data || g.data_gasto || g.created_at || new Date(),
@@ -717,7 +644,6 @@ function buildStatementRows() {
         });
     });
 
-    // Gastos variáveis
     (dashboardData.gastosVariaveis || []).forEach(g => {
         const isEntrada = g.tipo === 'entrada';
         rows.push({
@@ -729,7 +655,6 @@ function buildStatementRows() {
         });
     });
 
-    // Salário (se existir)
     if (dashboardData.salario && dashboardData.salario > 0) {
         const hoje = new Date();
         rows.push({
@@ -741,12 +666,10 @@ function buildStatementRows() {
         });
     }
 
-    // Ordenar por data desc
     rows.sort((a, b) => new Date(b.data) - new Date(a.data));
     return rows;
 }
 
-// Gera HTML amigável para impressão/exportação em PDF
 function renderStatementHTML(rows, userName = 'Usuário') {
     const today = new Date();
     const formatter = (value) => formatCurrency(value || 0);
@@ -829,26 +752,14 @@ function renderStatementHTML(rows, userName = 'Usuário') {
     `;
 }
 
-/**
- * Mostra/oculta indicador de carregamento
- */
 function showLoading(show) {
-    // TODO: Implementar spinner de carregamento
     console.log(show ? 'Carregando...' : 'Carregamento completo');
 }
 
-/**
- * Mostra mensagem de erro
- */
 function showError(message) {
     alert(message);
 }
 
-/**
- * Função para formatar valores em moeda brasileira
- * @param {number} value - Valor a ser formatado
- * @returns {string} - Valor formatado
- */
 function formatCurrency(value) {
     return new Intl.NumberFormat('pt-BR', {
         style: 'currency',
@@ -856,31 +767,23 @@ function formatCurrency(value) {
     }).format(value);
 }
 
-/**
- * Função para atualizar os dados do dashboard
- * @param {Object} data - Dados do dashboard
- */
 function updateDashboardData(data) {
-    // Atualizar saldo atual
     const balanceElement = document.querySelector('[data-value="balance"]');
     if (balanceElement && data.balance) {
         balanceElement.textContent = formatCurrency(data.balance);
     }
     
-    // Atualizar receitas
     const incomeElement = document.querySelector('[data-value="income"]');
     if (incomeElement && data.income) {
         incomeElement.textContent = formatCurrency(data.income);
     }
     
-    // Atualizar despesas
     const expenseElement = document.querySelector('[data-value="expense"]');
     if (expenseElement && data.expense) {
         expenseElement.textContent = formatCurrency(data.expense);
     }
 }
 
-// Exportar funções para uso global (se necessário)
 window.dashboardApp = {
     updateDashboardData,
     formatCurrency

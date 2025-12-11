@@ -1,30 +1,35 @@
-// ======================================================
-// 1. SEGURANÇA IMEDIATA (RODA ANTES DE TUDO)
-// ======================================================
-
-// Função de verificação isolada
 function enforceSecurity() {
     const token = sessionStorage.getItem('accessToken') || localStorage.getItem('token');
     if (!token) {
-        // Se não tem token, substitui a URL imediatamente para o login
         window.location.replace('/'); 
         return;
     }
 }
 
-// A. Executa agora mesmo (assim que o script é lido)
-enforceSecurity();
+// Oculta conteúdo até validar autenticação para evitar flash
+document.body.style.display = 'none';
 
-// B. Proteção contra cache (Botões Voltar/Avançar)
-// O evento 'pageshow' é disparado mesmo se a página vier do cache do navegador
+enforceSecurity();
+document.body.style.display = 'block';
+
 window.addEventListener('pageshow', (event) => {
-    // Se a página persistiu (cache) ou se não tem token, verifica de novo
     enforceSecurity();
+    document.body.style.display = 'block';
 });
 
-// ======================================================
-// 2. CONFIGURAÇÃO VISUAL (TAILWIND)
-// ======================================================
+// Desabilita navegação para trás para evitar acessar telas protegidas
+try {
+  history.pushState(null, '', location.href);
+  window.addEventListener('popstate', function() {
+    const token = sessionStorage.getItem('accessToken') || localStorage.getItem('token');
+    if (!token) {
+      window.location.replace('/');
+      return;
+    }
+    history.pushState(null, '', location.href);
+  });
+} catch (e) { }
+
 window.tailwind = window.tailwind || {};
 tailwind.config = {
   darkMode: 'class',
@@ -53,16 +58,11 @@ tailwind.config = {
   },
 };
 
-// ======================================================
-// 3. LÓGICA DA INTERFACE (INIT)
-// ======================================================
 function initSubtemas() {
   try {
-    // Recupera dados do sessionStorage (com fallback para localStorage)
     const userJson = sessionStorage.getItem('user') || localStorage.getItem('user');
     const userName = sessionStorage.getItem('userName') || localStorage.getItem('userName');
 
-    // 1. Preencher Saudação
     const greetingEl = document.getElementById('userGreeting');
     if (greetingEl) {
       if (userName) greetingEl.textContent = 'Olá, ' + userName;
@@ -70,12 +70,11 @@ function initSubtemas() {
         try {
           const u = JSON.parse(userJson);
           if (u && u.nome) greetingEl.textContent = 'Olá, ' + u.nome;
-        } catch (e) { /* ignore */ }
+        } catch (e) { }
       }
       greetingEl.classList.remove('hidden');
     }
 
-    // 2. Configurar Avatar
     const avatarEl = document.getElementById('userAvatar');
     if (avatarEl) {
       let nameForInitials = null;
@@ -83,7 +82,7 @@ function initSubtemas() {
         try {
           const u = JSON.parse(userJson);
           nameForInitials = u.nome || null;
-        } catch (e) { /* ignore */ }
+        } catch (e) { }
       }
       if (!nameForInitials && userName) nameForInitials = userName;
 
@@ -95,7 +94,6 @@ function initSubtemas() {
       }
     }
 
-    // 3. Configurar Logout
     const logoutBtn = document.getElementById('logoutBtn');
     const logoutLink = document.getElementById('logoutLink');
     
@@ -104,8 +102,7 @@ function initSubtemas() {
         localStorage.removeItem('token');
         localStorage.removeItem('user');
         localStorage.removeItem('userName');
-        // NÃO remove financeIntroSeen aqui - ela é persistente por usuário
-      } catch (err) { /* ignore */ }
+      } catch (err) { }
       
       if (openHref) {
         window.open(openHref, '_blank', 'noopener');
@@ -134,9 +131,6 @@ function initSubtemas() {
   }
 }
 
-// ======================================================
-// 4. LÓGICA DO CARD FINANCEIRO (PRIMEIRO ACESSO)
-// ======================================================
 function setupFinanceCard() {
   const financeCard = document.querySelector('a[href="/financeiro"]');
   
@@ -144,7 +138,6 @@ function setupFinanceCard() {
     financeCard.addEventListener('click', (e) => {
       e.preventDefault();
       
-      // Obter userId para verificar se este usuário já viu a introdução
       const userJson = sessionStorage.getItem('user') || localStorage.getItem('user');
       let userId = null;
       
@@ -157,40 +150,39 @@ function setupFinanceCard() {
         }
       }
       
-      // Verifica se já viu a introdução (usa localStorage para persistir)
       const introSeenKey = userId ? `financeIntroSeen_${userId}` : 'financeIntroSeen';
       const financeIntroSeen = localStorage.getItem(introSeenKey) === 'true';
       
       if (financeIntroSeen) {
-        // Já viu, vai direto para dashboard
         window.location.href = '/financeiro/dashboard';
       } else {
-        // Primeiro acesso, mostra introdução/wizard
         window.location.href = '/financeiro';
       }
     });
   }
 }
 
-// ======================================================
-// 5. BOTÃO DE LOGOUT (SAIR DO SISTEMA)
-// ======================================================
 function setupLogout() {
   const logoutBtn = document.getElementById('logoutBtn');
   
   if (logoutBtn) {
     logoutBtn.addEventListener('click', () => {
-      // Limpa toda a sessão
-      sessionStorage.clear();
-      localStorage.clear();
+      try {
+        sessionStorage.removeItem('accessToken');
+        sessionStorage.removeItem('refreshToken');
+        sessionStorage.removeItem('user');
+        sessionStorage.removeItem('userName');
+
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+        localStorage.removeItem('userName');
+      } catch (e) { }
       
-      // Redireciona para login
       window.location.replace('/');
     });
   }
 }
 
-// Inicialização segura
 if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', () => {
     initSubtemas();

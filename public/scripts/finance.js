@@ -1,10 +1,3 @@
-// ========================================================
-// FINANCE INTRO - COM SESSIONSTORE SEGURO
-// ========================================================
-
-/**
- * Sanitiza string removendo tags HTML e caracteres perigosos
- */
 function sanitizeString(str) {
   if (typeof str !== 'string') return str;
   str = str.replace(/<[^>]*>/g, '');
@@ -12,40 +5,31 @@ function sanitizeString(str) {
   return str.trim();
 }
 
-// =========================================
-// SEGURANÇA: ANTI-CACHE
-// =========================================
 window.addEventListener('pageshow', function(event) {
   if (event.persisted || (window.performance && window.performance.navigation.type === 2)) {
     window.location.reload();
   }
 });
 
-// =========================================
-// VERIFICAÇÃO DE AUTENTICAÇÃO
-// =========================================
+// Oculta o conteúdo até validar autenticação para evitar flash
+document.body.style.display = 'none';
+
 (function checkAuth() {
-  // ⚠️ SEGURANÇA: Mudado para sessionStorage
   const token = sessionStorage.getItem('accessToken');
   if (!token) {
     window.location.replace('/');
     return;
   }
 
-  // Obter ID do usuário para armazenar flag por usuário
-  const userJson = sessionStorage.getItem('user');
   let userId = null;
+  const userJson = sessionStorage.getItem('user') || localStorage.getItem('user');
   if (userJson) {
     try {
-      const userData = JSON.parse(userJson);
-      userId = userData.id;
-    } catch (e) {
-      console.warn('❌ Erro ao parsear dados do usuário:', e);
-    }
+      const u = JSON.parse(userJson);
+      userId = u && u.id ? u.id : null;
+    } catch (e) { }
   }
 
-  // Se já viu a introdução, pula direto para o dashboard
-  // ⚠️ USA localStorage para persistir entre sessões (não limpa ao fechar navegador)
   const introSeenKey = userId ? `financeIntroSeen_${userId}` : 'financeIntroSeen';
   const introSeen = localStorage.getItem(introSeenKey) === 'true';
   
@@ -54,13 +38,22 @@ window.addEventListener('pageshow', function(event) {
     return;
   }
 
-  // Mostrar a página se passou nas verificações
   document.body.style.display = 'flex';
 })();
 
-// =========================================
-// STEPPER LÓGICA
-// =========================================
+// Desabilita navegação para trás para evitar acessar telas protegidas
+try {
+  history.pushState(null, '', location.href);
+  window.addEventListener('popstate', function() {
+    const token = sessionStorage.getItem('accessToken');
+    if (!token) {
+      window.location.replace('/');
+      return;
+    }
+    history.pushState(null, '', location.href);
+  });
+} catch (e) { }
+
 document.addEventListener('DOMContentLoaded', () => {
   const steps = document.querySelectorAll('.step-circle');
   const descriptions = document.querySelectorAll('.description');
@@ -71,11 +64,7 @@ document.addEventListener('DOMContentLoaded', () => {
   let currentStep = 0;
   const maxSteps = steps.length - 1;
 
-  /**
-   * Atualiza a UI (bolinhas, texto e setas)
-   */
   function updateUI() {
-    // Atualiza bolinhas
     steps.forEach((step, index) => {
       if (index === currentStep) {
         step.classList.remove('step-inactive');
@@ -86,7 +75,6 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     });
 
-    // Atualiza texto (descrição)
     descriptions.forEach((desc, index) => {
       if (index === currentStep) {
         desc.classList.add('active');
@@ -95,7 +83,6 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     });
 
-    // Atualiza estado das setas
     if (currentStep === 0) {
       btnPrev.classList.add('disabled');
     } else {
@@ -120,48 +107,31 @@ document.addEventListener('DOMContentLoaded', () => {
     if (currentStep < maxSteps) {
       goToStep(currentStep + 1);
     } else {
-      // Fim do Wizard -> marca intro como vista e vai para o dashboard
-      const userJson = sessionStorage.getItem('user');
       let userId = null;
-
+      const userJson = sessionStorage.getItem('user') || localStorage.getItem('user');
       if (userJson) {
         try {
-          const userData = JSON.parse(userJson);
-          userId = userData.id;
-        } catch (e) {
-          console.warn('❌ Erro ao parsear dados do usuário:', e);
-        }
+          const u = JSON.parse(userJson);
+          userId = u && u.id ? u.id : null;
+        } catch (e) { }
       }
 
-      const introSeenKey = userId
-        ? `financeIntroSeen_${userId}`
-        : 'financeIntroSeen';
-
-      // ⚠️ USA localStorage para persistir entre sessões
+      const introSeenKey = userId ? `financeIntroSeen_${userId}` : 'financeIntroSeen';
       localStorage.setItem(introSeenKey, 'true');
       window.location.replace('/financeiro/dashboard');
     }
   }
 
-  /**
-   * Volta para o passo anterior
-   */
   function goPrev() {
     if (currentStep > 0) {
       goToStep(currentStep - 1);
     }
   }
 
-  // =========================================
-  // EVENT LISTENERS
-  // =========================================
-
-  // Botões de Seta e Continuar
   if (btnNext) btnNext.addEventListener('click', goNext);
   if (btnPrev) btnPrev.addEventListener('click', goPrev);
   if (btnContinue) btnContinue.addEventListener('click', goNext);
 
-  // Clique direto nas bolinhas
   steps.forEach((step) => {
     step.addEventListener('click', () => {
       const index = parseInt(step.getAttribute('data-step'), 10);
@@ -169,34 +139,24 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 
-  // Botão "Pular introdução"
   const skipIntroBtn = document.getElementById('skip-intro');
   if (skipIntroBtn) {
     skipIntroBtn.addEventListener('click', (e) => {
       e.preventDefault();
 
-      const userJson = sessionStorage.getItem('user');
       let userId = null;
-
+      const userJson = sessionStorage.getItem('user') || localStorage.getItem('user');
       if (userJson) {
         try {
-          const userData = JSON.parse(userJson);
-          userId = userData.id;
-        } catch (e) {
-          console.warn('❌ Erro ao parsear dados do usuário:', e);
-        }
+          const u = JSON.parse(userJson);
+          userId = u && u.id ? u.id : null;
+        } catch (e) { }
       }
-
-      const introSeenKey = userId
-        ? `financeIntroSeen_${userId}`
-        : 'financeIntroSeen';
-
-      // ⚠️ USA localStorage para persistir entre sessões
+      const introSeenKey = userId ? `financeIntroSeen_${userId}` : 'financeIntroSeen';
       localStorage.setItem(introSeenKey, 'true');
       window.location.replace('/financeiro/dashboard');
     });
   }
 
-  // Inicializa o estado correto
   updateUI();
 });

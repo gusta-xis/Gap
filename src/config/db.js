@@ -17,7 +17,6 @@ function establishConnection() {
     if (err) {
       console.error('❌ Erro ao conectar no banco de dados.');
       
-      // Tente reconectar
       if (reconnectAttempts < maxReconnectAttempts) {
         reconnectAttempts++;
         console.log(`   Tentando reconectar (${reconnectAttempts}/${maxReconnectAttempts})...`);
@@ -33,7 +32,6 @@ function establishConnection() {
     console.log('✅ Banco de dados conectado com sucesso!');
   });
 
-  // Reconectar se a conexão cair
   db.on('error', (err) => {
     console.error('❌ Erro de conexão com banco:', err.code);
     isConnected = false;
@@ -53,10 +51,8 @@ function establishConnection() {
   });
 }
 
-// Iniciar conexão
 establishConnection();
 
-// Função para verificar se está conectado
 db.checkConnection = () => isConnected;
 
 module.exports = db;

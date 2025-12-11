@@ -57,6 +57,10 @@ app.use((req, res, next) => {
   res.setHeader('X-XSS-Protection', '1; mode=block');
   res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
   res.setHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
+  res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+  res.setHeader('Pragma', 'no-cache');
+  res.setHeader('Expires', '0');
+  res.setHeader('Surrogate-Control', 'no-store');
   next();
 });
 
@@ -132,7 +136,17 @@ app.use((req, res, next) => {
 // 4. ARQUIVOS ESTÁTICOS (FRONT-END)
 // =======================================================
 // Serve a pasta 'public' (CSS, JS, Imagens)
-app.use(express.static(path.join(__dirname, 'public')));
+app.set('etag', false);
+app.use(express.static(path.join(__dirname, 'public'), {
+  etag: false,
+  lastModified: false,
+  setHeaders: (res) => {
+    res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+    res.setHeader('Pragma', 'no-cache');
+    res.setHeader('Expires', '0');
+    res.setHeader('Surrogate-Control', 'no-store');
+  }
+}));
 
 // =======================================================
 // 5. ROTAS DA API (BACK-END)
@@ -182,6 +196,17 @@ app.get('/reset-password', (req, res) => {
 // =======================================================
 // 7. TRATAMENTO DE ERROS GLOBAL
 // =======================================================
+// Middleware para reforçar no-cache especificamente em rotas protegidas
+const noCache = (req, res, next) => {
+  res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+  res.setHeader('Pragma', 'no-cache');
+  res.setHeader('Expires', '0');
+  res.setHeader('Surrogate-Control', 'no-store');
+  next();
+};
+
+app.use(['/subsistemas', '/financeiro', '/financeiro/dashboard'], noCache);
+
 app.use((err, req, res, next) => {
   console.error('Erro não tratado:', err.message);
   

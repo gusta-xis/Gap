@@ -1,16 +1,8 @@
-// ========================================================
-// USER SERVICE - COM REFRESH TOKEN SEGURO
-// Access Token: 15 minutos | Refresh Token: 7 dias
-// ========================================================
-
 const userModel = require('../models/userModel');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
 
 module.exports = {
-  /**
-   * Login - Retorna Access Token + Refresh Token
-   */
   login: (email, senha, callback) => {
     userModel.findByEmail(email, (err, user) => {
       if (err) {
@@ -28,7 +20,6 @@ module.exports = {
         });
       }
 
-      // Compara o hash da senha armazenada com a senha fornecida
       bcrypt.compare(senha, user.senha, (compareErr, same) => {
         if (compareErr) {
           console.error('❌ Erro ao verificar senha:', compareErr.message);
@@ -45,7 +36,6 @@ module.exports = {
           });
         }
 
-        // ===== GERAR ACCESS TOKEN (15 MINUTOS) =====
         const accessToken = jwt.sign(
           { 
             id: user.id, 
@@ -53,10 +43,9 @@ module.exports = {
             type: 'access'
           },
           process.env.JWT_SECRET,
-          { expiresIn: '15m' } // Alterado de '1h' para '15m'
+          { expiresIn: '15m' }
         );
 
-        // ===== GERAR REFRESH TOKEN (7 DIAS) =====
         const refreshToken = jwt.sign(
           { 
             id: user.id, 
@@ -80,18 +69,13 @@ module.exports = {
     });
   },
 
-  /**
-   * Refresh Token - Gera novo Access Token
-   */
   refreshAccessToken: (refreshToken, callback) => {
     try {
-      // Verifica o refresh token
       const decoded = jwt.verify(
         refreshToken,
         process.env.JWT_REFRESH_SECRET || process.env.JWT_SECRET + '_refresh'
       );
 
-      // Verifica se é realmente um refresh token
       if (decoded.type !== 'refresh') {
         return callback({
           status: 403,
@@ -99,7 +83,6 @@ module.exports = {
         });
       }
 
-      // Gera novo access token
       const newAccessToken = jwt.sign(
         { 
           id: decoded.id, 
@@ -112,7 +95,7 @@ module.exports = {
 
       callback(null, {
         accessToken: newAccessToken,
-        refreshToken // Refresh token continua o mesmo
+        refreshToken
       });
     } catch (err) {
       console.error('❌ Erro ao fazer refresh do token:', err.message);
@@ -123,13 +106,8 @@ module.exports = {
     }
   },
 
-  /**
-   * Cria novo usuário (com hash de senha)
-   */
   create: (data, cb) => {
-    // Se for uma lista, hashear todas as senhas antes de inserir
     if (Array.isArray(data)) {
-      // Usa Promise.all para hashear em paralelo
       Promise.all(
         data.map((u) =>
           bcrypt.hash(u.senha, 10).then((hash) => ({ ...u, senha: hash }))
@@ -143,7 +121,6 @@ module.exports = {
       return;
     }
 
-    // Caso único
     bcrypt.hash(data.senha, 10, (err, hash) => {
       if (err) {
         console.error('❌ Erro ao fazer hash da senha:', err.message);
@@ -155,29 +132,14 @@ module.exports = {
     });
   },
 
-  /**
-   * Encontra todos os usuários
-   */
   findAll: (cb) => userModel.findAll(cb),
 
-  /**
-   * Encontra usuário por ID
-   */
   findById: (id, cb) => userModel.findById(id, cb),
 
-  /**
-   * Atualiza usuário
-   */
   update: (id, data, cb) => userModel.update(id, data, cb),
 
-  /**
-   * Deleta usuário
-   */
   delete: (id, cb) => userModel.remove(id, cb),
 
-  /**
-   * Gera token de recuperação de senha (válido por 1 hora)
-   */
   generatePasswordResetToken: (email, callback) => {
     userModel.findByEmail(email, (err, user) => {
       if (err) {
@@ -188,15 +150,12 @@ module.exports = {
         });
       }
 
-      // Por segurança, não revelamos se o email existe ou não
       if (!user) {
-        // Retorna sucesso mesmo se usuário não existe (previne enumeração de emails)
         return callback(null, { 
           message: 'Se o email existir, um link será enviado.' 
         });
       }
 
-      // Gera token de reset válido por 1 hora
       const resetToken = jwt.sign(
         { 
           id: user.id, 
@@ -207,8 +166,6 @@ module.exports = {
         { expiresIn: '1h' }
       );
 
-      // Em produção, aqui você enviaria o email com o link
-      // Por ora, retornamos o token para teste
       callback(null, { 
         token: resetToken,
         message: 'Token de recuperação gerado'
@@ -216,11 +173,7 @@ module.exports = {
     });
   },
 
-  /**
-   * Reseta senha usando token de recuperação
-   */
   resetPassword: (token, newPassword, callback) => {
-    // Verifica se o token é válido
     jwt.verify(token, process.env.JWT_SECRET, (err, decoded) => {
       if (err) {
         return callback({ 
@@ -229,7 +182,6 @@ module.exports = {
         });
       }
 
-      // Verifica se é um token de reset
       if (decoded.type !== 'reset') {
         return callback({ 
           status: 401, 
@@ -237,7 +189,6 @@ module.exports = {
         });
       }
 
-      // Hash da nova senha
       bcrypt.hash(newPassword, 10, (hashErr, hash) => {
         if (hashErr) {
           console.error('❌ Erro ao gerar hash:', hashErr.message);
@@ -247,7 +198,6 @@ module.exports = {
           });
         }
 
-        // Atualiza a senha no banco
         userModel.updatePassword(decoded.id, hash, (updateErr) => {
           if (updateErr) {
             return callback({ 

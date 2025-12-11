@@ -1,10 +1,3 @@
-// ========================================================
-// VALIDAÇÃO DE USUÁRIO COM REGEX E FORÇA DE SENHA
-// ========================================================
-
-/**
- * Valida força da senha
- */
 function validatePasswordStrength(senha) {
   const errors = [];
 
@@ -30,8 +23,6 @@ function validatePasswordStrength(senha) {
 module.exports = {
   validateUser: (req, res, next) => {
     const { nome, email, senha } = req.body;
-
-    // Se for a rota de LOGIN, valida apenas email e senha
     if (req.path === '/login') {
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
       
@@ -49,15 +40,12 @@ module.exports = {
       return next();
     }
 
-    // Para CADASTRO - validação completa
     if (!nome || !email || !senha) {
       if (req.passo) req.passo('⚠️', 'Validação User falhou: Dados incompletos');
       return res
         .status(400)
         .json({ error: 'Campos nome, email e senha são obrigatórios.' });
     }
-
-    // ========== VALIDAR NOME ==========
     if (typeof nome !== 'string') {
       return res.status(400).json({ error: 'Nome deve ser um texto válido.' });
     }
@@ -70,8 +58,6 @@ module.exports = {
     if (nameClean.length > 100) {
       return res.status(400).json({ error: 'Nome deve ter no máximo 100 caracteres.' });
     }
-
-    // ========== VALIDAR EMAIL ==========
     if (typeof email !== 'string') {
       return res.status(400).json({ error: 'Email deve ser um texto válido.' });
     }
@@ -84,8 +70,6 @@ module.exports = {
     if (email.length > 255) {
       return res.status(400).json({ error: 'Email muito longo.' });
     }
-
-    // ========== VALIDAR SENHA - FORÇA OBRIGATÓRIA ==========
     if (typeof senha !== 'string') {
       return res.status(400).json({ error: 'Senha deve ser um texto válido.' });
     }
@@ -100,10 +84,6 @@ module.exports = {
     if (req.passo) req.passo('📝', 'Validação User: OK');
     next();
   },
-
-  /**
-   * Valida requisição de reset de senha
-   */
   validateResetPassword: (req, res, next) => {
     const { token, newPassword } = req.body;
 
