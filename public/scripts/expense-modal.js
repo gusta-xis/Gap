@@ -18,6 +18,7 @@ function formatCurrencyInput(input) {
 
 let selectedExpenseType = 'saida';
 let editingExpenseId = null;
+let customCategoryIcon = null;
 
 function normalizeCategorySlug(value) {
     const v = (value || '').toString().trim().toLowerCase();
@@ -323,19 +324,34 @@ async function submitExpense(event) {
         
         successDiv.textContent = isEdit ? 'Despesa atualizada!' : 'Despesa adicionada com sucesso!';
         successDiv.classList.remove('hidden');
-        
-        setTimeout(() => {
+
+        setTimeout(async () => {
             closeExpenseModal();
-            
-            console.log('🔄 Recarregando dados do dashboard...');
-            if (typeof loadDashboardData === 'function') {
-                loadDashboardData();
-            } else {
-                console.log('🔄 Recarregando página...');
-                window.location.reload();
-            }
             editingExpenseId = null;
-        }, 600);
+
+            const refreshTasks = [];
+            if (typeof window.refreshTransactions === 'function') {
+                refreshTasks.push(Promise.resolve(window.refreshTransactions()));
+            }
+            if (typeof window.syncCustomCategories === 'function') {
+                const synced = loadCustomCategoriesFromStorage();
+                window.syncCustomCategories(synced);
+            }
+            if (typeof window.loadAllTransactions === 'function') {
+                refreshTasks.push(Promise.resolve(window.loadAllTransactions()));
+            }
+            if (typeof window.loadDashboardData === 'function') {
+                refreshTasks.push(Promise.resolve(window.loadDashboardData()));
+            }
+
+            if (refreshTasks.length) {
+                try {
+                    await Promise.allSettled(refreshTasks);
+                } catch (refreshError) {
+                    console.warn('⚠️ Erro ao atualizar dados após salvar despesa:', refreshError);
+                }
+            }
+        }, 300);
         
     } catch (error) {
         console.log('❌ Erro ao adicionar despesa:', error.message);
@@ -362,6 +378,21 @@ function initializeExpenseModal() {
     }
 
     setupExpenseTypeToggle();
+
+    // Preencher categorias (inclui personalizadas) e ligar botão de nova categoria
+    syncExpenseCategories();
+    const addCatBtn = document.getElementById('openAddCategoryBtn');
+    if (addCatBtn) {
+        addCatBtn.onclick = null;
+        addCatBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            openAddCategoryModal();
+        });
+    }
+
+    // Preparar grid de ícones da modal de categoria
+    setupCategoryIconGrid();
 }
 
 async function deleteExpense(id) {
@@ -387,6 +418,223 @@ window.expenseModal = {
     openExpenseModalForEdit,
     deleteExpense
 };
+
+// Exportar para reconfigurar listeners após navegação SPA
+window.initializeExpenseModal = initializeExpenseModal;
+
+// ============================================================================
+// GERENCIAMENTO DE CATEGORIAS PERSONALIZADAS
+// ============================================================================
+
+const BASE_CATEGORIES = [
+    { value: 'alimentacao', label: 'Alimentação' },
+    { value: 'transporte', label: 'Transporte' },
+    { value: 'saude', label: 'Saúde' },
+    { value: 'educacao', label: 'Educação' },
+    { value: 'entretenimento', label: 'Entretenimento' },
+    { value: 'outros', label: 'Outros' }
+];
+
+function getUserIdFromStorage() {
+    try {
+        const userDataString = sessionStorage.getItem('user') || localStorage.getItem('user');
+        if (!userDataString) return null;
+        const userData = JSON.parse(userDataString);
+        return userData.id || userData.user_id || userData.userId || null;
+    } catch (e) {
+        return null;
+    }
+}
+
+function loadCustomCategoriesFromStorage() {
+    const userId = getUserIdFromStorage();
+    if (!userId) return [];
+    try {
+        const stored = localStorage.getItem(`customCategories_${userId}`);
+        return stored ? JSON.parse(stored) : [];
+    } catch (e) {
+        return [];
+    }
+}
+
+function saveCustomCategoriesToStorage(list) {
+    const userId = getUserIdFromStorage();
+    if (!userId) return;
+    localStorage.setItem(`customCategories_${userId}`, JSON.stringify(list || []));
+}
+
+function syncExpenseCategories() {
+    const select = document.getElementById('expenseCategory');
+    if (!select) return;
+
+    const customs = loadCustomCategoriesFromStorage();
+
+    // Reconstruir opções garantindo "Outros" sempre por último
+    const placeholder = select.querySelector('option[value=""]');
+    select.innerHTML = '';
+    if (placeholder) select.appendChild(placeholder);
+
+    const baseWithoutOutros = BASE_CATEGORIES.filter(c => c.value !== 'outros');
+    const outrosBase = BASE_CATEGORIES.find(c => c.value === 'outros');
+
+    baseWithoutOutros.forEach(cat => {
+        const opt = document.createElement('option');
+        opt.value = cat.value;
+        opt.textContent = cat.label;
+        select.appendChild(opt);
+    });
+
+    customs.forEach(cat => {
+        const opt = document.createElement('option');
+        opt.value = cat.slug;
+        opt.textContent = cat.nome;
+        opt.setAttribute('data-custom', 'true');
+        select.appendChild(opt);
+    });
+
+    if (outrosBase) {
+        const opt = document.createElement('option');
+        opt.value = outrosBase.value;
+        opt.textContent = outrosBase.label;
+        select.appendChild(opt);
+    }
+
+    // Se existir filtro na página de transações, manter em sincronia com "Outros" por último
+    const filter = document.getElementById('categoryFilter');
+    if (filter) {
+        const first = filter.querySelector('option[value=""]');
+        filter.innerHTML = '';
+        if (first) filter.appendChild(first);
+
+        baseWithoutOutros.forEach(cat => {
+            const opt = document.createElement('option');
+            opt.value = cat.value;
+            opt.textContent = cat.label;
+            filter.appendChild(opt);
+        });
+
+        customs.forEach(cat => {
+            const opt = document.createElement('option');
+            opt.value = cat.slug;
+            opt.textContent = cat.nome;
+            opt.setAttribute('data-custom', 'true');
+            filter.appendChild(opt);
+        });
+
+        if (outrosBase) {
+            const opt = document.createElement('option');
+            opt.value = outrosBase.value;
+            opt.textContent = outrosBase.label;
+            filter.appendChild(opt);
+        }
+    }
+}
+
+function openAddCategoryModal() {
+    const modal = document.getElementById('addCategoryModal');
+    if (!modal) return;
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+    setTimeout(() => {
+        modal.style.opacity = '1';
+        const modalContent = modal.querySelector('div > div');
+        if (modalContent) modalContent.style.transform = 'scale(1)';
+    }, 10);
+
+    // Reset campos
+    const nameInput = document.getElementById('newCategoryName');
+    if (nameInput) nameInput.value = '';
+    customCategoryIcon = null;
+    document.querySelectorAll('.category-icon-btn').forEach(btn => btn.classList.remove('border-primary', 'bg-primary/10'));
+    document.getElementById('categoryErrorMessage')?.classList.add('hidden');
+    document.getElementById('categorySuccessMessage')?.classList.add('hidden');
+}
+
+function closeAddCategoryModal() {
+    const modal = document.getElementById('addCategoryModal');
+    if (!modal) return;
+    modal.style.opacity = '0';
+    const modalContent = modal.querySelector('div > div');
+    if (modalContent) modalContent.style.transform = 'scale(0.95)';
+    setTimeout(() => {
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
+    }, 250);
+}
+
+function setupCategoryIconGrid() {
+    const grid = document.getElementById('categoryIconGrid');
+    if (!grid) return;
+    grid.querySelectorAll('[data-icon]').forEach(btn => {
+        btn.addEventListener('click', () => {
+            grid.querySelectorAll('[data-icon]').forEach(b => b.classList.remove('border-primary', 'bg-primary/10'));
+            btn.classList.add('border-primary', 'bg-primary/10');
+            customCategoryIcon = btn.getAttribute('data-icon');
+        });
+    });
+}
+
+function saveNewCategory() {
+    const nameInput = document.getElementById('newCategoryName');
+    const errorMsg = document.getElementById('categoryErrorMessage');
+    const successMsg = document.getElementById('categorySuccessMessage');
+
+    const nome = nameInput?.value?.trim();
+    if (!nome) {
+        if (errorMsg) {
+            errorMsg.textContent = 'Por favor, informe o nome da categoria.';
+            errorMsg.classList.remove('hidden');
+        }
+        return;
+    }
+
+    const slug = nome.toLowerCase()
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/^-+|-+$/g, '');
+
+    const customs = loadCustomCategoriesFromStorage();
+    const exists = customs.some(cat => cat.slug === slug);
+    if (exists) {
+        if (errorMsg) {
+            errorMsg.textContent = 'Já existe uma categoria com este nome.';
+            errorMsg.classList.remove('hidden');
+        }
+        return;
+    }
+
+    const newCategory = {
+        nome,
+        slug,
+        icon: customCategoryIcon || 'category',
+        createdAt: new Date().toISOString()
+    };
+
+    customs.push(newCategory);
+    saveCustomCategoriesToStorage(customs);
+    syncExpenseCategories();
+
+    if (typeof window.syncCustomCategories === 'function') {
+        window.syncCustomCategories(customs);
+    }
+
+    if (successMsg) {
+        successMsg.textContent = `Categoria "${nome}" adicionada!`;
+        successMsg.classList.remove('hidden');
+    }
+    if (errorMsg) errorMsg.classList.add('hidden');
+
+    setTimeout(() => closeAddCategoryModal(), 900);
+}
+
+// Expor globally
+window.openAddCategoryModal = openAddCategoryModal;
+window.closeAddCategoryModal = closeAddCategoryModal;
+window.saveNewCategory = saveNewCategory;
+
+// Sincronizar categorias base no load inicial do script
+document.addEventListener('DOMContentLoaded', syncExpenseCategories);
 
 if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', initializeExpenseModal);

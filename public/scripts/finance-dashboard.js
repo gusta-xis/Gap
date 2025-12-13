@@ -1,11 +1,10 @@
+(function() {
+    'use strict';
+
 window.voltarParaSubtemas = function() {
     console.log('🔙 Voltando para subtemas...');
     window.location.href = '/subsistemas';
 };
-
-if (document && document.body) {
-    document.body.style.display = 'none';
-}
 
 window.addEventListener('error', function(e) {
     console.error('Erro global capturado:', e.error);
@@ -36,17 +35,20 @@ function recordBelongsToUser(item, userId) {
     return candidates.some(val => Number(val) === Number(userId));
 }
 
-document.addEventListener('DOMContentLoaded', function() {
+// Função de inicialização principal
+function initDashboard() {
     try {
         console.log('Iniciando dashboard...');
         const isAuthenticated = checkAuthentication();
         if (!isAuthenticated) return;
-        document.body.style.display = '';
         initializeDashboard();
     } catch (error) {
         console.error('Erro na inicialização:', error);
     }
-});
+}
+
+// Exportar para uso do SPA Router
+window.initializeDashboard = initDashboard;
 
 function checkAuthentication() {
     const token = sessionStorage.getItem('accessToken') || localStorage.getItem('token');
@@ -106,34 +108,40 @@ function updateUserName() {
         console.log('🔵 userData parseado:', userData);
         
         if (userData && userData.nome) {
+            const primeiroNome = userData.nome.split(' ')[0];
+            const userName = userData.nome;
+            
+            // Atualizar saudação (apenas se não foi pré-carregada ou se diferente)
             const greetingElement = document.querySelector('[data-user-greeting]');
-            if (greetingElement) {
-                const primeiroNome = userData.nome.split(' ')[0];
-                greetingElement.textContent = `Olá, ${primeiroNome}!`;
+            const expectedGreeting = `Olá, ${primeiroNome}!`;
+            if (greetingElement && greetingElement.textContent !== expectedGreeting) {
+                greetingElement.textContent = expectedGreeting;
                 console.log('Nome atualizado na saudação:', primeiroNome);
-            } else {
-                console.warn('Elemento [data-user-greeting] não encontrado');
+            } else if (greetingElement) {
+                console.log('✅ Saudação já carregada corretamente');
             }
             
+            // Atualizar header name (apenas se pré-carregado não corresponder ou se diferente)
             console.log('🔵 Procurando elemento headerUserName...');
             const headerUserName = document.getElementById('headerUserName');
             console.log('🔵 headerUserName encontrado:', !!headerUserName);
-            if (headerUserName) {
-                headerUserName.textContent = userData.nome;
-                console.log('✅ Nome atualizado no header:', userData.nome);
-            } else {
-                console.warn('❌ Elemento headerUserName não encontrado');
+            if (headerUserName && headerUserName.textContent !== userName) {
+                headerUserName.textContent = userName;
+                console.log('✅ Nome atualizado no header:', userName);
+            } else if (headerUserName) {
+                console.log('✅ Nome no header já correto');
             }
             
+            // Atualizar avatar (apenas se diferente)
             console.log('🔵 Procurando elemento headerAvatar...');
             const headerAvatar = document.getElementById('headerAvatar');
             console.log('🔵 headerAvatar encontrado:', !!headerAvatar);
-            if (headerAvatar) {
-                const inicial = userData.nome.charAt(0).toUpperCase();
+            const inicial = userName.charAt(0).toUpperCase();
+            if (headerAvatar && headerAvatar.textContent !== inicial) {
                 headerAvatar.textContent = inicial;
                 console.log('✅ Avatar atualizado com inicial:', inicial);
-            } else {
-                console.warn('❌ Elemento headerAvatar não encontrado');
+            } else if (headerAvatar) {
+                console.log('✅ Avatar já correto');
             }
         } else {
             console.warn('userData.nome não encontrado:', userData);
@@ -788,3 +796,5 @@ window.dashboardApp = {
     updateDashboardData,
     formatCurrency
 };
+
+})(); // Fim da IIFE

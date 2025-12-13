@@ -42,6 +42,86 @@
     <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
     <link rel="stylesheet" href="/styles/dashboard.css">
+    
+    <!-- Transições suaves e animações -->
+    <style>
+        /* Animação de fade-in suave */
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateX(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+        
+        /* Aplicar animação aos elementos principais */
+        body {
+            animation: fadeIn 0.3s ease-out;
+        }
+        
+        .header-fixed {
+            animation: fadeIn 0.4s ease-out;
+        }
+        
+        aside {
+            animation: slideIn 0.5s ease-out;
+        }
+        
+        main {
+            animation: fadeIn 0.5s ease-out 0.1s backwards;
+        }
+        
+        /* Transições suaves para elementos interativos */
+        .header-user-name, .header-avatar {
+            transition: transform 0.2s ease, opacity 0.2s ease;
+        }
+        
+        a, button {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        /* Cards com transição suave */
+        [class*="bg-white"], [class*="bg-slate"] {
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        
+        /* Hover suave para cards */
+        [class*="bg-white"]:hover, [class*="bg-slate"]:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+        
+        /* Gráficos e elementos animados */
+        [data-chart-slot] {
+            animation: fadeIn 0.6s ease-out backwards;
+        }
+        
+        [data-chart-slot="0"] { animation-delay: 0.2s; }
+        [data-chart-slot="1"] { animation-delay: 0.3s; }
+        [data-chart-slot="2"] { animation-delay: 0.4s; }
+        [data-chart-slot="3"] { animation-delay: 0.5s; }
+        [data-chart-slot="4"] { animation-delay: 0.6s; }
+        [data-chart-slot="5"] { animation-delay: 0.7s; }
+    </style>
+    
+    <!-- Redirecionamento para SPA -->
+    <script>
+        window.location.replace('/app.html#dashboard');
+    </script>
 </head>
 <body class="font-display bg-background-light dark:bg-background-dark text-text-light dark:text-text-dark">
 
@@ -56,7 +136,7 @@
                         <span class="material-symbols-outlined text-xl">dashboard</span>
                         <span class="text-sm font-bold">Dashboard</span>
                     </a>
-                    <a class="flex items-center gap-3 px-4 py-2 rounded-lg text-slate-700 dark:text-slate-300 hover:bg-secondary dark:hover:bg-slate-800" href="#">
+                    <a class="flex items-center gap-3 px-4 py-2 rounded-lg text-slate-700 dark:text-slate-300 hover:bg-secondary dark:hover:bg-slate-800" href="/transacao.html">
                         <span class="material-symbols-outlined text-xl">receipt_long</span>
                         <span class="text-sm font-medium">Minhas Transações</span>
                     </a>
@@ -85,8 +165,8 @@
                 <div class="px-4 sm:px-6 lg:px-8 xl:px-10 flex flex-1 justify-center py-5">
                     <div class="layout-content-container flex flex-col w-full max-w-7xl flex-1">
                         <header class="header-fixed">
-                            <p id="headerUserName" class="header-user-name">Usuario</p>
-                            <div id="headerAvatar" class="header-avatar">U</div>
+                            <p id="headerUserName" class="header-user-name"><script>document.write(window.__preloadedUserName || 'Usuário');</script></p>
+                            <div id="headerAvatar" class="header-avatar"><script>document.write(window.__preloadedUserInitial || 'U');</script></div>
                             <button class="logout-btn" title="Voltar para Subtemas" onclick="voltarParaSubtemas()">
                                 <svg
                                   xmlns="http://www.w3.org/2000/svg"
@@ -107,7 +187,7 @@
                         <main class="flex-1 mt-4">
                             <div class="flex flex-wrap justify-between gap-4 p-4 items-end">
                                 <div class="flex min-w-72 flex-col gap-1">
-                                    <p class="text-slate-800 dark:text-slate-200 tracking-light text-[32px] font-bold leading-tight" data-user-greeting>Olá, Marcos!</p>
+                                    <p class="text-slate-800 dark:text-slate-200 tracking-light text-[32px] font-bold leading-tight" data-user-greeting><script>document.write('Olá, ' + (window.__preloadedUserName || 'Usuário') + '!');</script></p>
                                     <p class="text-slate-500 dark:text-slate-400 text-base font-normal leading-normal">Seja bem-vindo de volta.</p>
                                 </div>
                                 <div class="flex flex-1 gap-3 flex-wrap justify-start sm:justify-end">
