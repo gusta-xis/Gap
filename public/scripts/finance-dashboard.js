@@ -615,6 +615,20 @@ function normalizeCategorySlug(value) {
 
 function handleAddExpense() {
     console.log('🔵 handleAddExpense chamado - abrindo modal');
+    try {
+        if (typeof openExpenseModal === 'function') {
+            openExpenseModal();
+            return;
+        }
+        if (window.expenseModal && typeof window.expenseModal.openExpenseModalForEdit === 'function') {
+            // Fallback: abre modal em modo de criação (sem payload)
+            openExpenseModal();
+            return;
+        }
+        console.warn('⚠️ Função openExpenseModal não encontrada');
+    } catch (e) {
+        console.error('Erro ao abrir modal de despesa:', e);
+    }
 }
 
 function handleViewStatement() {

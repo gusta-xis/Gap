@@ -35,28 +35,30 @@ function sanitizeObject(obj) {
 
 class ApiService {
   constructor() {
-    this.token = sessionStorage.getItem('accessToken');
-    this.refreshToken = sessionStorage.getItem('refreshToken');
+    // Não armazenamos o token no construtor, sempre buscamos dinamicamente
+  }
+
+  get token() {
+    return sessionStorage.getItem('accessToken') || localStorage.getItem('token');
+  }
+
+  get refreshToken() {
+    return sessionStorage.getItem('refreshToken');
   }
 
   setTokens(accessToken, refreshToken) {
-    this.token = accessToken;
-    this.refreshToken = refreshToken;
-    
     sessionStorage.setItem('accessToken', accessToken);
     sessionStorage.setItem('refreshToken', refreshToken);
   }
 
   setAccessToken(accessToken) {
-    this.token = accessToken;
     sessionStorage.setItem('accessToken', accessToken);
   }
 
   removeTokens() {
-    this.token = null;
-    this.refreshToken = null;
     sessionStorage.removeItem('accessToken');
     sessionStorage.removeItem('refreshToken');
+    localStorage.removeItem('token');
   }
 
   getHeaders() {
@@ -65,8 +67,9 @@ class ApiService {
       'X-Requested-With': 'XMLHttpRequest'
     };
 
-    if (this.token) {
-      headers['Authorization'] = `Bearer ${this.token}`;
+    const token = this.token;
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
     }
 
     return headers;

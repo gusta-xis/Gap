@@ -4,7 +4,7 @@ function formatCurrencyInput(input) {
     let value = input.value.replace(/\D/g, '');
     
     if (value.length === 0) {
-        input.value = '0,00';
+        input.value = '';
         return;
     }
     
@@ -372,7 +372,8 @@ function initializeExpenseModal() {
         }, true);
         console.log('✅ Listener adicionado ao botão "Adicionar Despesa"');
     } else {
-        console.log('❌ Botão "Adicionar Despesa" não encontrado');
+        console.log('⚠️ Botão "Adicionar Despesa" não encontrado (provável que não está na página de despesas)');
+        return;
     }
 
     setupExpenseTypeToggle();
@@ -518,6 +519,36 @@ function syncExpenseCategories() {
             filter.appendChild(opt);
         }
     }
+
+    // Sync gastos fixos category select
+    const gastoFixoSelect = document.getElementById('gastoFixoCategory');
+    if (gastoFixoSelect) {
+        const placeholder = gastoFixoSelect.querySelector('option[value=""]');
+        gastoFixoSelect.innerHTML = '';
+        if (placeholder) gastoFixoSelect.appendChild(placeholder);
+
+        baseWithoutOutros.forEach(cat => {
+            const opt = document.createElement('option');
+            opt.value = cat.value;
+            opt.textContent = cat.label;
+            gastoFixoSelect.appendChild(opt);
+        });
+
+        customs.forEach(cat => {
+            const opt = document.createElement('option');
+            opt.value = cat.slug;
+            opt.textContent = cat.nome;
+            opt.setAttribute('data-custom', 'true');
+            gastoFixoSelect.appendChild(opt);
+        });
+
+        if (outrosBase) {
+            const opt = document.createElement('option');
+            opt.value = outrosBase.value;
+            opt.textContent = outrosBase.label;
+            gastoFixoSelect.appendChild(opt);
+        }
+    }
 }
 
 function openAddCategoryModal() {
@@ -539,17 +570,84 @@ function openAddCategoryModal() {
     document.getElementById('categorySuccessMessage')?.classList.add('hidden');
 }
 
+// Track which modal opened the category modal
+let previousModalSource = null;
+
+function showAddCategoryFromExpense() {
+    console.log('🔵 Abrindo modal de categoria a partir de despesa');
+    previousModalSource = 'expense';
+    const categoryModal = document.getElementById('addCategoryModal');
+    
+    // Mantém a modal de despesa visível (não esconde)
+    
+    if (categoryModal) {
+        categoryModal.classList.remove('hidden');
+        categoryModal.classList.add('flex');
+        setTimeout(() => {
+            categoryModal.style.opacity = '1';
+            const modalContent = categoryModal.querySelector('div > div');
+            if (modalContent) modalContent.style.transform = 'scale(1)';
+        }, 10);
+    }
+    
+    const nameInput = document.getElementById('newCategoryName');
+    if (nameInput) nameInput.value = '';
+    customCategoryIcon = null;
+    document.querySelectorAll('.category-icon-btn').forEach(btn => btn.classList.remove('border-primary', 'bg-primary/10'));
+    document.getElementById('categoryErrorMessage')?.classList.add('hidden');
+    document.getElementById('categorySuccessMessage')?.classList.add('hidden');
+}
+
+function showAddCategoryFromGastoFixo() {
+    console.log('🔵 Abrindo modal de categoria a partir de gasto fixo');
+    previousModalSource = 'gasto-fixo';
+    const categoryModal = document.getElementById('addCategoryModal');
+    
+    // Mantém a modal de gasto fixo visível (não esconde)
+    
+    if (categoryModal) {
+        categoryModal.classList.remove('hidden');
+        categoryModal.classList.add('flex');
+        setTimeout(() => {
+            categoryModal.style.opacity = '1';
+            const modalContent = categoryModal.querySelector('div > div');
+            if (modalContent) modalContent.style.transform = 'scale(1)';
+        }, 10);
+    }
+    
+    const nameInput = document.getElementById('newCategoryName');
+    if (nameInput) nameInput.value = '';
+    customCategoryIcon = null;
+    document.querySelectorAll('.category-icon-btn').forEach(btn => btn.classList.remove('border-primary', 'bg-primary/10'));
+    document.getElementById('categoryErrorMessage')?.classList.add('hidden');
+    document.getElementById('categorySuccessMessage')?.classList.add('hidden');
+}
+
+function closeAddCategoryAndReturnToExpense() {
+    console.log('🔵 Fechando modal de categoria');
+    const categoryModal = document.getElementById('addCategoryModal');
+    
+    if (categoryModal) {
+        categoryModal.style.opacity = '0';
+        const modalContent = categoryModal.querySelector('div > div');
+        if (modalContent) modalContent.style.transform = 'scale(0.95)';
+        
+        setTimeout(() => {
+            categoryModal.classList.add('hidden');
+            categoryModal.classList.remove('flex');
+            // Modal anterior já está visível, não precisa fazer nada
+        }, 250);
+    }
+}
+
 function closeAddCategoryModal() {
     const modal = document.getElementById('addCategoryModal');
     if (!modal) return;
-    modal.style.opacity = '0';
-    const modalContent = modal.querySelector('div > div');
-    if (modalContent) modalContent.style.transform = 'scale(0.95)';
-    setTimeout(() => {
-        modal.classList.add('hidden');
-        modal.classList.remove('flex');
-    }, 250);
+    closeAddCategoryAndReturnToExpense();
 }
+window.showAddCategoryFromExpense = showAddCategoryFromExpense;
+window.showAddCategoryFromGastoFixo = showAddCategoryFromGastoFixo;
+window.closeAddCategoryAndReturnToExpense = closeAddCategoryAndReturnToExpense;
 
 function setupCategoryIconGrid() {
     const grid = document.getElementById('categoryIconGrid');
@@ -614,7 +712,11 @@ function saveNewCategory() {
     }
     if (errorMsg) errorMsg.classList.add('hidden');
 
-    setTimeout(() => closeAddCategoryModal(), 900);
+    setTimeout(() => {
+        closeAddCategoryModal();
+        // Resync categories after adding
+        syncExpenseCategories();
+    }, 900);
 }
 
 window.openAddCategoryModal = openAddCategoryModal;

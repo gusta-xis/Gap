@@ -178,22 +178,22 @@ app.get('/login', (req, res) => {
 // Redirecionamento de segurança (acesso direto ao arquivo)
 app.get('/login.html', (req, res) => res.redirect(301, '/'));
 
-// Rota Dashboard (Protegida - Requer autenticação)
-app.get('/subsistemas', authPageMiddleware, (req, res) => {
+// Rota Dashboard (A autenticação é feita no client-side via JavaScript)
+app.get('/subsistemas', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'subtemas.html'));
 });
 
-// Rota Financeiro (Protegida - Requer autenticação)
-app.get('/financeiro', authPageMiddleware, (req, res) => {
+// Rota Financeiro (A autenticação é feita no client-side via JavaScript)
+app.get('/financeiro', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'finance.html'));
 });
 
-// Rota Financeiro Dashboard (Protegida - SPA)
-app.get('/financeiro/dashboard', authPageMiddleware, (req, res) => {
+// Rota Financeiro Dashboard (SPA - A autenticação é feita no client-side via JavaScript)
+app.get('/financeiro/dashboard', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'app.html'));
 });
 
-// Rota Reset Password (Protegida - Requer token válido)
+// Rota Reset Password (Protegida - Requer token válido na query string)
 app.get('/reset-password', authResetPasswordMiddleware, (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'reset-password.html'));
 });

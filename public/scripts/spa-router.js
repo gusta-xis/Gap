@@ -17,6 +17,11 @@ const SPARouter = {
             title: 'Minhas Transações - GAP Financeiro',
             contentUrl: '/pages/transacoes-content.html',
             script: '/scripts/transacoes.js'
+        },
+        'gastos-fixos': {
+            title: 'Gastos Fixos - GAP Financeiro',
+            contentUrl: '/pages/gastos-fixos-content.html',
+            script: '/scripts/gastos-fixos.js'
         }
     },
 
@@ -140,7 +145,7 @@ const SPARouter = {
 
             await this.loadScript(page.script);
 
-            await new Promise(resolve => setTimeout(resolve, 50));
+            await new Promise(resolve => setTimeout(resolve, 200));
 
             contentDiv.classList.remove('loading');
 
@@ -184,10 +189,17 @@ const SPARouter = {
             script.remove();
         });
 
+        // Funções de limpeza específicas por página
+        if (typeof window.cleanupGastosFixos === 'function') {
+            window.cleanupGastosFixos();
+        }
+
         const globalVarsToClean = [
             'dashboardData', 'allTransactions', 'filteredTransactions', 
             'customCategories', 'selectedExpenseType', 'selectedCategoryIcon',
-            'initializeDashboard', 'initTransacoesPage', 'loadDashboardData',
+            'gastosFixosData',
+            'initializeDashboard', 'initTransacoesPage', 'initializeGastosFixos',
+            'loadDashboardData', 'loadGastosFixos',
             'updateUserName', 'renderMonthlyChart', 'handleAddExpense',
             'normalizeTransactions', 'applyFilters', 'renderTransactions',
             'updateStatistics', 'loadCustomCategories', 'saveNewCategory'
@@ -224,6 +236,13 @@ const SPARouter = {
                 window.initTransacoesPage();
             } else {
                 console.warn('⚠️ initTransacoesPage não está disponível');
+            }
+        } else if (pageName === 'gastos-fixos') {
+            if (typeof window.initializeGastosFixos === 'function') {
+                console.log('✅ Chamando initializeGastosFixos...');
+                window.initializeGastosFixos();
+            } else {
+                console.warn('⚠️ initializeGastosFixos não está disponível');
             }
         }
     },
