@@ -1,21 +1,12 @@
-// ============================================================================
-// SPA ROUTER - Sistema de Navegação Sem Reload
-// ============================================================================
-
 window.voltarParaSubtemas = function() {
     console.log('🔙 Voltando para subtemas...');
     window.location.href = '/subsistemas';
 };
 
-// ============================================================================
-// CONTROLE DE NAVEGAÇÃO
-// ============================================================================
-
 const SPARouter = {
     currentPage: null,
     currentScript: null,
-    
-    // Páginas disponíveis
+
     pages: {
         dashboard: {
             title: 'Dashboard - GAP Financeiro',
@@ -28,26 +19,20 @@ const SPARouter = {
             script: '/scripts/transacoes.js'
         }
     },
-    
-    // Inicializar router
+
     init() {
         console.log('🚀 Iniciando SPA Router...');
-        
-        // Verificar autenticação
+
         if (!this.checkAuth()) return;
-        
-        // Configurar nome do usuário
+
         this.updateUserInfo();
-        
-        // Configurar listeners de navegação
+
         this.setupNavigation();
-        
-        // Carregar página inicial (dashboard por padrão)
+
         const initialPage = window.location.hash.replace('#', '') || 'dashboard';
         this.loadPage(initialPage);
     },
-    
-    // Verificar autenticação
+
     checkAuth() {
         const token = sessionStorage.getItem('accessToken') || localStorage.getItem('token');
         const user = sessionStorage.getItem('user') || localStorage.getItem('user');
@@ -62,8 +47,7 @@ const SPARouter = {
         
         return true;
     },
-    
-    // Atualizar informações do usuário
+
     updateUserInfo() {
         try {
             const userDataString = sessionStorage.getItem('user') || localStorage.getItem('user');
@@ -87,10 +71,8 @@ const SPARouter = {
             console.error('❌ Erro ao atualizar info do usuário:', error);
         }
     },
-    
-    // Configurar navegação
+
     setupNavigation() {
-        // Interceptar cliques nos links de navegação
         document.querySelectorAll('.nav-link').forEach(link => {
             link.addEventListener('click', (e) => {
                 const page = link.getAttribute('data-page');
@@ -100,33 +82,28 @@ const SPARouter = {
                 }
             });
         });
-        
-        // Listener para botão voltar/avançar do navegador
+
         window.addEventListener('popstate', (e) => {
             if (e.state && e.state.page) {
                 this.loadPage(e.state.page, false);
             }
         });
     },
-    
-    // Navegar para uma página
+
     navigateTo(pageName) {
         if (!this.pages[pageName]) {
             console.warn(`Página "${pageName}" não encontrada`);
             return;
         }
-        
-        // Atualizar URL sem reload
+
         window.history.pushState({ page: pageName }, '', `#${pageName}`);
-        
-        // Carregar página
+
         this.loadPage(pageName);
     },
-    
-    // Carregar página
+
     async loadPage(pageName, updateHistory = true) {
         if (!this.pages[pageName]) {
-            pageName = 'dashboard'; // Fallback
+            pageName = 'dashboard';
         }
         
         const page = this.pages[pageName];
@@ -138,19 +115,14 @@ const SPARouter = {
         }
         
         try {
-            // Adicionar classe de loading
             contentDiv.classList.add('loading');
-            
-            // Atualizar links ativos no menu
+
             this.updateActiveNav(pageName);
-            
-            // Atualizar título
+
             document.title = page.title;
-            
-            // Aguardar transição
+
             await new Promise(resolve => setTimeout(resolve, 150));
-            
-            // Carregar conteúdo HTML
+
             const response = await fetch(page.contentUrl);
             if (!response.ok) {
                 throw new Error(`Erro ao carregar ${page.contentUrl}`);
@@ -158,26 +130,20 @@ const SPARouter = {
             
             const html = await response.text();
             contentDiv.innerHTML = html;
-            
-            // Remover script anterior se existir
+
             if (this.currentScript) {
                 this.currentScript.remove();
                 this.currentScript = null;
             }
-            
-            // Limpar event listeners e variáveis globais anteriores
+
             this.cleanupPage();
-            
-            // Carregar script da página
+
             await this.loadScript(page.script);
-            
-            // Aguardar um momento para garantir que o script foi processado
+
             await new Promise(resolve => setTimeout(resolve, 50));
-            
-            // Remover classe de loading
+
             contentDiv.classList.remove('loading');
-            
-            // Inicializar página específica
+
             this.initPage(pageName);
             
             this.currentPage = pageName;
@@ -199,11 +165,10 @@ const SPARouter = {
         }
     },
     
-    // Carregar script dinamicamente
     loadScript(scriptUrl) {
         return new Promise((resolve, reject) => {
             const script = document.createElement('script');
-            script.src = scriptUrl + '?t=' + Date.now(); // Cache busting
+            script.src = `${scriptUrl}?t=${Date.now()}`;
             script.setAttribute('data-page-script', 'true');
             script.onload = () => {
                 this.currentScript = script;
@@ -213,15 +178,12 @@ const SPARouter = {
             document.body.appendChild(script);
         });
     },
-    
-    // Limpar recursos da página anterior
+
     cleanupPage() {
-        // Remover todos os scripts de páginas anteriores
         document.querySelectorAll('script[data-page-script]').forEach(script => {
             script.remove();
         });
-        
-        // Limpar variáveis globais específicas das páginas
+
         const globalVarsToClean = [
             'dashboardData', 'allTransactions', 'filteredTransactions', 
             'customCategories', 'selectedExpenseType', 'selectedCategoryIcon',
@@ -241,8 +203,7 @@ const SPARouter = {
             }
         });
     },
-    
-    // Inicializar página específica
+
     initPage(pageName) {
         console.log(`🔄 Tentando inicializar página: ${pageName}`);
         
@@ -266,8 +227,7 @@ const SPARouter = {
             }
         }
     },
-    
-    // Atualizar link ativo no menu
+
     updateActiveNav(pageName) {
         document.querySelectorAll('.nav-link').forEach(link => {
             const linkPage = link.getAttribute('data-page');
@@ -287,15 +247,9 @@ const SPARouter = {
     }
 };
 
-// ============================================================================
-// INICIALIZAR QUANDO O DOM ESTIVER PRONTO
-// ============================================================================
-
-// Exportar SPARouter para window para acesso global
 window.SPARouter = SPARouter;
 
 document.addEventListener('DOMContentLoaded', function() {
     SPARouter.init();
 });
-
 console.log('✅ SPA Router carregado');

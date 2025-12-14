@@ -1,49 +1,31 @@
-// ============================================================================
-// TRANSACOES.JS - Página de Minhas Transações
-// ============================================================================
-
 (function() {
     'use strict';
-    
-// Função para voltar para subtemas (compatibilidade)
+
 window.voltarParaSubtemas = function() {
     console.log('🔙 Voltando para subtemas...');
     window.location.href = '/subsistemas';
 };
 
-// ============================================================================
-// VARIÁVEIS GLOBAIS
-// ============================================================================
-
-let allTransactions = []; // Cache de todas as transações
-let filteredTransactions = []; // Transações após aplicar filtros
-let customCategories = []; // Categorias personalizadas do usuário
-
-// ============================================================================
-// INICIALIZAÇÃO
-// ============================================================================
+let allTransactions = [];
+let filteredTransactions = [];
+let customCategories = [];
 
 function initTransacoesPage() {
     try {
         console.log('🚀 Iniciando página de Transações...');
         
-        // Verificar autenticação
         const isAuthenticated = checkAuthentication();
         if (!isAuthenticated) return;
-        
-        // Configurar nome do usuário no header (apenas se o elemento existir)
+
         const headerEl = document.getElementById('headerUserName');
         if (headerEl) {
             updateUserName();
         }
-        
-        // Carregar categorias personalizadas
+
         loadCustomCategories();
-        
-        // Carregar dados
+
         loadAllTransactions();
-        
-        // Configurar event listeners dos filtros
+
         setupFilterListeners();
         
     } catch (error) {
@@ -51,12 +33,7 @@ function initTransacoesPage() {
     }
 }
 
-// Exportar para uso do SPA Router
 window.initTransacoesPage = initTransacoesPage;
-
-// ============================================================================
-// AUTENTICAÇÃO
-// ============================================================================
 
 function checkAuthentication() {
     const token = sessionStorage.getItem('accessToken') || localStorage.getItem('token');
@@ -89,11 +66,9 @@ function checkAuthentication() {
 
 function updateUserName() {
     try {
-        // Verificar se já foi pré-carregado
         const headerUserNameEl = document.getElementById('headerUserName');
         const headerAvatarEl = document.getElementById('headerAvatar');
-        
-        // Se os dados já foram carregados via script inline, não precisa atualizar
+
         if (window.__preloadedUserName && headerUserNameEl?.textContent === window.__preloadedUserName) {
             console.log('✅ Nome de usuário já carregado via preload');
             return;
@@ -109,12 +84,10 @@ function updateUserName() {
         const userData = JSON.parse(userDataString);
         const userName = userData.nome || userData.name || 'Usuário';
         
-        // Atualizar nome no header (apenas se diferente)
         if (headerUserNameEl && headerUserNameEl.textContent !== userName) {
             headerUserNameEl.textContent = userName;
         }
-        
-        // Atualizar avatar (apenas se diferente)
+
         const userInitial = userName.charAt(0).toUpperCase();
         if (headerAvatarEl && headerAvatarEl.textContent !== userInitial) {
             headerAvatarEl.textContent = userInitial;
@@ -126,17 +99,12 @@ function updateUserName() {
     }
 }
 
-// ============================================================================
-// CARREGAMENTO DE DADOS DA API
-// ============================================================================
-
 async function loadAllTransactions() {
     try {
         showLoading();
         
         console.log('📡 Buscando dados das APIs...');
         
-        // Buscar dados das 3 APIs em paralelo
         const [gastosVariaveis, gastosFixos, salarios] = await Promise.all([
             apiService.getGastosVariaveis().catch(err => {
                 console.warn('⚠️ Erro ao buscar gastos variáveis:', err.message);
@@ -158,13 +126,11 @@ async function loadAllTransactions() {
             salarios: salarios?.length || 0
         });
         
-        // Normalizar e unificar os dados
         allTransactions = normalizeTransactions(gastosVariaveis, gastosFixos, salarios);
         
         console.log('✅ Total de transações normalizadas:', allTransactions.length);
         console.log('📋 Transações:', allTransactions);
         
-        // Aplicar filtros e renderizar
         applyFilters();
         
     } catch (error) {
@@ -173,25 +139,18 @@ async function loadAllTransactions() {
     }
 }
 
-// ============================================================================
-// NORMALIZAÇÃO DE DADOS
-// ============================================================================
-
 /**
  * Normaliza e unifica dados de diferentes endpoints
  * Retorna um array padronizado com todos os dados
  */
-function normalizeTransactions(gastosVariaveis = [], gastosFixos = [], salarios = []) {
+    function normalizeTransactions(gastosVariaveis = [], gastosFixos = [], salarios = []) {
     const normalized = [];
     const userId = getUserId();
     
-    // Normalizar Gastos Variáveis
     if (Array.isArray(gastosVariaveis)) {
         gastosVariaveis.forEach(gasto => {
-            // Verificar se pertence ao usuário
             if (!recordBelongsToUser(gasto, userId)) return;
-            
-            // Determinar tipo baseado no campo 'tipo'
+
             const tipo = gasto.tipo === 'entrada' ? 'receita' : 'despesa';
             
             normalized.push({
@@ -210,10 +169,8 @@ function normalizeTransactions(gastosVariaveis = [], gastosFixos = [], salarios 
         });
     }
     
-    // Normalizar Gastos Fixos
     if (Array.isArray(gastosFixos)) {
         gastosFixos.forEach(gasto => {
-            // Verificar se pertence ao usuário
             if (!recordBelongsToUser(gasto, userId)) return;
             
             normalized.push({
@@ -232,10 +189,8 @@ function normalizeTransactions(gastosVariaveis = [], gastosFixos = [], salarios 
         });
     }
     
-    // Normalizar Salários
     if (Array.isArray(salarios)) {
         salarios.forEach(salario => {
-            // Verificar se pertence ao usuário
             if (!recordBelongsToUser(salario, userId)) return;
             
             normalized.push({
@@ -300,7 +255,6 @@ function normalizeCategoryName(value) {
     
     const slug = normalizeCategorySlug(value);
     
-    // Verificar se é categoria personalizada
     const customCat = customCategories.find(cat => cat.slug === slug);
     if (customCat) {
         return customCat.nome;
@@ -328,10 +282,6 @@ function normalizeCategorySlug(value) {
     return v.replace(/\s+/g, '-');
 }
 
-// ============================================================================
-// FILTROS E ORDENAÇÃO
-// ============================================================================
-
 function setupFilterListeners() {
     const searchInput = document.getElementById('searchInput');
     const categoryFilter = document.getElementById('categoryFilter');
@@ -350,7 +300,6 @@ function applyFilters() {
     
     let filtered = [...allTransactions];
     
-    // Filtro de busca por texto
     const searchText = document.getElementById('searchInput')?.value?.toLowerCase() || '';
     if (searchText) {
         filtered = filtered.filter(t => 
@@ -360,34 +309,28 @@ function applyFilters() {
         console.log(`🔎 Após filtro de busca "${searchText}":`, filtered.length);
     }
     
-    // Filtro por categoria
     const categoryValue = document.getElementById('categoryFilter')?.value || '';
     if (categoryValue) {
         filtered = filtered.filter(t => t.categoria_slug === categoryValue);
         console.log(`📁 Após filtro de categoria "${categoryValue}":`, filtered.length);
     }
     
-    // Filtro por período
     const periodValue = document.getElementById('periodFilter')?.value || 'all';
     if (periodValue !== 'all') {
         filtered = filterByPeriod(filtered, periodValue);
         console.log(`📅 Após filtro de período "${periodValue}":`, filtered.length);
     }
     
-    // Ordenação
     const sortValue = document.getElementById('sortOrder')?.value || 'recent';
     filtered = sortTransactions(filtered, sortValue);
     console.log(`🔀 Após ordenação "${sortValue}":`, filtered.length);
     
-    // Atualizar lista filtrada e renderizar
     filteredTransactions = filtered;
     
     console.log('✅ Transações filtradas:', filteredTransactions.length);
     
-    // Atualizar estatísticas
     updateStatistics(filteredTransactions);
-    
-    // Renderizar tabela
+
     renderTransactions(filteredTransactions);
 }
 
@@ -440,9 +383,6 @@ function sortTransactions(transactions, sortType) {
     }
 }
 
-// ============================================================================
-// RENDERIZAÇÃO DA TABELA
-// ============================================================================
 
 function renderTransactions(transactions) {
     console.log('🎨 Renderizando transações:', transactions?.length || 0);
@@ -464,13 +404,11 @@ function renderTransactions(transactions) {
         return;
     }
     
-    // Esconder loading com transição
     if (loadingState) {
         loadingState.style.opacity = '0';
         setTimeout(() => loadingState.classList.add('hidden'), 300);
     }
-    
-    // Verificar se há transações
+
     if (!transactions || transactions.length === 0) {
         console.log('⚠️ Nenhuma transação para renderizar');
         if (tableContainer) {
@@ -486,7 +424,6 @@ function renderTransactions(transactions) {
     
     console.log('✅ Renderizando', transactions.length, 'transações');
     
-    // Mostrar tabela com transição
     if (tableContainer) {
         tableContainer.classList.remove('hidden');
         tableContainer.style.opacity = '1';
@@ -497,12 +434,10 @@ function renderTransactions(transactions) {
         setTimeout(() => emptyState.classList.add('hidden'), 300);
     }
     
-    // Limpar tbody
     tbody.innerHTML = '';
     
     console.log('🔧 Adicionando', transactions.length, 'linhas na tabela...');
     
-    // Renderizar cada transação com delay escalonado
     transactions.forEach((transaction) => {
         const row = createTransactionRow(transaction);
         tbody.appendChild(row);
@@ -512,92 +447,80 @@ function renderTransactions(transactions) {
 }
 
 function createTransactionRow(transaction) {
-    const tr = document.createElement('tr');
-    tr.className = 'border-b border-black/10 dark:border-white/10';
+    const div = document.createElement('div');
+    const borderClass = 'border-b border-black/10 dark:border-white/10';
     
-    // Formatar data
-    const dataFormatada = formatDate(transaction.data);
-    const dataLonga = formatDateLong(transaction.data);
+    const dataFormatada = formatDateLong(transaction.data);
     
-    // Formatar valor
-    const valorFormatado = formatCurrency(transaction.valor);
-    
-    // Classe de cor do valor seguindo padrão do dashboard
-    const valorClass = transaction.tipo === 'receita' 
-        ? 'text-green-600 dark:text-green-400' 
+    const icon = getTransactionIcon(transaction);
+    const isReceita = transaction.tipo === 'receita';
+    const valorAbsoluto = formatCurrency(Math.abs(transaction.valor));
+    const valorFormatado = isReceita 
+        ? `<span class="mr-1">+</span>${valorAbsoluto}`
+        : `<span class="mr-1">-</span>${valorAbsoluto}`;
+    const valorClass = isReceita
+        ? 'text-green-600 dark:text-green-400'
         : 'text-red-600 dark:text-red-300';
     
-    // Badge do tipo
-    const badgeClass = transaction.tipo === 'receita'
+    const tipoLabel = isReceita ? 'Receita' : 'Despesa';
+    const tipoClass = isReceita 
         ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300'
         : 'bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300';
     
-    const badgeText = transaction.tipo === 'receita' ? 'Receita' : 'Despesa';
-    
-    // Ícone
-    const icon = getTransactionIcon(transaction);
-    
-    // Botões de ação (apenas para gastos variáveis)
     const actionButtons = transaction.canEdit || transaction.canDelete ? `
-        <div class="flex items-center justify-center gap-2">
+        <div class="flex gap-2">
             ${transaction.canEdit ? `
-                <button 
-                    onclick="editTransaction(${transaction.id}, '${transaction.origem}')" 
-                    class="text-slate-400 hover:text-primary dark:hover:text-primary transition-colors"
-                    title="Editar"
-                >
-                    <span class="material-symbols-outlined text-lg">edit</span>
+                <button class="text-slate-500 hover:text-primary transition-colors" aria-label="Editar" onclick="editTransaction(${transaction.id}, '${transaction.origem}')">
+                    <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <path d="M12 20h9" />
+                        <path d="M16.5 3.5a2.121 2.121 0 1 1 3 3L7 19l-4 1 1-4Z" />
+                    </svg>
                 </button>
             ` : ''}
             ${transaction.canDelete ? `
-                <button 
-                    onclick="deleteTransaction(${transaction.id}, '${transaction.origem}')" 
-                    class="text-slate-400 hover:text-red-600 dark:hover:text-red-400 transition-colors"
-                    title="Excluir"
-                >
-                    <span class="material-symbols-outlined text-lg">delete</span>
+                <button class="text-slate-500 hover:text-red-500 transition-colors" aria-label="Excluir" onclick="deleteTransaction(${transaction.id}, '${transaction.origem}')">
+                    <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <polyline points="3 6 5 6 21 6" />
+                        <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6" />
+                        <path d="M10 11v6" />
+                        <path d="M14 11v6" />
+                        <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2" />
+                    </svg>
                 </button>
             ` : ''}
         </div>
-    ` : '<span class="text-slate-400 dark:text-slate-500 text-xs">-</span>';
+    ` : '';
     
-    tr.innerHTML = `
-        <td class="px-6 py-4 whitespace-nowrap">
-            <div class="flex items-center gap-3">
-                <div class="bg-primary/10 dark:bg-primary/20 text-primary rounded-full size-10 flex items-center justify-center flex-shrink-0">
-                    ${icon}
-                </div>
-                <div class="flex flex-col">
-                    <div class="text-sm font-medium text-slate-900 dark:text-slate-100">${transaction.descricao}</div>
-                    <div class="text-xs text-slate-500 dark:text-slate-400">${dataLonga}</div>
-                </div>
-            </div>
-        </td>
-            <td class="px-6 py-3 whitespace-nowrap">
-            <div class="text-sm text-slate-700 dark:text-slate-300">${transaction.categoria}</div>
-        </td>
-            <td class="px-6 py-3 whitespace-nowrap">
-            <div class="text-sm text-slate-500 dark:text-slate-400 hidden sm:block">&nbsp;</div>
-        </td>
-            <td class="px-6 py-3 whitespace-nowrap">
-            <span class="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${badgeClass}">
-                ${badgeText}
+    div.className = `transaction-row grid grid-cols-[64px_2fr_1.5fr_2fr_1.2fr_1fr_72px] items-center px-6 py-4 ${borderClass}`;
+    div.innerHTML = `
+        <div class="bg-primary/10 dark:bg-primary/20 text-primary dark:text-primary rounded-full w-10 h-10 flex items-center justify-center flex-shrink-0">
+            ${icon}
+        </div>
+        <div class="flex flex-col justify-center overflow-hidden">
+            <p class="text-slate-800 dark:text-slate-200 font-medium truncate">${transaction.descricao}</p>
+            <p class="text-slate-500 dark:text-slate-400 text-sm md:hidden truncate">${dataFormatada}</p>
+        </div>
+        <div class="flex items-center overflow-hidden">
+            <p class="text-slate-500 dark:text-slate-400 text-sm truncate">${transaction.categoria}</p>
+        </div>
+        <div class="flex items-center">
+            <p class="text-slate-500 dark:text-slate-400 text-sm">${dataFormatada}</p>
+        </div>
+        <div class="flex items-center">
+            <span class="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${tipoClass}">
+                ${tipoLabel}
             </span>
-        </td>
-            <td class="px-6 py-3 whitespace-nowrap text-right">
-            <div class="text-sm font-bold ${valorClass}">${valorFormatado}</div>
-        </td>
-            <td class="px-6 py-3 whitespace-nowrap text-center">
+        </div>
+        <div class="flex items-center justify-end">
+            <div class="${valorClass} font-bold whitespace-nowrap">${valorFormatado}</div>
+        </div>
+        <div class="flex items-center justify-end gap-3">
             ${actionButtons}
-        </td>
+        </div>
     `;
     
-    return tr;
+    return div;
 }
-
-// ============================================================================
-// ÍCONES DAS TRANSAÇÕES
-// ============================================================================
 
 function getTransactionIcon(transaction) {
     const tipo = transaction.tipo === 'receita' ? 'receita' : 'despesa';
@@ -624,10 +547,6 @@ function getTransactionIcon(transaction) {
     
     return tipo === 'receita' ? svg.receita : svg.despesa;
 }
-
-// ============================================================================
-// AÇÕES (EDITAR/DELETAR)
-// ============================================================================
 
 window.editTransaction = function(id, origem) {
     console.log('✏️ Editar transação:', id, origem);
@@ -691,27 +610,19 @@ window.deleteTransaction = async function(id, origem) {
     }
 };
 
-// Expor recarregador para o modal global reutilizar
 window.refreshTransactions = function() {
     return loadAllTransactions();
 };
 
-// ============================================================================
-// ESTATÍSTICAS
-// ============================================================================
-
 function updateStatistics(transactions) {
-    // Filtrar apenas despesas
     const despesas = transactions.filter(t => t.tipo === 'despesa');
     
-    // 1. Total de Despesas
     const totalDespesas = despesas.reduce((sum, t) => sum + t.valor, 0);
     const totalDespesasEl = document.getElementById('totalDespesas');
     if (totalDespesasEl) {
         totalDespesasEl.textContent = formatCurrency(totalDespesas);
     }
     
-    // 2. Categoria Mais Gasta
     const categorias = {};
     despesas.forEach(d => {
         const cat = d.categoria || 'Outros';
@@ -737,7 +648,6 @@ function updateStatistics(transactions) {
         }
     }
     
-    // 3. Média de Gasto Mensal
     const mediaMensal = calculateMonthlyAverage(despesas);
     const mediaMensalEl = document.getElementById('mediaMensal');
     if (mediaMensalEl) {
@@ -748,7 +658,6 @@ function updateStatistics(transactions) {
 function calculateMonthlyAverage(despesas) {
     if (despesas.length === 0) return 0;
     
-    // Agrupar despesas por mês/ano
     const mesesMap = {};
     
     despesas.forEach(d => {
@@ -761,18 +670,12 @@ function calculateMonthlyAverage(despesas) {
         mesesMap[monthKey] += d.valor;
     });
     
-    // Calcular média
     const totaisMensais = Object.values(mesesMap);
     const soma = totaisMensais.reduce((sum, val) => sum + val, 0);
     const media = totaisMensais.length > 0 ? soma / totaisMensais.length : 0;
     
     return media;
 }
-
-// ============================================================================
-// BOTÕES DE AÇÃO
-// GERENCIAMENTO DE CATEGORIAS PERSONALIZADAS
-// ============================================================================
 
 function loadCustomCategories() {
     try {
@@ -793,11 +696,9 @@ function updateCategoryFilterOptions() {
     const categoryFilter = document.getElementById('categoryFilter');
     if (!categoryFilter) return;
     
-    // Remover categorias personalizadas antigas (se houver)
     const options = categoryFilter.querySelectorAll('option[data-custom="true"]');
     options.forEach(opt => opt.remove());
     
-    // Adicionar categorias personalizadas antes da opção "Adicionar Nova"
     const addNewOption = categoryFilter.querySelector('option[value="__add_new__"]');
     
     customCategories.forEach(cat => {
@@ -813,13 +714,11 @@ function updateCategoryFilterOptions() {
         }
     });
 
-    // Garantir que "Outros" fique por último
     const outrosOpt = categoryFilter.querySelector('option[value="outros"]');
     if (outrosOpt) {
         categoryFilter.appendChild(outrosOpt);
     }
 }
-// Exportar para que o modal global de categorias consiga sincronizar o filtro local
 window.syncCustomCategories = function(list) {
     customCategories = Array.isArray(list) ? list : [];
     updateCategoryFilterOptions();
@@ -827,9 +726,6 @@ window.syncCustomCategories = function(list) {
 window.reloadCustomCategoriesFromStorage = function() {
     loadCustomCategories();
 };
-
-// ============================================================================
-// ============================================================================
 
 window.openAddExpenseModal = function() {
     console.log('🔵 Abrindo modal de adicionar despesa (fixo)');
@@ -853,10 +749,6 @@ window.viewStatement = function() {
         window.location.href = '/app.html#dashboard';
     }
 };
-
-// ============================================================================
-// HELPERS DE FORMATAÇÃO
-// ============================================================================
 
 function formatDate(dateString) {
     try {
@@ -891,10 +783,6 @@ function formatCurrency(value) {
     }
 }
 
-// ============================================================================
-// FEEDBACK VISUAL
-// ============================================================================
-
 function showLoading() {
     const loadingState = document.getElementById('loadingState');
     const tableContainer = document.getElementById('tableContainer');
@@ -928,7 +816,7 @@ function showError(message) {
     }
 }
 
-})(); // Fim da IIFE
+})();
 
 
 console.log('✅ Script de Transações carregado com sucesso!');

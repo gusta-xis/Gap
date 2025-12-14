@@ -35,7 +35,6 @@ function recordBelongsToUser(item, userId) {
     return candidates.some(val => Number(val) === Number(userId));
 }
 
-// Função de inicialização principal
 function initDashboard() {
     try {
         console.log('Iniciando dashboard...');
@@ -47,7 +46,6 @@ function initDashboard() {
     }
 }
 
-// Exportar para uso do SPA Router
 window.initializeDashboard = initDashboard;
 
 function checkAuthentication() {
@@ -111,7 +109,6 @@ function updateUserName() {
             const primeiroNome = userData.nome.split(' ')[0];
             const userName = userData.nome;
             
-            // Atualizar saudação (apenas se não foi pré-carregada ou se diferente)
             const greetingElement = document.querySelector('[data-user-greeting]');
             const expectedGreeting = `Olá, ${primeiroNome}!`;
             if (greetingElement && greetingElement.textContent !== expectedGreeting) {
@@ -121,7 +118,6 @@ function updateUserName() {
                 console.log('✅ Saudação já carregada corretamente');
             }
             
-            // Atualizar header name (apenas se pré-carregado não corresponder ou se diferente)
             console.log('🔵 Procurando elemento headerUserName...');
             const headerUserName = document.getElementById('headerUserName');
             console.log('🔵 headerUserName encontrado:', !!headerUserName);
@@ -132,7 +128,6 @@ function updateUserName() {
                 console.log('✅ Nome no header já correto');
             }
             
-            // Atualizar avatar (apenas se diferente)
             console.log('🔵 Procurando elemento headerAvatar...');
             const headerAvatar = document.getElementById('headerAvatar');
             console.log('🔵 headerAvatar encontrado:', !!headerAvatar);
@@ -160,7 +155,6 @@ async function loadDashboardData() {
         console.log('loadDashboardData iniciado');
         showLoading(true);
         
-        // Verificar se há token antes de tentar buscar dados
         const token = sessionStorage.getItem('accessToken') || localStorage.getItem('token');
         console.log('Token encontrado:', !!token);
         
@@ -171,7 +165,6 @@ async function loadDashboardData() {
             return;
         }
         
-        // Buscar dados em paralelo
         let gastosFixos = [];
         let gastosVariaveis = [];
         const userDataRaw = sessionStorage.getItem('user') || localStorage.getItem('user');
@@ -195,7 +188,6 @@ async function loadDashboardData() {
             gastosVariaveis = [];
         }
 
-        // Tentar buscar salário (pode não existir ainda)
         let salario = 0;
         console.log('Tentando buscar salário...');
         try {
@@ -215,7 +207,6 @@ async function loadDashboardData() {
         }
 
         console.log('Processando dados...');
-        // Processar dados
         dashboardData.salario = salario;
         dashboardData.gastosFixos = gastosFixos || [];
         dashboardData.gastosVariaveis = gastosVariaveis || [];
@@ -239,7 +230,6 @@ async function loadDashboardData() {
     } catch (error) {
         console.error('Erro ao carregar dados do dashboard:', error);
         showLoading(false);
-        // Manter dados vazios em caso de erro
         dashboardData = {
             salario: 0,
             gastosFixos: [],
@@ -294,14 +284,12 @@ function calculateMonthlyHistory() {
     const hoje = new Date();
     const historicoMensal = [];
     
-    // Gerar dados dos últimos 6 meses
     for (let i = 5; i >= 0; i--) {
         const mes = new Date(hoje.getFullYear(), hoje.getMonth() - i, 1);
         const mesNumero = mes.getMonth() + 1;
         const ano = mes.getFullYear();
         const nomeMes = mes.toLocaleDateString('pt-BR', { month: 'short' }).replace('.', '');
         
-        // Calcular receitas do mês (salário + entradas variáveis)
         const receitasVariaveis = dashboardData.gastosVariaveis
             .filter(gasto => {
                 const dataStr = gasto.data_gasto || gasto.data;
@@ -314,13 +302,10 @@ function calculateMonthlyHistory() {
 
         const receitas = dashboardData.salario + receitasVariaveis;
         
-        // Calcular despesas fixas do mês
         const despesasFixas = dashboardData.gastosFixos.reduce((sum, gasto) => {
-            // Gastos fixos contam sempre para todos os meses
             return sum + parseFloat(gasto.valor || 0);
         }, 0);
-        
-        // Calcular despesas variáveis do mês
+
         const despesasVariaveis = dashboardData.gastosVariaveis
             .filter(gasto => {
                 const dataStr = gasto.data_gasto || gasto.data;
@@ -385,7 +370,10 @@ function updateBarChart() {
         if (expenseBar) expenseBar.style.height = `${alturaDespesa}px`;
         if (label) label.textContent = mes.mes || mes.nomeMes || '';
         if (incomeValue) incomeValue.textContent = formatCurrency(mes.receitas || 0);
-        if (expenseValue) expenseValue.textContent = `- ${formatCurrency(mes.despesas || 0)}`;
+        if (expenseValue) {
+            const valorAbsoluto = formatCurrency(Math.abs(mes.despesas || 0));
+            expenseValue.innerHTML = `<span class="mr-1">-</span>${valorAbsoluto}`;
+        }
     });
 
     console.log('Gráfico de barras atualizado com dados do usuário');
@@ -451,7 +439,6 @@ function updateRecentActivities() {
     }
     console.log('Container encontrado');
     
-    // Combinar e ordenar todas as transações
     const allTransactions = [
         ...dashboardData.gastosFixos.map(g => ({
             tipo: 'despesa',
@@ -514,9 +501,10 @@ function updateRecentActivities() {
         
         const icon = getTransactionIcon(transaction);
         const isReceita = transaction.tipo === 'receita';
+        const valorAbsoluto = formatCurrency(Math.abs(transaction.valor));
         const valorFormatado = isReceita 
-            ? `+ ${formatCurrency(transaction.valor)}`
-            : `- ${formatCurrency(transaction.valor)}`;
+            ? `<span class="mr-1">+</span>${valorAbsoluto}`
+            : `<span class="mr-1">-</span>${valorAbsoluto}`;
         const valorClass = isReceita
             ? 'text-green-600 dark:text-green-400'
             : 'text-red-600 dark:text-red-300';
@@ -548,19 +536,36 @@ function updateRecentActivities() {
             </div>
         ` : '';
 
+        const tipoLabel = isReceita ? 'Receita' : 'Despesa';
+        const tipoClass = isReceita 
+            ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300'
+            : 'bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300';
+        
         const html = `
-            <div class="grid grid-cols-[auto_1fr_auto] sm:grid-cols-[auto_1fr_1fr_auto] items-center gap-4 py-3 ${borderClass}">
-                <div class="bg-primary/10 dark:bg-primary/20 text-primary dark:text-primary rounded-full size-10 flex items-center justify-center">
+            <div class="grid grid-cols-[64px_2fr_1.5fr_2fr_1.2fr_1fr_72px] items-center px-6 py-4 ${borderClass}">
+                <div class="bg-primary/10 dark:bg-primary/20 text-primary dark:text-primary rounded-full w-10 h-10 flex items-center justify-center flex-shrink-0">
                     ${icon}
                 </div>
-                <div class="flex flex-col">
-                    <p class="text-slate-800 dark:text-slate-200 font-medium">${transaction.descricao}</p>
+                <div class="flex flex-col justify-center overflow-hidden">
+                    <p class="text-slate-800 dark:text-slate-200 font-medium truncate">${transaction.descricao}</p>
+                    <p class="text-slate-500 dark:text-slate-400 text-sm md:hidden truncate">${dataFormatada}</p>
+                </div>
+                <div class="flex items-center overflow-hidden">
+                    <p class="text-slate-500 dark:text-slate-400 text-sm truncate">${transaction.categoria}</p>
+                </div>
+                <div class="flex items-center">
                     <p class="text-slate-500 dark:text-slate-400 text-sm">${dataFormatada}</p>
                 </div>
-                <p class="text-slate-500 dark:text-slate-400 text-sm hidden sm:block">${transaction.categoria}</p>
+                <div class="flex items-center">
+                    <span class="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${tipoClass}">
+                        ${tipoLabel}
+                    </span>
+                </div>
+                <div class="flex items-center justify-end">
+                    <div class="${valorClass} font-bold whitespace-nowrap">${valorFormatado}</div>
+                </div>
                 <div class="flex items-center justify-end gap-3">
                     ${actionButtons}
-                    <p class="${valorClass} font-bold text-right">${valorFormatado}</p>
                 </div>
             </div>
         `;
@@ -797,4 +802,4 @@ window.dashboardApp = {
     formatCurrency
 };
 
-})(); // Fim da IIFE
+})();

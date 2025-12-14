@@ -1,4 +1,3 @@
-<!-- Page Title -->
 <div class="flex flex-wrap justify-between gap-4 p-4 items-end">
     <div class="flex min-w-72 flex-col gap-1">
         <p class="text-slate-800 dark:text-slate-200 tracking-light text-[32px] font-bold leading-tight">Minhas Transações</p>
@@ -15,23 +14,21 @@
     </div>
 </div>
 
-
-<!-- Statistics Cards -->
 <div class="p-4">
     <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div class="bg-white dark:bg-slate-900/50 p-6 rounded-xl border border-black/10 dark:border-white/10">
+        <div class="stats-card bg-white dark:bg-slate-900/50 p-6 rounded-xl border border-black/10 dark:border-white/10">
             <p class="text-slate-500 dark:text-slate-400 text-sm font-medium leading-normal">Total de Despesas</p>
             <p class="text-red-600 dark:text-red-400 tracking-tight text-3xl font-bold leading-tight mt-1" id="totalDespesas">R$ 0,00</p>
             <p class="text-slate-400 dark:text-slate-500 text-xs mt-1">No período selecionado</p>
         </div>
         
-        <div class="bg-white dark:bg-slate-900/50 p-6 rounded-xl border border-black/10 dark:border-white/10">
+        <div class="stats-card bg-white dark:bg-slate-900/50 p-6 rounded-xl border border-black/10 dark:border-white/10">
             <p class="text-slate-500 dark:text-slate-400 text-sm font-medium leading-normal">Categoria Mais Gasta</p>
             <p class="text-primary dark:text-primary tracking-tight text-3xl font-bold leading-tight mt-1" id="topCategoria">-</p>
             <p class="text-slate-400 dark:text-slate-500 text-xs mt-1" id="topCategoriaValor">R$ 0,00</p>
         </div>
         
-        <div class="bg-white dark:bg-slate-900/50 p-6 rounded-xl border border-black/10 dark:border-white/10">
+        <div class="stats-card bg-white dark:bg-slate-900/50 p-6 rounded-xl border border-black/10 dark:border-white/10">
             <p class="text-slate-500 dark:text-slate-400 text-sm font-medium leading-normal">Média de Gasto Mensal</p>
             <p class="text-slate-800 dark:text-slate-200 tracking-tight text-3xl font-bold leading-tight mt-1" id="mediaMensal">R$ 0,00</p>
             <p class="text-slate-400 dark:text-slate-500 text-xs mt-1">Baseado no histórico</p>
@@ -39,11 +36,9 @@
     </div>
 </div>
 
-<!-- Filters Section -->
 <div class="p-4">
-    <div class="bg-white dark:bg-slate-900/50 p-6 rounded-xl border border-black/10 dark:border-white/10">
+    <div class="filters-card bg-white dark:bg-slate-900/50 p-6 rounded-xl border border-black/10 dark:border-white/10">
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            <!-- Search Input -->
             <div class="flex flex-col gap-2">
                 <label class="text-sm font-medium text-slate-700 dark:text-slate-300">Buscar</label>
                 <input 
@@ -54,7 +49,6 @@
                 />
             </div>
 
-            <!-- Category Filter -->
             <div class="flex flex-col gap-2">
                 <label class="text-sm font-medium text-slate-700 dark:text-slate-300">Categoria</label>
                 <select 
@@ -72,7 +66,6 @@
                 </select>
             </div>
 
-            <!-- Period Filter -->
             <div class="flex flex-col gap-2">
                 <label class="text-sm font-medium text-slate-700 dark:text-slate-300">Período</label>
                 <select 
@@ -87,7 +80,6 @@
                 </select>
             </div>
 
-            <!-- Sort Order -->
             <div class="flex flex-col gap-2">
                 <label class="text-sm font-medium text-slate-700 dark:text-slate-300">Ordenar por</label>
                 <select 
@@ -105,16 +97,15 @@
     </div>
 </div>
 
-<!-- Transactions Table -->
 <div class="p-4">
-    <div class="bg-white dark:bg-slate-900/50 rounded-xl border border-black/10 dark:border-white/10 overflow-hidden">
-        <!-- Loading State -->
+    <div class="table-card bg-white dark:bg-slate-900/50 p-6 rounded-xl border border-black/10 dark:border-white/10">
+        <h3 class="text-slate-800 dark:text-slate-200 text-lg font-bold leading-normal mb-4">Transações</h3>
+        
         <div id="loadingState" class="text-center py-12">
             <div class="inline-block animate-spin rounded-full h-12 w-12 border-4 border-slate-200 dark:border-slate-700 border-t-primary"></div>
             <p class="text-slate-500 dark:text-slate-400 text-sm mt-4">Carregando transações...</p>
         </div>
 
-        <!-- Empty State -->
         <div id="emptyState" class="hidden text-center py-12">
             <div class="text-slate-400 dark:text-slate-500 mb-4">
                 <span class="material-symbols-outlined text-6xl">receipt_long</span>
@@ -123,23 +114,20 @@
             <p class="text-slate-400 dark:text-slate-500 text-sm mt-2">Tente ajustar os filtros ou adicione uma nova despesa</p>
         </div>
 
-        <!-- Table Container -->
-        <div id="tableContainer" class="hidden overflow-x-auto">
-            <table class="w-full">
-                <thead class="bg-slate-50 dark:bg-slate-800/50">
-                    <tr>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">Descrição</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">Categoria</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">Data</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">Tipo</th>
-                        <th class="px-6 py-3 text-right text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">Valor</th>
-                        <th class="px-6 py-3 text-center text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">Ações</th>
-                    </tr>
-                </thead>
-                <tbody id="transactionsTableBody" class="bg-white dark:bg-slate-900/50 divide-y divide-slate-200 dark:divide-slate-700">
-                    <!-- Transactions will be populated here -->
-                </tbody>
-            </table>
+        <div id="tableContainer" class="hidden">
+            <div class="flex flex-col pb-3 mb-3 border-b border-black/10 dark:border-white/10">
+                <div class="grid grid-cols-[64px_2fr_1.5fr_2fr_1.2fr_1fr_72px] items-center px-6 py-4 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+                    <div></div>
+                    <div>Descrição</div>
+                    <div>Categoria</div>
+                    <div>Data</div>
+                    <div>Tipo</div>
+                    <div class="text-right">Valor</div>
+                    <div></div>
+                </div>
+            </div>
+            <div class="flex flex-col" id="transactionsTableBody">
+            </div>
         </div>
     </div>
 </div>

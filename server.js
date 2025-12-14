@@ -183,9 +183,9 @@ app.get('/financeiro', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'finance.html'));
 });
 
-// Rota Financeiro Dashboard
+// Rota Financeiro Dashboard (SPA)
 app.get('/financeiro/dashboard', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'finance-dashboard.html'));
+    res.sendFile(path.join(__dirname, 'public', 'app.html'));
 });
 
 // Rota Reset Password

@@ -121,7 +121,7 @@ module.exports = {
     const fields = Object.keys(filteredData);
     const values = Object.values(filteredData);
     values.push(id);
-    values.push(userId); // Validação dupla: id AND user_id
+values.push(userId);
 
     const setClause = fields.map((f) => `${f} = ?`).join(', ');
     const query = `UPDATE gastos_variaveis SET ${setClause} WHERE id = ? AND user_id = ?`;

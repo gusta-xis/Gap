@@ -1,4 +1,10 @@
-/* Padrão de Grid no fundo */
+/*
+ * ============================================================
+ * Página de Subtemas (Seleção de Módulos)
+ * ============================================================
+ */
+
+/* -------------------- Padrão de Grid -------------------- */
 .bg-grid-pattern {
   background-image: radial-gradient(
     circle at 1px 1px,
@@ -16,14 +22,13 @@
   );
 }
 
-/* Fonte Global */
+/* -------------------- Tipografia -------------------- */
 .font-display {
   font-family: Manrope, 'Noto Sans', sans-serif;
 }
 
-/* Ajustes finos do Avatar */
+/* -------------------- Avatar -------------------- */
 .user-avatar {
-  /* Mantém o comportamento de background-image quando definido via JS */
   background-size: cover;
   background-position: center;
 }
@@ -32,7 +37,7 @@
   pointer-events: none;
 }
 
-/* Transições suaves para cards e elementos */
+/* -------------------- Transições -------------------- */
 button, a, .card {
   transition: all 0.3s ease;
 }
@@ -41,7 +46,6 @@ button:hover, a:hover {
   transform: translateY(-2px);
 }
 
-/* Transições para SVGs */
 svg {
   transition: all 0.3s ease;
 }
@@ -55,6 +59,7 @@ img[src*="svg"]:hover {
   filter: drop-shadow(0 4px 6px rgba(160, 67, 10, 0.1));
 }
 
+/* -------------------- Responsividade -------------------- */
 @media (max-width: 640px) {
   header {
     padding: 12px 16px;

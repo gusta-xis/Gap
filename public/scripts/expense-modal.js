@@ -90,7 +90,6 @@ function openExpenseModal(event) {
     modal.classList.remove('hidden');
     console.log('✅ Modal aberta - classes:', modal.className);
     
-    // Limpar campos
     const description = document.getElementById('expenseDescription');
     const amount = document.getElementById('expenseAmount');
     const category = document.getElementById('expenseCategory');
@@ -243,9 +242,8 @@ async function submitExpense(event) {
             'outros': 8
         };
         
-        // Preparar dados para envio (formato esperado pela API)
         const expenseData = {
-            nome: description,  // Campo 'nome' conforme banco de dados
+            nome: description,
             valor: amount,
             categoria_id: category ? (categoriaMap[category] || null) : null,
             data_gasto: date,
@@ -379,7 +377,6 @@ function initializeExpenseModal() {
 
     setupExpenseTypeToggle();
 
-    // Preencher categorias (inclui personalizadas) e ligar botão de nova categoria
     syncExpenseCategories();
     const addCatBtn = document.getElementById('openAddCategoryBtn');
     if (addCatBtn) {
@@ -391,7 +388,6 @@ function initializeExpenseModal() {
         });
     }
 
-    // Preparar grid de ícones da modal de categoria
     setupCategoryIconGrid();
 }
 
@@ -419,12 +415,8 @@ window.expenseModal = {
     deleteExpense
 };
 
-// Exportar para reconfigurar listeners após navegação SPA
 window.initializeExpenseModal = initializeExpenseModal;
 
-// ============================================================================
-// GERENCIAMENTO DE CATEGORIAS PERSONALIZADAS
-// ============================================================================
 
 const BASE_CATEGORIES = [
     { value: 'alimentacao', label: 'Alimentação' },
@@ -469,7 +461,6 @@ function syncExpenseCategories() {
 
     const customs = loadCustomCategoriesFromStorage();
 
-    // Reconstruir opções garantindo "Outros" sempre por último
     const placeholder = select.querySelector('option[value=""]');
     select.innerHTML = '';
     if (placeholder) select.appendChild(placeholder);
@@ -499,7 +490,6 @@ function syncExpenseCategories() {
         select.appendChild(opt);
     }
 
-    // Se existir filtro na página de transações, manter em sincronia com "Outros" por último
     const filter = document.getElementById('categoryFilter');
     if (filter) {
         const first = filter.querySelector('option[value=""]');
@@ -541,7 +531,6 @@ function openAddCategoryModal() {
         if (modalContent) modalContent.style.transform = 'scale(1)';
     }, 10);
 
-    // Reset campos
     const nameInput = document.getElementById('newCategoryName');
     if (nameInput) nameInput.value = '';
     customCategoryIcon = null;
@@ -628,12 +617,10 @@ function saveNewCategory() {
     setTimeout(() => closeAddCategoryModal(), 900);
 }
 
-// Expor globally
 window.openAddCategoryModal = openAddCategoryModal;
 window.closeAddCategoryModal = closeAddCategoryModal;
 window.saveNewCategory = saveNewCategory;
 
-// Sincronizar categorias base no load inicial do script
 document.addEventListener('DOMContentLoaded', syncExpenseCategories);
 
 if (document.readyState === 'loading') {

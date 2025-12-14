@@ -43,7 +43,6 @@
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
     <link rel="stylesheet" href="/styles/dashboard.css">
     
-    <!-- Transições suaves -->
     <style>
         @keyframes fadeIn {
             from { opacity: 0; transform: translateY(-10px); }
@@ -94,7 +93,6 @@
         }
     </style>
     
-    <!-- Pré-carregar dados do usuário -->
     <script>
         (function() {
             try {
@@ -116,7 +114,6 @@
 
     <div class="relative flex h-auto min-h-screen w-full group/design-root overflow-x-hidden">
         <div class="flex h-full grow">
-            <!-- Sidebar Fixo -->
             <aside class="flex-col bg-white dark:bg-slate-900/50 border-r border-black/10 dark:border-white/10 w-64 p-6 hidden lg:flex">
                 <div class="flex items-center gap-3">
                     <img src="/img/financel.svg" alt="Finance Icon" class="h-12 w-auto">
@@ -154,7 +151,6 @@
             <div class="layout-container flex h-full grow flex-col flex-1">
                 <div class="px-4 sm:px-6 lg:px-8 xl:px-10 flex flex-1 justify-center py-5">
                     <div class="layout-content-container flex flex-col w-full max-w-7xl flex-1">
-                        <!-- Header Fixo -->
                         <header class="header-fixed">
                             <p id="headerUserName" class="header-user-name"><script>document.write(window.__preloadedUserName || 'Usuário');</script></p>
                             <div id="headerAvatar" class="header-avatar"><script>document.write(window.__preloadedUserInitial || 'U');</script></div>
@@ -167,9 +163,7 @@
                             </button>
                         </header>
 
-                        <!-- Conteúdo Dinâmico -->
                         <main id="app-content" class="flex-1 mt-4">
-                            <!-- O conteúdo será carregado aqui dinamicamente -->
                         </main>
                     </div>
                 </div>
@@ -177,7 +171,6 @@
         </div>
     </div>
     
-    <!-- Modal Global para Adicionar Despesa (fixo em todas as páginas) -->
     <div id="addExpenseModal" class="fixed inset-0 bg-black/50 backdrop-blur-sm hidden flex items-center justify-center z-50" onclick="closeExpenseModal(event)">
         <div class="bg-white dark:bg-slate-900 rounded-xl shadow-lg w-full max-w-md mx-4" onclick="event.stopPropagation();">
             <div class="px-6 py-4 border-b border-black/10 dark:border-white/10 flex justify-between items-center">
@@ -267,7 +260,6 @@
         </div>
     </div>
 
-    <!-- Modal global para categorias (usado dentro do modal de despesa) -->
     <div id="addCategoryModal" class="fixed inset-0 bg-black/50 backdrop-blur-sm hidden items-center justify-center z-50" onclick="closeAddCategoryModal()">
         <div class="bg-white dark:bg-slate-900 rounded-xl shadow-lg w-full max-w-md mx-4" onclick="event.stopPropagation();">
             <div class="px-6 py-4 border-b border-black/10 dark:border-white/10 flex justify-between items-center">
