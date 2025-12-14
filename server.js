@@ -157,6 +157,11 @@ app.use('/api/v1', apiRoutes);
 console.log('✅ APIs carregadas com sucesso (v1).');
 
 // =======================================================
+// 5.1. MIDDLEWARE DE AUTENTICAÇÃO DE PÁGINAS
+// =======================================================
+const { authPageMiddleware, authResetPasswordMiddleware } = require('./src/middlewares/authPageMiddleware');
+
+// =======================================================
 // 6. ROTAS DE NAVEGAÇÃO (URLS LIMPAS)
 // =======================================================
 
@@ -173,23 +178,23 @@ app.get('/login', (req, res) => {
 // Redirecionamento de segurança (acesso direto ao arquivo)
 app.get('/login.html', (req, res) => res.redirect(301, '/'));
 
-// Rota Dashboard (Sem .html)
-app.get('/subsistemas', (req, res) => {
+// Rota Dashboard (Protegida - Requer autenticação)
+app.get('/subsistemas', authPageMiddleware, (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'subtemas.html'));
 });
 
-// Rota Financeiro (Sem .html)
-app.get('/financeiro', (req, res) => {
+// Rota Financeiro (Protegida - Requer autenticação)
+app.get('/financeiro', authPageMiddleware, (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'finance.html'));
 });
 
-// Rota Financeiro Dashboard (SPA)
-app.get('/financeiro/dashboard', (req, res) => {
+// Rota Financeiro Dashboard (Protegida - SPA)
+app.get('/financeiro/dashboard', authPageMiddleware, (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'app.html'));
 });
 
-// Rota Reset Password
-app.get('/reset-password', (req, res) => {
+// Rota Reset Password (Protegida - Requer token válido)
+app.get('/reset-password', authResetPasswordMiddleware, (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'reset-password.html'));
 });
 
