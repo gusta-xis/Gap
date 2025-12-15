@@ -81,6 +81,27 @@ function checkAuthentication() {
     return true;
 }
 
+const user = JSON.parse(localStorage.getItem('user'));
+
+if (user && !user.introducao_vista) {
+  mostrarIntroducao();
+}
+
+function mostrarIntroducao() {
+  // Exiba seu modal/banner de introdução aqui
+  // Exemplo simples:
+  alert('Bem-vindo! Esta é a introdução do sistema.');
+
+  // Quando o usuário finalizar a introdução:
+  fetch(`/api/v1/users/${user.id}/introducao-vista`, { method: 'PUT' })
+    .then(() => {
+      // Atualize o localStorage para não mostrar mais
+      user.introducao_vista = 1;
+      localStorage.setItem('user', JSON.stringify(user));
+    });
+}
+
+
 /**
  * Inicializa o dashboard
  */

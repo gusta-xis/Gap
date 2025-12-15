@@ -22,4 +22,14 @@ router.put('/:id', authMiddleware, validateUser, userController.update);
 
 router.delete('/:id', authMiddleware, userController.delete);
 
+router.put('/:id/introducao-vista', async (req, res) => {
+  const { id } = req.params;
+  try {
+    await db.query('UPDATE users SET introducao_vista = 1 WHERE id = ?', [id]);
+    res.sendStatus(204);
+  } catch (err) {
+    res.status(500).json({ error: 'Erro ao atualizar introducao_vista' });
+  }
+});
+
 module.exports = router;

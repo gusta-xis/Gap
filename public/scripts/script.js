@@ -129,7 +129,17 @@ document.addEventListener('DOMContentLoaded', () => {
             }
           }
 
-          alert('✅ Login com sucesso! Redirecionando...');
+        alert('✅ Login com sucesso! Redirecionando...');
+
+        // Remova o fetch antigo e o redirecionamento para /subsistemas
+        // Use the resultado do login já recebido (result.user)
+
+        if (result.user && result.user.introducao_vista === 0) {
+  window.location.replace('/financeiro');
+        } else {
+          window.location.replace('/financeiro/dashboard');
+        }
+
 
           window.location.replace('/subsistemas');
         } else {

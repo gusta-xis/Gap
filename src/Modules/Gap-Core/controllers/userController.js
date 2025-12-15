@@ -102,6 +102,14 @@ module.exports = {
       });
     }
 
+    res.json({
+  id: user.id,
+  nome: user.nome,
+  email: user.email,
+  introducao_vista: user.introducao_vista,
+  // outros campos...
+});
+
     userService.generatePasswordResetToken(email, (err, result) => {
       if (err) return sendError(res, err);
 

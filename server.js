@@ -156,6 +156,11 @@ const apiRoutes = require('./src/api');
 app.use('/api/v1', apiRoutes);
 console.log('✅ APIs carregadas com sucesso (v1).');
 
+
+const userRoutes = require('../Gap/src/Modules/Gap-Core/routes/userRoutes');
+app.use('/api/v1/users', userRoutes);
+console.log('✅ Usuários carregados com sucesso (v1).');
+
 // =======================================================
 // 5.1. MIDDLEWARE DE AUTENTICAÇÃO DE PÁGINAS
 // =======================================================

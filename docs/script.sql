@@ -13,7 +13,8 @@ CREATE TABLE users (
     nome VARCHAR(100) NOT NULL,
     email VARCHAR(150) NOT NULL UNIQUE,
     senha VARCHAR(255) NOT NULL, -- armazenar hash
-    criado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    criado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    introducao_vista TINYINT(1) DEFAULT 0
 );
 
 --------------------------------------------------
