@@ -1,16 +1,7 @@
-/**
- * Gerenciador de Gastos Fixos
- * Permite listar, criar, editar e excluir gastos fixos mensais
- */
-
 (function() {
     'use strict';
 
     let gastosFixosData = [];
-
-    // ===================================
-    // INICIALIZAÇÃO
-    // ===================================
 
     async function initGastosFixos() {
         try {
@@ -33,15 +24,10 @@
 
     window.initializeGastosFixos = initGastosFixos;
     
-    // Função de limpeza para SPA Router
     window.cleanupGastosFixos = function() {
         console.log('🧹 Limpando dados de gastos fixos...');
         gastosFixosData = [];
     };
-
-    // ===================================
-    // AUTENTICAÇÃO
-    // ===================================
 
     function checkAuthentication() {
         const token = sessionStorage.getItem('accessToken') || localStorage.getItem('token');
@@ -72,12 +58,7 @@
         window.location.replace('/');
     }
 
-    // ===================================
-    // EVENT LISTENERS
-    // ===================================
-
     function setupEventListeners() {
-        // Botões de adicionar - usar modal global
         const btnAddGastoFixo = document.getElementById('btnAddGastoFixo');
         const btnAddGastoFixoEmpty = document.getElementById('btnAddGastoFixoEmpty');
         
@@ -97,10 +78,6 @@
             });
         }
     }
-
-    // ===================================
-    // CARREGAR DADOS
-    // ===================================
 
     async function loadGastosFixos() {
         try {
@@ -144,10 +121,6 @@
             showEmpty();
         }
     }
-
-    // ===================================
-    // RENDERIZAÇÃO
-    // ===================================
 
     function renderGastosFixos() {
         console.log('🎨 Renderizando gastos fixos...');
@@ -231,14 +204,9 @@
         return tr;
     }
 
-    // ===================================
-    // ESTATÍSTICAS
-    // ===================================
-
     function updateStatistics() {
         try {
             console.log('📊 Atualizando estatísticas...');
-            // Total de gastos fixos
             const total = gastosFixosData.reduce((sum, gasto) => sum + parseFloat(gasto.valor || 0), 0);
             const totalEl = document.getElementById('totalGastosFixos');
             if (totalEl) {
@@ -247,7 +215,6 @@
                 console.warn('⚠️ Elemento totalGastosFixos não encontrado');
             }
             
-            // Quantidade
             const quantidadeEl = document.getElementById('quantidadeGastos');
             if (quantidadeEl) {
                 quantidadeEl.textContent = gastosFixosData.length;
@@ -255,7 +222,6 @@
                 console.warn('⚠️ Elemento quantidadeGastos não encontrado');
             }
             
-            // Próximo vencimento
             const hoje = new Date().getDate();
             const proximosGastos = gastosFixosData
                 .filter(g => g.dia_vencimento >= hoje)
@@ -273,7 +239,6 @@
                     proximoVencimentoDescEl.textContent = sanitizeHTML(proximo.nome);
                 }
             } else {
-                // Buscar o primeiro vencimento do próximo mês
                 const primeirosDoMes = gastosFixosData
                     .sort((a, b) => a.dia_vencimento - b.dia_vencimento);
                 
@@ -293,10 +258,6 @@
         }
     }
 
-    // ===================================
-    // CRUD OPERATIONS
-    // ===================================
-
     window.editGasto = function(gastoId) {
         if (typeof openGastoFixoModal === 'function') {
             openGastoFixoModal(gastoId);
@@ -312,7 +273,6 @@
                 headers: { 'Authorization': `Bearer ${token}` }
             });
             if (!response.ok) throw new Error('Erro ao excluir gasto fixo');
-            // Atualize a lista de gastos fixos ou recarregue a página
             if (window.initializeGastosFixos) window.initializeGastosFixos();
             if (window.loadAllTransactions) window.loadAllTransactions();
         } catch (e) {
@@ -320,10 +280,6 @@
         }
     }
     window.deleteGasto = deleteGasto;
-
-    // ===================================
-    // UI HELPERS
-    // ===================================
 
     function showLoading() {
         const loading = document.getElementById('loadingStateFixos');
@@ -358,47 +314,12 @@
         if (table) table.classList.remove('hidden');
     }
 
-    // ===================================
-    // UTILITÁRIOS
-    // ===================================
-
     function formatCurrency(value) {
         const num = parseFloat(value) || 0;
         return num.toLocaleString('pt-BR', {
             style: 'currency',
             currency: 'BRL'
         });
-    }
-
-    function formatCurrencyForInput(value) {
-        const num = parseFloat(value) || 0;
-        return num.toFixed(2).replace('.', ',');
-    }
-
-    function parseCurrencyValue(value) {
-        if (!value) return 0;
-        const cleaned = value.replace(/[^\d,]/g, '').replace(',', '.');
-        return parseFloat(cleaned) || 0;
-    }
-
-    function formatCurrencyInput(e) {
-        let value = e.target.value;
-        
-        // Remove tudo exceto números e vírgula
-        value = value.replace(/[^\d,]/g, '');
-        
-        // Garante apenas uma vírgula
-        const parts = value.split(',');
-        if (parts.length > 2) {
-            value = parts[0] + ',' + parts.slice(1).join('');
-        }
-        
-        // Limita a 2 casas decimais
-        if (parts.length === 2 && parts[1].length > 2) {
-            value = parts[0] + ',' + parts[1].substring(0, 2);
-        }
-        
-        e.target.value = value;
     }
 
     function sanitizeHTML(str) {
@@ -408,29 +329,16 @@
         return div.innerHTML;
     }
 
-    function showSuccess(message) {
-        console.log('✅ ' + message);
-        // Aqui você pode adicionar uma notificação visual se necessário
-    }
-
-    function showError(message) {
-        console.error('❌ ' + message);
-        // Aqui você pode adicionar uma notificação visual de erro se necessário
-    }
-
-    // Função auto-executável para verificar o carregamento
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', () => {
-            // Verifica se a função existe antes de chamar
             if (typeof window.initializeGastosFixos === 'function') {
                 window.initializeGastosFixos();
             }
         });
     } else {
-        // Verifica se a função existe antes de chamar
         if (typeof window.initializeGastosFixos === 'function') {
             window.initializeGastosFixos();
         }
     }
 
-})(); // Fecha o IIFE
+})();

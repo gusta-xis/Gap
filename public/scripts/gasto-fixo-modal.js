@@ -1,345 +1,386 @@
-/**
- * Modal Global de Gastos Fixos
- * Gerencia o modal de gasto fixo disponível em todas as páginas do dashboard
- */
+console.log('🔵 gasto-fixo-modal.js carregado');
 
-(function() {
-    'use strict';
+/* ==========================================================================
+   UTILITÁRIOS
+   ========================================================================== */
 
-    let editingGastoId = null;
+function getUserIdFromStorage() {
+    try {
+        const userDataString = sessionStorage.getItem('user') || localStorage.getItem('user');
+        if (!userDataString) return null;
+        const userData = JSON.parse(userDataString);
+        return userData.id || userData.user_id || null;
+    } catch (e) {
+        return null;
+    }
+}
 
-    // Busca categorias do backend e sincroniza localStorage/modal
-    async function fetchAndSyncCustomCategoriesGastoFixo() {
-        const userId = getUserIdFromStorage();
-        console.log('[GastoFixo] userId:', userId);
-        if (!userId) {
-            console.warn('[GastoFixo] Nenhum userId encontrado!');
-            return;
-        }
+function loadCustomCategoriesFromStorage() {
+    const userId = getUserIdFromStorage();
+    if (!userId) return [];
+    try {
+        const stored = localStorage.getItem(`customCategories_${userId}`);
+        return stored ? JSON.parse(stored) : [];
+    } catch (e) {
+        return [];
+    }
+}
+
+function saveCustomCategoriesToStorage(list) {
+    const userId = getUserIdFromStorage();
+    if (!userId) return;
+    localStorage.setItem(`customCategories_${userId}`, JSON.stringify(list || []));
+}
+
+function parseCurrency(value) {
+    if (!value) return 0;
+    return parseFloat(value.replace(/\./g, '').replace(',', '.'));
+}
+
+function formatCurrencyInput(input) {
+    let value = input.value.replace(/\D/g, '');
+    if (value.length === 0) {
+        input.value = '';
+        return;
+    }
+    const numericValue = parseInt(value, 10) / 100;
+    input.value = numericValue.toLocaleString('pt-BR', {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+    });
+}
+
+/* ==========================================================================
+   VARIÁVEIS GLOBAIS
+   ========================================================================== */
+
+let editingGastoFixoId = null;
+
+/* ==========================================================================
+   MODAL - ABRIR/FECHAR
+   ========================================================================== */
+
+async function openGastoFixoModal(gastoId = null) {
+    console.log('🔧 Abrindo modal de gasto fixo. ID:', gastoId);
+    
+    const modal = document.getElementById('modalGastoFixoGlobal');
+    if (!modal) {
+        console.error('❌ Modal não encontrado');
+        return;
+    }
+
+    // Sincroniza categorias primeiro
+    await fetchAndSyncCustomCategoriesGastoFixo();
+
+    const titleEl = document.getElementById('modalGastoFixoTitle');
+    const submitBtn = document.querySelector('[data-action="submit-gasto-fixo"]');
+    
+    // Limpa mensagens
+    const errorDiv = document.getElementById('gastoFixoErrorMessage');
+    const successDiv = document.getElementById('gastoFixoSuccessMessage');
+    if (errorDiv) errorDiv.classList.add('hidden');
+    if (successDiv) successDiv.classList.add('hidden');
+
+    if (gastoId) {
+        // MODO EDIÇÃO
+        console.log('📝 Modo edição - carregando dados do gasto:', gastoId);
+        
+        editingGastoFixoId = gastoId;
+        if (titleEl) titleEl.textContent = 'Editar Gasto Fixo';
+        if (submitBtn) submitBtn.textContent = 'Salvar Alterações';
 
         try {
             const token = sessionStorage.getItem('accessToken') || localStorage.getItem('token');
-            console.log('[GastoFixo] Token usado:', token);
-            const response = await fetch('/api/v1/categorias', {
-                headers: {
-                    'Authorization': `Bearer ${token}`
-                }
-            });
-            console.log('[GastoFixo] Status da resposta categorias:', response.status);
-            if (!response.ok) {
-                console.warn('[GastoFixo] Erro ao buscar categorias do backend:', response.status);
-                return;
-            }
-            const categorias = await response.json();
-            console.log('[GastoFixo] Categorias recebidas do backend:', categorias);
-            localStorage.setItem(`customCategories_${userId}`, JSON.stringify(categorias));
-        } catch (e) {
-            console.error('[GastoFixo] Erro ao buscar categorias:', e);
-        }
-    }
-
-    // Aguarda o DOM estar pronto
-    async function init() {
-        await fetchAndSyncCustomCategoriesGastoFixo();
-        syncGastoFixoCategories();
-    }
-
-    // Sincroniza o select de categorias de gasto fixo com todas as categorias do banco
-    function syncGastoFixoCategories() {
-        const select = document.getElementById('gastoFixoCategory');
-        if (!select) {
-            console.warn('[GastoFixo] Select de categorias não encontrado!');
-            return;
-        }
-
-        let categorias = [];
-        try {
-            const userId = getUserIdFromStorage();
-            if (userId) {
-                const stored = localStorage.getItem(`customCategories_${userId}`);
-                categorias = stored ? JSON.parse(stored) : [];
-            }
-        } catch (e) {
-            categorias = [];
-        }
-
-        // Categorias padrão (caso o backend não retorne nada)
-        const categoriasPadrao = [
-            { id: 1, nome: 'Alimentação' },
-            { id: 2, nome: 'Transporte' },
-            { id: 3, nome: 'Moradia' },
-            { id: 4, nome: 'Saúde' },
-            { id: 5, nome: 'Lazer' },
-            { id: 6, nome: 'Educação' },
-            { id: 7, nome: 'Cartão de crédito' },
-            { id: 8, nome: 'Outros' }
-        ];
-
-        // Se não houver categorias do backend, usa padrão
-        if (!categorias || categorias.length === 0) {
-            categorias = categoriasPadrao;
-        }
-
-        // Sempre adiciona um placeholder
-        select.innerHTML = '';
-        const placeholder = document.createElement('option');
-        placeholder.value = '';
-        placeholder.textContent = 'Selecione uma categoria';
-        select.appendChild(placeholder);
-
-        categorias.forEach(cat => {
-            const opt = document.createElement('option');
-            opt.value = String(cat.id); // Garante string
-            opt.textContent = cat.nome;
-            opt.setAttribute('data-custom', 'true');
-            select.appendChild(opt);
-        });
-    }
-
-    function getUserIdFromStorage() {
-        try {
-            const userDataString = sessionStorage.getItem('user') || localStorage.getItem('user');
-            if (!userDataString) return null;
-            const userData = JSON.parse(userDataString);
-            return userData.id || userData.user_id || userData.userId || null;
-        } catch (e) {
-            return null;
-        }
-    }
-
-    // Funções globais para abrir/fechar modal
-    window.openGastoFixoModal = async function(gastoId = null) {
-        const modal = document.getElementById('modalGastoFixoGlobal');
-        const modalTitle = document.getElementById('modalGastoFixoTitle');
-
-        if (!modal) return;
-
-        editingGastoId = gastoId;
-
-        if (gastoId) {
-            // Modo edição
-            modalTitle.textContent = 'Editar Gasto Fixo';
-            loadGastoFixoData(gastoId);
-        } else {
-            // Modo criação
-            modalTitle.textContent = 'Adicionar Gasto Fixo';
-            clearGastoFixoForm();
-        }
-
-        modal.classList.remove('hidden');
-        modal.classList.add('flex');
-        document.body.style.overflow = 'hidden';
-
-        await fetchAndSyncCustomCategoriesGastoFixo();
-        syncGastoFixoCategories();
-    };
-
-    window.closeGastoFixoModal = function(event) {
-        if (event) {
-            event.preventDefault();
-        }
-
-        const modal = document.getElementById('modalGastoFixoGlobal');
-        if (modal) {
-            modal.classList.add('hidden');
-            modal.classList.remove('flex');
-            document.body.style.overflow = '';
-        }
-
-        clearGastoFixoForm();
-        editingGastoId = null;
-    };
-
-    window.submitGastoFixo = async function(event) {
-        if (event) {
-            event.preventDefault();
-        }
-
-        const submitBtn = event.target;
-        const originalText = submitBtn.textContent;
-
-        try {
-            submitBtn.disabled = true;
-            submitBtn.textContent = 'Salvando...';
-
-            const nome = document.getElementById('gastoFixoDescription').value.trim();
-            const valor = parseCurrencyValue(document.getElementById('gastoFixoAmount').value);
-            const dia_vencimento = parseInt(document.getElementById('gastoFixoDueDay').value);
-            let categoria_id = document.getElementById('gastoFixoCategory').value;
-            categoria_id = categoria_id ? parseInt(categoria_id, 10) : null;
-
-            if (!nome) {
-                showGastoFixoError('Por favor, informe a descrição do gasto fixo.');
-                return;
-            }
-
-            if (!valor || valor <= 0) {
-                showGastoFixoError('Por favor, informe um valor válido.');
-                return;
-            }
-
-            if (!dia_vencimento) {
-                showGastoFixoError('Por favor, selecione o dia do vencimento.');
-                return;
-            }
-
-            const formData = {
-                nome,
-                valor,
-                dia_vencimento,
-                categoria_id
-            };
-
-            const token = sessionStorage.getItem('accessToken') || localStorage.getItem('token');
-            const url = editingGastoId ? `/api/v1/gastos-fixos/${editingGastoId}` : '/api/v1/gastos-fixos';
-            const method = editingGastoId ? 'PUT' : 'POST';
-
-            const response = await fetch(url, {
-                method: method,
-                headers: {
-                    'Authorization': `Bearer ${token}`,
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(formData)
-            });
-
-            if (!response.ok) {
-                if (response.status === 401) {
-                    window.location.replace('/');
-                    return;
-                }
-                const error = await response.json();
-                throw new Error(error.error || 'Erro ao salvar gasto fixo');
-            }
-
-            showGastoFixoSuccess(editingGastoId ? 'Gasto fixo atualizado com sucesso!' : 'Gasto fixo adicionado com sucesso!');
-            
-            setTimeout(() => {
-                closeGastoFixoModal();
-
-                // Recarrega a página de gastos fixos se estiver nela
-                if (typeof window.loadGastosFixos === 'function') {
-                    window.loadGastosFixos();
-                }
-
-                // Recarrega o dashboard se estiver nele
-                if (typeof window.loadDashboardData === 'function') {
-                    window.loadDashboardData();
-                }
-
-                if (window.refreshGastoFixoCategories) window.refreshGastoFixoCategories();
-            }, 1500);
-
-        } catch (error) {
-            console.error('Erro ao salvar gasto fixo:', error);
-            showGastoFixoError(error.message || 'Erro ao salvar gasto fixo. Tente novamente.');
-        } finally {
-            submitBtn.disabled = false;
-            submitBtn.textContent = originalText;
-        }
-    };
-
-    async function loadGastoFixoData(gastoId) {
-        try {
-            const token = sessionStorage.getItem('accessToken') || localStorage.getItem('token');
-
             const response = await fetch(`/api/v1/gastos-fixos/${gastoId}`, {
-                method: 'GET',
-                headers: {
-                    'Authorization': `Bearer ${token}`,
-                    'Content-Type': 'application/json'
-                }
+                headers: { 'Authorization': `Bearer ${token}` }
             });
 
-            if (!response.ok) {
-                throw new Error('Erro ao carregar gasto fixo');
-            }
+            if (!response.ok) throw new Error('Erro ao carregar dados do gasto');
 
             const gasto = await response.json();
+            console.log('✅ Dados carregados:', gasto);
 
-            // Preenche o formulário
-            document.getElementById('gastoFixoDescription').value = gasto.nome || '';
-            document.getElementById('gastoFixoAmount').value = formatCurrencyForInput(gasto.valor || 0);
-            document.getElementById('gastoFixoDueDay').value = gasto.dia_vencimento || '';
-            document.getElementById('gastoFixoCategory').value = gasto.categoria_id || '';
+            // Preenche os campos
+            const descField = document.getElementById('gastoFixoDescription');
+            const amountField = document.getElementById('gastoFixoAmount');
+            const categoryField = document.getElementById('gastoFixoCategory');
+            const dueDayField = document.getElementById('gastoFixoDueDay');
+
+            if (descField) {
+                descField.value = gasto.nome || '';
+            }
+            
+            if (amountField) {
+                const valor = parseFloat(gasto.valor || 0);
+                amountField.value = valor.toLocaleString('pt-BR', {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2
+                });
+            }
+            
+            if (categoryField) {
+                categoryField.value = gasto.categoria_slug || '';
+            }
+            
+            if (dueDayField) {
+                dueDayField.value = gasto.dia_vencimento || '';
+            }
 
         } catch (error) {
-            console.error('Erro ao carregar gasto fixo:', error);
-            showGastoFixoError('Erro ao carregar dados do gasto fixo');
-            setTimeout(() => closeGastoFixoModal(), 2000);
+            console.error('❌ Erro ao carregar gasto:', error);
+            alert('Erro ao carregar dados: ' + error.message);
+            return;
         }
-    }
 
-    function clearGastoFixoForm() {
+    } else {
+        // MODO CRIAÇÃO
+        console.log('➕ Modo criação - limpando campos');
+        
+        editingGastoFixoId = null;
+        if (titleEl) titleEl.textContent = 'Adicionar Gasto Fixo';
+        if (submitBtn) submitBtn.textContent = 'Adicionar';
+
+        // Limpa os campos
         document.getElementById('gastoFixoDescription').value = '';
         document.getElementById('gastoFixoAmount').value = '';
-        document.getElementById('gastoFixoDueDay').value = '';
         document.getElementById('gastoFixoCategory').value = '';
-        hideGastoFixoMessages();
+        document.getElementById('gastoFixoDueDay').value = '';
     }
 
-    function showGastoFixoError(message) {
-        const errorDiv = document.getElementById('gastoFixoErrorMessage');
-        const successDiv = document.getElementById('gastoFixoSuccessMessage');
-        
-        if (successDiv) successDiv.classList.add('hidden');
-        
-        if (errorDiv) {
-            errorDiv.textContent = message;
-            errorDiv.classList.remove('hidden');
+    // Abre o modal
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+}
+
+function closeGastoFixoModal(event) {
+    if (event) {
+        event.preventDefault();
+        event.stopPropagation();
+    }
+    
+    const modal = document.getElementById('modalGastoFixoGlobal');
+    if (modal) {
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
+    }
+    
+    editingGastoFixoId = null;
+}
+
+/* ==========================================================================
+   SUBMIT - SALVAR GASTO FIXO
+   ========================================================================== */
+
+async function submitGastoFixo(event) {
+    if (event) event.preventDefault();
+
+    const submitBtn = document.querySelector('[data-action="submit-gasto-fixo"]');
+    const originalText = submitBtn.textContent;
+    submitBtn.textContent = 'Salvando...';
+    submitBtn.disabled = true;
+
+    const description = document.getElementById('gastoFixoDescription').value.trim();
+    const amountInput = document.getElementById('gastoFixoAmount').value;
+    const amount = parseCurrency(amountInput);
+    const category = document.getElementById('gastoFixoCategory').value;
+    const dueDay = document.getElementById('gastoFixoDueDay').value;
+
+    const errorDiv = document.getElementById('gastoFixoErrorMessage');
+    const successDiv = document.getElementById('gastoFixoSuccessMessage');
+
+    console.log('📤 Dados do formulário:', {
+        description,
+        amount,
+        category,
+        dueDay,
+        editingGastoFixoId
+    });
+
+    // Validação
+    if (!description || !amount || !dueDay) {
+        errorDiv.textContent = 'Preencha todos os campos obrigatórios (*).';
+        errorDiv.classList.remove('hidden');
+        submitBtn.textContent = originalText;
+        submitBtn.disabled = false;
+        return;
+    }
+
+    try {
+        const token = sessionStorage.getItem('accessToken') || localStorage.getItem('token');
+        const userString = sessionStorage.getItem('user') || localStorage.getItem('user');
+
+        if (!token || !userString) {
+            throw new Error('Sessão expirada. Faça login novamente.');
         }
-    }
 
-    function showGastoFixoSuccess(message) {
-        const errorDiv = document.getElementById('gastoFixoErrorMessage');
-        const successDiv = document.getElementById('gastoFixoSuccessMessage');
-        
-        if (errorDiv) errorDiv.classList.add('hidden');
-        
-        if (successDiv) {
-            successDiv.textContent = message;
-            successDiv.classList.remove('hidden');
-        }
-    }
+        const user = JSON.parse(userString);
 
-    function hideGastoFixoMessages() {
-        const errorDiv = document.getElementById('gastoFixoErrorMessage');
-        const successDiv = document.getElementById('gastoFixoSuccessMessage');
-        
-        if (errorDiv) errorDiv.classList.add('hidden');
-        if (successDiv) successDiv.classList.add('hidden');
-    }
+        const payload = {
+            nome: description,
+            valor: amount,
+            categoria_slug: category || null,
+            dia_vencimento: parseInt(dueDay),
+            user_id: user.id
+        };
 
-    // Utilitários (usando as mesmas funções do modal de despesas)
-    function formatCurrencyForInput(value) {
-        const num = parseFloat(value) || 0;
-        return num.toFixed(2).replace('.', ',');
-    }
+        console.log('📦 Payload:', payload);
 
-    function parseCurrencyValue(value) {
-        if (!value) return 0;
-        const cleaned = value.replace(/[^\d,]/g, '').replace(',', '.');
-        return parseFloat(cleaned) || 0;
-    }
+        const isEdit = !!editingGastoFixoId;
+        const url = isEdit 
+            ? `/api/v1/gastos-fixos/${editingGastoFixoId}` 
+            : '/api/v1/gastos-fixos';
+        const method = isEdit ? 'PUT' : 'POST';
 
-    function sortCategoriesWithOutrosLast(categorias) {
-        if (!Array.isArray(categorias)) return [];
-        return categorias.slice().sort((a, b) => {
-            const aNome = (a.nome || a.label || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
-            const bNome = (b.nome || b.label || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
-            const aIsOutros = aNome === 'outros';
-            const bIsOutros = bNome === 'outros';
-            if (aIsOutros && !bIsOutros) return 1;
-            if (!aIsOutros && bIsOutros) return -1;
-            return aNome.localeCompare(bNome, 'pt-BR');
+        console.log(`📡 ${method} ${url}`);
+
+        const response = await fetch(url, {
+            method,
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify(payload)
         });
-    }
 
-    // Inicializa quando o DOM estiver pronto
-    if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', init);
-    } else {
-        init();
-    }
+        if (!response.ok) {
+            const err = await response.json();
+            throw new Error(err.message || 'Erro ao salvar gasto fixo.');
+        }
 
-})();
+        const result = await response.json();
+        console.log('✅ Resposta do servidor:', result);
+
+        // Sucesso
+        successDiv.textContent = isEdit 
+            ? 'Gasto fixo atualizado!' 
+            : 'Gasto fixo adicionado com sucesso!';
+        successDiv.classList.remove('hidden');
+        errorDiv.classList.add('hidden');
+
+        // Aguarda 1s e fecha o modal
+        setTimeout(() => {
+            closeGastoFixoModal();
+            
+            // Recarrega dados
+            if (window.initializeGastosFixos) window.initializeGastosFixos();
+            if (window.loadAllTransactions) window.loadAllTransactions();
+            if (window.loadDashboardData) window.loadDashboardData();
+        }, 1000);
+
+    } catch (error) {
+        console.error('❌ Erro ao salvar:', error);
+        errorDiv.textContent = error.message;
+        errorDiv.classList.remove('hidden');
+    } finally {
+        submitBtn.textContent = originalText;
+        submitBtn.disabled = false;
+    }
+}
+
+/* ==========================================================================
+   CATEGORIAS - SINCRONIZAÇÃO
+   ========================================================================== */
+
+async function fetchAndSyncCustomCategoriesGastoFixo() {
+    const userId = getUserIdFromStorage();
+    if (!userId) return;
+
+    try {
+        const token = sessionStorage.getItem('accessToken') || localStorage.getItem('token');
+        const response = await fetch('/api/v1/categorias', {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        
+        if (!response.ok) return;
+        
+        const categoriasBackend = await response.json();
+        saveCustomCategoriesToStorage(categoriasBackend);
+        syncGastoFixoCategories();
+    } catch (e) {
+        console.error('Erro ao buscar categorias:', e);
+        syncGastoFixoCategories();
+    }
+}
+
+function syncGastoFixoCategories() {
+    const select = document.getElementById('gastoFixoCategory');
+    if (!select) return;
+
+    let categorias = loadCustomCategoriesFromStorage();
+    if (!Array.isArray(categorias)) categorias = [];
+
+    const defaultCategories = [
+        { id: 'alimentacao', nome: 'Alimentação' },
+        { id: 'transporte', nome: 'Transporte' },
+        { id: 'moradia', nome: 'Moradia' },
+        { id: 'saude', nome: 'Saúde' },
+        { id: 'lazer', nome: 'Lazer' },
+        { id: 'educacao', nome: 'Educação' },
+        { id: 'outros', nome: 'Outros' }
+    ];
+
+    const allCategories = [...defaultCategories];
+    categorias.forEach(customCat => {
+        const exists = allCategories.some(c =>
+            c.id == customCat.id ||
+            c.nome.toLowerCase() === customCat.nome.toLowerCase()
+        );
+        if (!exists) {
+            allCategories.push(customCat);
+        }
+    });
+
+    // Remove duplicatas
+    const seenIds = new Set();
+    const uniqueCategories = [];
+    allCategories.forEach(cat => {
+        if (!seenIds.has(cat.id)) {
+            uniqueCategories.push(cat);
+            seenIds.add(cat.id);
+        }
+    });
+
+    // Ordena
+    uniqueCategories.sort((a, b) => {
+        const aIsOutros = a.nome.trim().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '') === 'outros';
+        const bIsOutros = b.nome.trim().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '') === 'outros';
+        if (aIsOutros && !bIsOutros) return 1;
+        if (!aIsOutros && bIsOutros) return -1;
+        return a.nome.localeCompare(b.nome, 'pt-BR');
+    });
+
+    select.innerHTML = '<option value="">Selecione (Opcional)</option>';
+
+    uniqueCategories.forEach(cat => {
+        const opt = document.createElement('option');
+        opt.value = cat.id;
+        opt.textContent = cat.nome;
+        select.appendChild(opt);
+    });
+}
+
+/* ==========================================================================
+   MODAL DE ADICIONAR CATEGORIA (Reusa o mesmo do expense-modal)
+   ========================================================================== */
+
+window.showAddCategoryFromGastoFixo = function() {
+    if (typeof window.openAddCategoryModal === 'function') {
+        window.openAddCategoryModal();
+    }
+};
+
+/* ==========================================================================
+   EXPORTAR FUNÇÕES GLOBAIS
+   ========================================================================== */
+
+window.openGastoFixoModal = openGastoFixoModal;
+window.closeGastoFixoModal = closeGastoFixoModal;
+window.submitGastoFixo = submitGastoFixo;
+window.fetchAndSyncCustomCategoriesGastoFixo = fetchAndSyncCustomCategoriesGastoFixo;
+window.syncGastoFixoCategories = syncGastoFixoCategories;
+window.refreshGastoFixoCategories = async function() {
+    await fetchAndSyncCustomCategoriesGastoFixo();
+    syncGastoFixoCategories();
+};
+
+console.log('✅ gasto-fixo-modal.js carregado com sucesso!');

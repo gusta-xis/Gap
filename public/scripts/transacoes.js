@@ -23,9 +23,7 @@ function initTransacoesPage() {
         }
 
         loadCustomCategories();
-
         loadAllTransactions();
-
         setupFilterListeners();
         
     } catch (error) {
@@ -139,11 +137,7 @@ async function loadAllTransactions() {
     }
 }
 
-/**
- * Normaliza e unifica dados de diferentes endpoints
- * Retorna um array padronizado com todos os dados
- */
-    function normalizeTransactions(gastosVariaveis = [], gastosFixos = [], salarios = []) {
+function normalizeTransactions(gastosVariaveis = [], gastosFixos = [], salarios = []) {
     const normalized = [];
     const userId = getUserId();
     
@@ -212,18 +206,12 @@ async function loadAllTransactions() {
     return normalized;
 }
 
-/**
- * Verifica se um registro pertence ao usuário atual
- */
 function recordBelongsToUser(item, userId) {
     if (!userId || !item) return false;
     const candidates = [item.user_id, item.userId, item.usuario_id, item.usuarioId, item.user];
     return candidates.some(val => Number(val) === Number(userId));
 }
 
-/**
- * Obtém o ID do usuário logado
- */
 function getUserId() {
     try {
         const userDataString = sessionStorage.getItem('user') || localStorage.getItem('user');
@@ -237,9 +225,6 @@ function getUserId() {
     }
 }
 
-/**
- * Normaliza o nome da categoria para exibição
- */
 function normalizeCategoryName(value) {
     const map = {
         'alimentacao': 'Alimentação',
@@ -263,9 +248,6 @@ function normalizeCategoryName(value) {
     return map[slug] || value || 'Outros';
 }
 
-/**
- * Normaliza o slug da categoria
- */
 function normalizeCategorySlug(value) {
     const v = (value || '').toString().trim().toLowerCase();
     if (!v) return 'outros';
@@ -330,7 +312,6 @@ function applyFilters() {
     console.log('✅ Transações filtradas:', filteredTransactions.length);
     
     updateStatistics(filteredTransactions);
-
     renderTransactions(filteredTransactions);
 }
 
@@ -382,7 +363,6 @@ function sortTransactions(transactions, sortType) {
             return sorted;
     }
 }
-
 
 function renderTransactions(transactions) {
     console.log('🎨 Renderizando transações:', transactions?.length || 0);
@@ -451,7 +431,6 @@ function createTransactionRow(transaction) {
     const borderClass = 'border-b border-black/10 dark:border-white/10';
 
     const dataFormatada = formatDateLong(transaction.data);
-
     const icon = getTransactionIcon(transaction);
     const isReceita = transaction.tipo === 'receita';
     const valorAbsoluto = formatCurrency(Math.abs(transaction.valor));
@@ -470,14 +449,22 @@ function createTransactionRow(transaction) {
     let actions = '';
 
     if (transaction.origem === 'fixo') {
+        const gastoData = JSON.stringify({
+            id: transaction.id,
+            nome: transaction.descricao,
+            valor: transaction.valor,
+            categoria_slug: transaction.categoria_slug,
+            dia_vencimento: transaction.rawData?.dia_vencimento || 1
+        }).replace(/"/g, '&quot;');
+        
         actions = `
-          <button onclick="openGastoFixoModal(${transaction.id})" class="text-slate-500 hover:text-primary transition-colors" aria-label="Editar">
+          <button onclick='window.editGastoFixoFromTransaction(${gastoData})' class="text-slate-500 hover:text-primary transition-colors" aria-label="Editar">
               <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                   <path d="M12 20h9" />
                   <path d="M16.5 3.5a2.121 2.121 0 1 1 3 3L7 19l-4 1 1-4Z" />
               </svg>
           </button>
-          <button onclick="deleteGasto(${transaction.id}, '${transaction.descricao.replace(/'/g, "\\'")}')" class="text-slate-500 hover:text-red-500 transition-colors" aria-label="Excluir">
+          <button onclick='window.deleteGastoFixoFromTransaction(${transaction.id}, "${transaction.descricao.replace(/'/g, "\\'")}")' class="text-slate-500 hover:text-red-500 transition-colors" aria-label="Excluir">
               <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                   <polyline points="3 6 5 6 21 6" />
                   <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6" />
@@ -488,14 +475,26 @@ function createTransactionRow(transaction) {
           </button>
         `;
     } else if (transaction.origem === 'variavel') {
+        const expenseData = JSON.stringify({
+            id: transaction.id,
+            nome: transaction.descricao,
+            descricao: transaction.descricao,
+            valor: transaction.valor,
+            categoria_slug: transaction.categoria_slug,
+            categoria: transaction.categoria,
+            data_gasto: transaction.data,
+            data: transaction.data,
+            tipo: transaction.tipo === 'receita' ? 'entrada' : 'saida'
+        }).replace(/"/g, '&quot;');
+        
         actions = `
-          <button onclick="window.openExpenseModalForEdit(${JSON.stringify(transaction.rawData || transaction)})" class="text-slate-500 hover:text-primary transition-colors" aria-label="Editar">
+          <button onclick='window.editExpenseFromTransaction(${expenseData})' class="text-slate-500 hover:text-primary transition-colors" aria-label="Editar">
               <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                   <path d="M12 20h9" />
                   <path d="M16.5 3.5a2.121 2.121 0 1 1 3 3L7 19l-4 1 1-4Z" />
               </svg>
           </button>
-          <button onclick="window.deleteTransaction('${transaction.id}','${transaction.origem}')" class="text-slate-500 hover:text-red-500 transition-colors" aria-label="Excluir">
+          <button onclick='window.deleteExpenseFromTransaction(${transaction.id}, "${transaction.descricao.replace(/'/g, "\\'")}")' class="text-slate-500 hover:text-red-500 transition-colors" aria-label="Excluir">
               <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                   <polyline points="3 6 5 6 21 6" />
                   <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6" />
@@ -564,65 +563,91 @@ function getTransactionIcon(transaction) {
     return tipo === 'receita' ? svg.receita : svg.despesa;
 }
 
-window.editTransaction = function(id, origem) {
-    console.log('✏️ Editar transação:', id, origem);
-
-    if (origem !== 'variavel') {
-        alert('Apenas gastos variáveis podem ser editados.');
-        return;
-    }
-
-    const tx = allTransactions.find(t => Number(t.id) === Number(id) && t.origem === origem);
-    if (!tx) {
-        alert('Transação não encontrada.');
-        return;
-    }
-
-    const base = tx.rawData || {};
-    const payload = {
-        ...base,
-        id: base.id || tx.id,
-        nome: base.nome || base.descricao || tx.descricao,
-        descricao: base.descricao || base.nome || tx.descricao,
-        valor: base.valor != null ? base.valor : tx.valor,
-        categoria_slug: normalizeCategorySlug(base.categoria_slug || base.categoria || tx.categoria_slug),
-        categoria: base.categoria || tx.categoria,
-        data_gasto: base.data_gasto || base.data || tx.data,
-        tipo: base.tipo || (tx.tipo === 'receita' ? 'entrada' : 'saida')
-    };
-
-    if (window.expenseModal?.openExpenseModalForEdit) {
-        window.expenseModal.openExpenseModalForEdit(payload);
-    } else if (typeof openExpenseModalForEdit === 'function') {
-        openExpenseModalForEdit(payload);
-    } else if (typeof openExpenseModal === 'function') {
-        openExpenseModal();
+window.editExpenseFromTransaction = function(expenseData) {
+    console.log('✏️ Editando despesa variável:', expenseData);
+    if (typeof window.openExpenseModalForEdit === 'function') {
+        window.openExpenseModalForEdit(expenseData);
+    } else {
+        console.error('Função openExpenseModalForEdit não encontrada');
     }
 };
 
-window.deleteTransaction = async function(id, origem) {
-    if (!confirm('Tem certeza que deseja excluir esta transação?')) {
-        return;
-    }
+window.deleteExpenseFromTransaction = async function(id, descricao) {
+    if (!confirm(`Tem certeza que deseja excluir "${descricao}"?`)) return;
     
     try {
-        console.log('🗑️ Deletando transação:', id, origem);
+        console.log('🗑️ Deletando despesa variável:', id);
+        const token = sessionStorage.getItem('accessToken') || localStorage.getItem('token');
         
-        if (origem === 'variavel') {
-            await apiService.deleteGastoVariavel(id);
-        } else {
-            alert('Apenas gastos variáveis podem ser deletados.');
-            return;
+        const response = await fetch(`/api/v1/gastos-variaveis/${id}`, {
+            method: 'DELETE',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            }
+        });
+
+        if (!response.ok) {
+            throw new Error('Erro ao deletar despesa');
         }
+
+        console.log('✅ Despesa deletada com sucesso');
         
-        // Recarregar dados
         await loadAllTransactions();
         
-        console.log('✅ Transação deletada com sucesso!');
+        if (typeof window.loadDashboardData === 'function') {
+            window.loadDashboardData();
+        }
         
     } catch (error) {
-        console.error('❌ Erro ao deletar transação:', error);
-        alert('Erro ao deletar transação: ' + error.message);
+        console.error('❌ Erro ao deletar despesa:', error);
+        alert('Erro ao deletar despesa: ' + error.message);
+    }
+};
+
+window.editGastoFixoFromTransaction = function(gastoData) {
+    console.log('✏️ Editando gasto fixo:', gastoData);
+    if (typeof window.openGastoFixoModal === 'function') {
+        window.openGastoFixoModal(gastoData.id);
+    } else {
+        console.error('Função openGastoFixoModal não encontrada');
+    }
+};
+
+window.deleteGastoFixoFromTransaction = async function(id, descricao) {
+    if (!confirm(`Tem certeza que deseja excluir "${descricao}"?`)) return;
+    
+    try {
+        console.log('🗑️ Deletando gasto fixo:', id);
+        const token = sessionStorage.getItem('accessToken') || localStorage.getItem('token');
+        
+        const response = await fetch(`/api/v1/gastos-fixos/${id}`, {
+            method: 'DELETE',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            }
+        });
+
+        if (!response.ok) {
+            throw new Error('Erro ao deletar gasto fixo');
+        }
+
+        console.log('✅ Gasto fixo deletado com sucesso');
+        
+        await loadAllTransactions();
+        
+        if (typeof window.initializeGastosFixos === 'function') {
+            window.initializeGastosFixos();
+        }
+        
+        if (typeof window.loadDashboardData === 'function') {
+            window.loadDashboardData();
+        }
+        
+    } catch (error) {
+        console.error('❌ Erro ao deletar gasto fixo:', error);
+        alert('Erro ao deletar gasto fixo: ' + error.message);
     }
 };
 
@@ -735,16 +760,18 @@ function updateCategoryFilterOptions() {
         categoryFilter.appendChild(outrosOpt);
     }
 }
+
 window.syncCustomCategories = function(list) {
     customCategories = Array.isArray(list) ? list : [];
     updateCategoryFilterOptions();
 };
+
 window.reloadCustomCategoriesFromStorage = function() {
     loadCustomCategories();
 };
 
 window.openAddExpenseModal = function() {
-    console.log('🔵 Abrindo modal de adicionar despesa (fixo)');
+    console.log('🔵 Abrindo modal de adicionar despesa');
     if (typeof openExpenseModal === 'function') {
         openExpenseModal();
     } else {
@@ -758,7 +785,6 @@ window.openAddExpenseModal = function() {
 
 window.viewStatement = function() {
     console.log('🔵 Abrindo extrato completo...');
-    // Mantém navegação via SPA para o extrato
     if (window.SPARouter) {
         window.SPARouter.navigateTo('dashboard');
     } else {
@@ -833,6 +859,5 @@ function showError(message) {
 }
 
 })();
-
 
 console.log('✅ Script de Transações carregado com sucesso!');
