@@ -109,7 +109,8 @@ function syncExpenseCategories() {
 
     uniqueCategories.forEach(cat => {
         const opt = document.createElement('option');
-        opt.value = cat.id;
+        // Use sempre o id numérico como string
+        opt.value = cat.id != null ? String(cat.id) : '';
         opt.textContent = cat.nome;
         select.appendChild(opt);
     });
@@ -179,6 +180,12 @@ function openExpenseModal(event) {
     const modal = document.getElementById('addExpenseModal');
     if (!modal) return console.error('Modal addExpenseModal não encontrado');
     
+    // Altera o título do modal para "Nova Despesa"
+    const titleEl = modal.querySelector('h2');
+    if (titleEl) {
+        titleEl.textContent = 'Nova Despesa';
+    }
+
     modal.classList.remove('hidden');
     modal.classList.add('flex');
 
@@ -218,6 +225,12 @@ function openExpenseModalForEdit(expense) {
         return;
     }
 
+    // Altera o título do modal para "Editar Despesa"
+    const titleEl = modal.querySelector('h2');
+    if (titleEl) {
+        titleEl.textContent = 'Editar Despesa';
+    }
+
     fetchAndSyncCustomCategories().then(() => {
         const descField = document.getElementById('expenseDescription');
         if (descField) {
@@ -235,9 +248,11 @@ function openExpenseModalForEdit(expense) {
 
         const categoryField = document.getElementById('expenseCategory');
         if (categoryField) {
-            const catValue = expense.categoria_slug || normalizeCategorySlug(expense.categoria || '');
-            console.log('📂 Selecionando categoria:', catValue);
-            categoryField.value = catValue;
+            let catId = '';
+            if (expense.categoria_id != null) {
+                catId = String(expense.categoria_id);
+            }
+            categoryField.value = catId;
         }
 
         const dateField = document.getElementById('expenseDate');
@@ -294,20 +309,12 @@ async function submitExpense(event) {
     const amountInput = document.getElementById('expenseAmount').value;
     const amount = parseCurrency(amountInput);
     const category = document.getElementById('expenseCategory').value;
+    const categoriaId = category ? category : null;
     const type = selectedExpenseType;
     const date = document.getElementById('expenseDate').value;
 
     const errorDiv = document.getElementById('errorMessage');
     const successDiv = document.getElementById('successMessage');
-
-    console.log('📤 Dados do formulário:', {
-        description,
-        amount,
-        category,
-        type,
-        date,
-        editingExpenseId
-    });
 
     if (!description || !amount || !date) {
         errorDiv.textContent = 'Preencha todos os campos obrigatórios (*).';
@@ -330,21 +337,17 @@ async function submitExpense(event) {
         const payload = {
             nome: description,
             valor: amount,
-            categoria_slug: category || null,
+            categoria_id: categoriaId, // <-- CORRETO!
             data_gasto: date,
             tipo: type,
             user_id: user.id
         };
-
-        console.log('📦 Payload:', payload);
 
         const isEdit = !!editingExpenseId;
         const url = isEdit 
             ? `/api/v1/gastos-variaveis/${editingExpenseId}` 
             : '/api/v1/gastos-variaveis';
         const method = isEdit ? 'PUT' : 'POST';
-
-        console.log(`📡 ${method} ${url}`);
 
         const response = await fetch(url, {
             method,
@@ -361,7 +364,6 @@ async function submitExpense(event) {
         }
 
         const result = await response.json();
-        console.log('✅ Resposta do servidor:', result);
 
         successDiv.textContent = isEdit 
             ? 'Despesa atualizada com sucesso!' 
@@ -371,14 +373,12 @@ async function submitExpense(event) {
 
         setTimeout(() => {
             closeExpenseModal();
-            
             if (window.loadAllTransactions) window.loadAllTransactions();
             if (window.loadDashboardData) window.loadDashboardData();
             if (window.initializeTransactionsPage) window.initializeTransactionsPage();
         }, 1000);
 
     } catch (error) {
-        console.error('❌ Erro ao salvar:', error);
         errorDiv.textContent = error.message;
         errorDiv.classList.remove('hidden');
     } finally {

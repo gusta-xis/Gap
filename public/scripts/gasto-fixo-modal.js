@@ -119,7 +119,7 @@ async function openGastoFixoModal(gastoId = null) {
             }
             
             if (categoryField) {
-                categoryField.value = gasto.categoria_slug || '';
+                categoryField.value = gasto.categoria_id || '';
             }
             
             if (dueDayField) {
@@ -183,6 +183,7 @@ async function submitGastoFixo(event) {
     const amountInput = document.getElementById('gastoFixoAmount').value;
     const amount = parseCurrency(amountInput);
     const category = document.getElementById('gastoFixoCategory').value;
+    const categoriaId = category ? Number(category) : null;
     const dueDay = document.getElementById('gastoFixoDueDay').value;
 
     const errorDiv = document.getElementById('gastoFixoErrorMessage');
@@ -218,7 +219,7 @@ async function submitGastoFixo(event) {
         const payload = {
             nome: description,
             valor: amount,
-            categoria_slug: category || null,
+            categoria_id: categoriaId, // CORRETO!
             dia_vencimento: parseInt(dueDay),
             user_id: user.id
         };
@@ -309,14 +310,15 @@ function syncGastoFixoCategories() {
     let categorias = loadCustomCategoriesFromStorage();
     if (!Array.isArray(categorias)) categorias = [];
 
+    // Use os ids reais do banco!
     const defaultCategories = [
-        { id: 'alimentacao', nome: 'Alimentação' },
-        { id: 'transporte', nome: 'Transporte' },
-        { id: 'moradia', nome: 'Moradia' },
-        { id: 'saude', nome: 'Saúde' },
-        { id: 'lazer', nome: 'Lazer' },
-        { id: 'educacao', nome: 'Educação' },
-        { id: 'outros', nome: 'Outros' }
+        { id: 1, nome: 'Alimentação' },
+        { id: 2, nome: 'Transporte' },
+        { id: 3, nome: 'Moradia' },
+        { id: 4, nome: 'Saúde' },
+        { id: 5, nome: 'Lazer' },
+        { id: 6, nome: 'Educação' },
+        { id: 7, nome: 'Outros' }
     ];
 
     const allCategories = [...defaultCategories];
