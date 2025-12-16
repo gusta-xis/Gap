@@ -303,38 +303,23 @@
         }
     };
 
-    window.deleteGasto = async function(gastoId, nome) {
-        if (!confirm(`Deseja realmente excluir o gasto fixo "${nome}"?`)) {
-            return;
-        }
-        
+    async function deleteGasto(id, nome) {
+        if (!confirm(`Deseja realmente excluir o gasto fixo "${nome}"?`)) return;
         try {
             const token = sessionStorage.getItem('accessToken') || localStorage.getItem('token');
-            
-            const response = await fetch(`/api/v1/gastos-fixos/${gastoId}`, {
+            const response = await fetch(`/api/v1/gastos-fixos/${id}`, {
                 method: 'DELETE',
-                headers: {
-                    'Authorization': `Bearer ${token}`,
-                    'Content-Type': 'application/json'
-                }
+                headers: { 'Authorization': `Bearer ${token}` }
             });
-            
-            if (!response.ok) {
-                if (response.status === 401) {
-                    redirectToLogin();
-                    return;
-                }
-                throw new Error('Erro ao excluir gasto fixo');
-            }
-            
-            showSuccess('Gasto fixo excluído com sucesso!');
-            await loadGastosFixos();
-            
-        } catch (error) {
-            console.error('Erro ao excluir gasto fixo:', error);
-            showError('Erro ao excluir gasto fixo. Tente novamente.');
+            if (!response.ok) throw new Error('Erro ao excluir gasto fixo');
+            // Atualize a lista de gastos fixos ou recarregue a página
+            if (window.initializeGastosFixos) window.initializeGastosFixos();
+            if (window.loadAllTransactions) window.loadAllTransactions();
+        } catch (e) {
+            alert('Erro ao excluir gasto fixo: ' + e.message);
         }
-    };
+    }
+    window.deleteGasto = deleteGasto;
 
     // ===================================
     // UI HELPERS

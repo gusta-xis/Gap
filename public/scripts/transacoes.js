@@ -449,9 +449,9 @@ function renderTransactions(transactions) {
 function createTransactionRow(transaction) {
     const div = document.createElement('div');
     const borderClass = 'border-b border-black/10 dark:border-white/10';
-    
+
     const dataFormatada = formatDateLong(transaction.data);
-    
+
     const icon = getTransactionIcon(transaction);
     const isReceita = transaction.tipo === 'receita';
     const valorAbsoluto = formatCurrency(Math.abs(transaction.valor));
@@ -461,42 +461,52 @@ function createTransactionRow(transaction) {
     const valorClass = isReceita
         ? 'text-green-600 dark:text-green-400'
         : 'text-red-600 dark:text-red-300';
-    
+
     const tipoLabel = isReceita ? 'Receita' : 'Despesa';
     const tipoClass = isReceita 
         ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300'
         : 'bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300';
-    
-    let editHandler = '';
-    let deleteHandler = '';
+
+    let actions = '';
 
     if (transaction.origem === 'fixo') {
-      editHandler = `openGastoFixoModal(${transaction.id})`;
-      deleteHandler = `deleteGasto(${transaction.id}, '${transaction.nome}')`;
+        actions = `
+          <button onclick="openGastoFixoModal(${transaction.id})" class="text-slate-500 hover:text-primary transition-colors" aria-label="Editar">
+              <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <path d="M12 20h9" />
+                  <path d="M16.5 3.5a2.121 2.121 0 1 1 3 3L7 19l-4 1 1-4Z" />
+              </svg>
+          </button>
+          <button onclick="deleteGasto(${transaction.id}, '${transaction.descricao.replace(/'/g, "\\'")}')" class="text-slate-500 hover:text-red-500 transition-colors" aria-label="Excluir">
+              <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <polyline points="3 6 5 6 21 6" />
+                  <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6" />
+                  <path d="M10 11v6" />
+                  <path d="M14 11v6" />
+                  <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2" />
+              </svg>
+          </button>
+        `;
     } else if (transaction.origem === 'variavel') {
-      editHandler = `openExpenseModalForEdit(${JSON.stringify(transaction)})`;
-      deleteHandler = `deleteExpense(${transaction.id}, '${transaction.nome}')`;
-    } // salários normalmente não são editáveis
+        actions = `
+          <button onclick="window.openExpenseModalForEdit(${JSON.stringify(transaction.rawData || transaction)})" class="text-slate-500 hover:text-primary transition-colors" aria-label="Editar">
+              <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <path d="M12 20h9" />
+                  <path d="M16.5 3.5a2.121 2.121 0 1 1 3 3L7 19l-4 1 1-4Z" />
+              </svg>
+          </button>
+          <button onclick="window.deleteTransaction('${transaction.id}','${transaction.origem}')" class="text-slate-500 hover:text-red-500 transition-colors" aria-label="Excluir">
+              <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <polyline points="3 6 5 6 21 6" />
+                  <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6" />
+                  <path d="M10 11v6" />
+                  <path d="M14 11v6" />
+                  <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2" />
+              </svg>
+          </button>
+        `;
+    }
 
-    // Renderiza botões se for fixo ou variável
-    const actions = (transaction.origem === 'fixo' || transaction.origem === 'variavel') ? `
-      <button onclick="${editHandler}" class="text-slate-500 hover:text-primary transition-colors" aria-label="Editar">
-          <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-              <path d="M12 20h9" />
-              <path d="M16.5 3.5a2.121 2.121 0 1 1 3 3L7 19l-4 1 1-4Z" />
-          </svg>
-      </button>
-      <button onclick="${deleteHandler}" class="text-slate-500 hover:text-red-500 transition-colors" aria-label="Excluir">
-          <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-              <polyline points="3 6 5 6 21 6" />
-              <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6" />
-              <path d="M10 11v6" />
-              <path d="M14 11v6" />
-              <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2" />
-          </svg>
-      </button>
-    ` : '';
-    
     div.className = `transaction-row grid grid-cols-[64px_2fr_1.5fr_2fr_1.2fr_1fr_72px] items-center px-6 py-4 ${borderClass}`;
     div.innerHTML = `
         <div class="bg-primary/10 dark:bg-primary/20 text-primary dark:text-primary rounded-full w-10 h-10 flex items-center justify-center flex-shrink-0">
@@ -524,7 +534,7 @@ function createTransactionRow(transaction) {
             ${actions}
         </div>
     `;
-    
+
     return div;
 }
 

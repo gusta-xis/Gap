@@ -241,40 +241,33 @@ function closeExpenseModal(event) {
 function openExpenseModalForEdit(expense) {
     const modal = document.getElementById('addExpenseModal');
     if (!modal) return;
-    
+
+    // Sincroniza categorias antes de preencher
+    fetchAndSyncCustomCategories().then(() => {
+        document.getElementById('expenseDescription').value = expense.nome || expense.descricao || '';
+        const amountVal = parseFloat(expense.valor || 0);
+        document.getElementById('expenseAmount').value = amountVal.toLocaleString('pt-BR', { 
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2 
+        });
+        const catValue = expense.categoria_id || normalizeCategorySlug(expense.categoria || '');
+        document.getElementById('expenseCategory').value = catValue;
+        let dateVal = '';
+        const rawDate = expense.data_gasto || expense.data || expense.created_at;
+        if (rawDate) {
+            dateVal = new Date(rawDate).toISOString().split('T')[0];
+        }
+        document.getElementById('expenseDate').value = dateVal;
+        editingExpenseId = expense.id;
+        const submitBtn = document.querySelector('[data-action="submit-expense"]');
+        if(submitBtn) submitBtn.textContent = 'Salvar Alterações';
+        setExpenseType(expense.tipo || 'saida');
+        document.getElementById('errorMessage')?.classList.add('hidden');
+        document.getElementById('successMessage')?.classList.add('hidden');
+    });
+
     modal.classList.remove('hidden');
     modal.classList.add('flex');
-
-    // Preencher campos
-    document.getElementById('expenseDescription').value = expense.nome || expense.descricao || '';
-    
-    const amountVal = parseFloat(expense.valor || 0);
-    document.getElementById('expenseAmount').value = amountVal.toLocaleString('pt-BR', { 
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2 
-    });
-    
-    // Tenta selecionar pelo ID ou Slug
-    const catValue = expense.categoria_id || normalizeCategorySlug(expense.categoria || '');
-    document.getElementById('expenseCategory').value = catValue;
-    
-    // Data
-    let dateVal = '';
-    const rawDate = expense.data_gasto || expense.data || expense.created_at;
-    if (rawDate) {
-        dateVal = new Date(rawDate).toISOString().split('T')[0];
-    }
-    document.getElementById('expenseDate').value = dateVal;
-
-    editingExpenseId = expense.id;
-    const submitBtn = document.querySelector('[data-action="submit-expense"]');
-    if(submitBtn) submitBtn.textContent = 'Salvar Alterações';
-    
-    setExpenseType(expense.tipo || 'saida');
-    
-    // Esconder mensagens
-    document.getElementById('errorMessage')?.classList.add('hidden');
-    document.getElementById('successMessage')?.classList.add('hidden');
 }
 
 async function submitExpense(event) {

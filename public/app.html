@@ -1,8 +1,8 @@
 <!DOCTYPE html>
-<html class="light" lang="pt-br">
+<html class="light h-full w-full antialiased" lang="pt-br">
 <head>
     <meta charset="utf-8"/>
-    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" name="viewport"/>
     <title>GAP Financeiro</title>
     
     <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
@@ -12,26 +12,52 @@
             theme: {
                 extend: {
                     colors: {
-                        "primary": "#A0430A",
-                        "secondary": "#DFE8E6",
-                        "background-light": "#f8f7f6",
-                        "background-dark": "#1C1C1C",
+                        primary: "#A0430A",
+                        secondary: "#DFE8E6",
+                        "background-light": "#f8f7f6", 
+                        "background-dark": "#121212", 
+                        "surface-light": "#ffffff",    
+                        "surface-dark": "#1E1E1E",     
                         "text-light": "#1a1a1a",
-                        "text-dark": "#f5f5f5",
-                        "text-secondary-light": "#666666",
-                        "text-secondary-dark": "#999999",
-                        "card-light": "#ffffff",
-                        "card-dark": "#2a2a2a",
+                        "text-dark": "#e5e5e5",
+                        "text-muted-light": "#666666",
+                        "text-muted-dark": "#a3a3a3",
+                        border: "rgba(0,0,0,0.08)",
+                        "border-dark": "rgba(255,255,255,0.08)",
                     },
                     fontFamily: {
-                        "display": ["Manrope", "sans-serif"]
+                        display: ["Manrope", "sans-serif"]
                     },
                     borderRadius: {
-                        "DEFAULT": "0.25rem",
-                        "lg": "0.5rem",
-                        "xl": "0.75rem",
-                        "full": "9999px"
+                        DEFAULT: "0.5rem",
+                        xl: "0.75rem",
+                        "2xl": "1rem",
+                        "3xl": "1.5rem"
                     },
+                    zIndex: {
+                        'sticky': '40',
+                        'modal': '50',
+                        'overlay': '45',
+                    },
+                    keyframes: {
+                        slideUpMobile: {
+                            '0%': { transform: 'translateY(100%)' },
+                            '100%': { transform: 'translateY(0)' }
+                        },
+                        fadeInScale: {
+                            '0%': { opacity: '0', transform: 'scale(0.95)' },
+                            '100%': { opacity: '1', transform: 'scale(1)' }
+                        },
+                        fadeIn: {
+                            'from': { opacity: '0' },
+                            'to': { opacity: '1' }
+                        }
+                    },
+                    animation: {
+                        'modal-mobile': 'slideUpMobile 0.35s cubic-bezier(0.16, 1, 0.3, 1)',
+                        'modal-desktop': 'fadeInScale 0.2s ease-out',
+                        'fade-in': 'fadeIn 0.2s ease-out',
+                    }
                 },
             },
         };
@@ -44,53 +70,16 @@
     <link rel="stylesheet" href="/styles/dashboard.css">
     
     <style>
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(-10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
+        body { -webkit-tap-highlight-color: transparent; }
+        .scroll-smooth-y { overflow-y: auto; -webkit-overflow-scrolling: touch; }
         
-        @keyframes slideIn {
-            from { opacity: 0; transform: translateX(-20px); }
-            to { opacity: 1; transform: translateX(0); }
-        }
+        ::-webkit-scrollbar { width: 5px; height: 5px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+        .dark ::-webkit-scrollbar-thumb { background: #475569; }
         
-        body {
-            animation: fadeIn 0.3s ease-out;
-        }
-        
-        .header-fixed {
-            animation: fadeIn 0.4s ease-out;
-        }
-        
-        aside {
-            animation: slideIn 0.5s ease-out;
-        }
-        
-        #app-content {
-            transition: opacity 0.3s ease, transform 0.3s ease;
-        }
-        
-        #app-content.loading {
-            opacity: 0;
-            transform: translateY(10px);
-        }
-        
-        .header-user-name, .header-avatar {
-            transition: transform 0.2s ease, opacity 0.2s ease;
-        }
-        
-        a, button {
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-        
-        [class*="bg-white"], [class*="bg-slate"] {
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
-        }
-        
-        [class*="bg-white"]:hover, [class*="bg-slate"]:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-        }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes slideIn { from { transform: translateX(-20px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
     </style>
     
     <script>
@@ -99,341 +88,374 @@
                 const userDataString = sessionStorage.getItem('user') || localStorage.getItem('user');
                 if (userDataString) {
                     const userData = JSON.parse(userDataString);
-                    const userName = userData.nome || userData.name || 'Usuário';
-                    const userInitial = userName.charAt(0).toUpperCase();
-                    window.__preloadedUserName = userName;
-                    window.__preloadedUserInitial = userInitial;
+                    window.__preloadedUserName = userData.nome || userData.name || 'Usuário';
+                    window.__preloadedUserInitial = (userData.nome || userData.name || 'U').charAt(0).toUpperCase();
                 }
-            } catch (e) {
-                console.error('Erro ao pré-carregar dados do usuário:', e);
-            }
+            } catch (e) { console.error(e); }
         })();
     </script>
 </head>
-<body class="font-display bg-background-light dark:bg-background-dark text-text-light dark:text-text-dark">
 
-    <div class="relative flex h-auto min-h-screen w-full group/design-root overflow-x-hidden">
-        <div class="flex h-full grow">
-            <aside class="flex-col bg-white dark:bg-slate-900/50 border-r border-black/10 dark:border-white/10 w-64 p-6 hidden lg:flex">
-                <div class="flex items-center gap-3">
-                    <img src="/img/financel.svg" alt="Finance Icon" class="h-12 w-auto">
-                </div>
-                <nav class="flex flex-col gap-2 mt-8 flex-1">
-                    <a class="nav-link flex items-center gap-3 px-4 py-2 rounded-lg text-slate-700 dark:text-slate-300 hover:bg-secondary dark:hover:bg-slate-800" href="#" data-page="dashboard">
-                        <span class="material-symbols-outlined text-xl">dashboard</span>
-                        <span class="text-sm font-medium">Dashboard</span>
-                    </a>
-                    <a class="nav-link flex items-center gap-3 px-4 py-2 rounded-lg text-slate-700 dark:text-slate-300 hover:bg-secondary dark:hover:bg-slate-800" href="#" data-page="transacoes">
-                        <span class="material-symbols-outlined text-xl">receipt_long</span>
-                        <span class="text-sm font-medium">Minhas Transações</span>
-                    </a>
-                    <a class="nav-link flex items-center gap-3 px-4 py-2 rounded-lg text-slate-700 dark:text-slate-300 hover:bg-secondary dark:hover:bg-slate-800" href="#" data-page="gastos-fixos">
-                        <span class="material-symbols-outlined text-xl">event_repeat</span>
-                        <span class="text-sm font-medium">Gastos Fixos</span>
-                    </a>
-                    <a class="nav-link flex items-center gap-3 px-4 py-2 rounded-lg text-slate-700 dark:text-slate-300 hover:bg-secondary dark:hover:bg-slate-800" href="#">
-                        <span class="material-symbols-outlined text-xl">category</span>
-                        <span class="text-sm font-medium">Categorias</span>
-                    </a>
-                    <a class="nav-link flex items-center gap-3 px-4 py-2 rounded-lg text-slate-700 dark:text-slate-300 hover:bg-secondary dark:hover:bg-slate-800" href="#">
-                        <span class="material-symbols-outlined text-xl">trending_up</span>
-                        <span class="text-sm font-medium">Metas Financeiras</span>
-                    </a>
-                </nav>
-                <div class="mt-auto">
-                    <a class="nav-link flex items-center gap-3 px-4 py-2 rounded-lg text-slate-700 dark:text-slate-300 hover:bg-secondary dark:hover:bg-slate-800" href="#">
-                        <span class="material-symbols-outlined text-xl">settings</span>
-                        <span class="text-sm font-medium">Configurações</span>
-                    </a>
-                </div>
-            </aside>
+<body class="bg-background-light dark:bg-background-dark text-text-light dark:text-text-dark font-display h-full w-full overflow-hidden flex selection:bg-primary/20 selection:text-primary">
 
-            <div class="layout-container flex h-full grow flex-col flex-1">
-                <div class="px-4 sm:px-6 lg:px-8 xl:px-10 flex flex-1 justify-center py-5">
-                    <div class="layout-content-container flex flex-col w-full max-w-7xl flex-1">
-                        <header class="header-fixed">
-                            <p id="headerUserName" class="header-user-name"><script>document.write(window.__preloadedUserName || 'Usuário');</script></p>
-                            <div id="headerAvatar" class="header-avatar"><script>document.write(window.__preloadedUserInitial || 'U');</script></div>
-                            <button class="logout-btn" title="Voltar para Subtemas" onclick="voltarParaSubtemas()">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                  <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
-                                  <polyline points="16 17 21 12 16 7" />
-                                  <line x1="21" y1="12" x2="9" y2="12" />
-                                </svg>
-                            </button>
-                        </header>
+    <aside class="hidden lg:flex w-72 flex-col border-r border-border dark:border-border-dark bg-surface-light dark:bg-surface-dark h-full shrink-0 z-20 transition-colors">
+        <div class="flex h-20 items-center px-8 shrink-0">
+            <img src="/img/financel.svg" alt="Finance Icon" class="h-10 w-auto object-contain">
+        </div>
+        
+        <nav class="flex flex-col gap-2 px-4 py-4 flex-1 overflow-y-auto scroll-smooth-y">
+            <a class="nav-link group flex items-center gap-3 px-4 py-3.5 rounded-xl text-text-muted-light dark:text-text-muted-dark hover:bg-secondary/50 hover:text-primary dark:hover:bg-white/5 dark:hover:text-white transition-all duration-200" href="#" data-page="dashboard">
+                <span class="material-symbols-outlined text-[24px] group-hover:scale-110 transition-transform">dashboard</span>
+                <span class="text-sm font-bold tracking-wide">Dashboard</span>
+            </a>
+            <a class="nav-link group flex items-center gap-3 px-4 py-3.5 rounded-xl text-text-muted-light dark:text-text-muted-dark hover:bg-secondary/50 hover:text-primary dark:hover:bg-white/5 dark:hover:text-white transition-all duration-200" href="#" data-page="transacoes">
+                <span class="material-symbols-outlined text-[24px] group-hover:scale-110 transition-transform">receipt_long</span>
+                <span class="text-sm font-bold tracking-wide">Minhas Transações</span>
+            </a>
+            <a class="nav-link group flex items-center gap-3 px-4 py-3.5 rounded-xl text-text-muted-light dark:text-text-muted-dark hover:bg-secondary/50 hover:text-primary dark:hover:bg-white/5 dark:hover:text-white transition-all duration-200" href="#" data-page="gastos-fixos">
+                <span class="material-symbols-outlined text-[24px] group-hover:scale-110 transition-transform">event_repeat</span>
+                <span class="text-sm font-bold tracking-wide">Gastos Fixos</span>
+            </a>
+            <a class="nav-link group flex items-center gap-3 px-4 py-3.5 rounded-xl text-text-muted-light dark:text-text-muted-dark hover:bg-secondary/50 hover:text-primary dark:hover:bg-white/5 dark:hover:text-white transition-all duration-200" href="#">
+                <span class="material-symbols-outlined text-[24px] group-hover:scale-110 transition-transform">category</span>
+                <span class="text-sm font-bold tracking-wide">Categorias</span>
+            </a>
+            <a class="nav-link group flex items-center gap-3 px-4 py-3.5 rounded-xl text-text-muted-light dark:text-text-muted-dark hover:bg-secondary/50 hover:text-primary dark:hover:bg-white/5 dark:hover:text-white transition-all duration-200" href="#">
+                <span class="material-symbols-outlined text-[24px] group-hover:scale-110 transition-transform">trending_up</span>
+                <span class="text-sm font-bold tracking-wide">Metas Financeiras</span>
+            </a>
+        </nav>
+        
+        <div class="mt-auto px-4 py-6 border-t border-border dark:border-border-dark shrink-0">
+            <a class="nav-link group flex items-center gap-3 px-4 py-3.5 rounded-xl text-text-muted-light dark:text-text-muted-dark hover:bg-secondary/50 hover:text-primary dark:hover:bg-white/5 dark:hover:text-white transition-all duration-200" href="#">
+                <span class="material-symbols-outlined text-[24px] group-hover:rotate-45 transition-transform">settings</span>
+                <span class="text-sm font-bold tracking-wide">Configurações</span>
+            </a>
+        </div>
+    </aside>
 
-                        <main id="app-content" class="flex-1 mt-4">
-                        </main>
+    <div class="layout-container relative flex flex-1 flex-col h-full overflow-hidden bg-background-light dark:bg-background-dark">
+        
+        <div class="flex-1 overflow-y-auto overflow-x-hidden scroll-smooth-y relative">
+            <div class="layout-content-container flex flex-col w-full min-h-full max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-10 py-4 sm:py-6">
+                
+                <header class="header-fixed sticky top-0 z-sticky mb-6 flex items-center justify-between rounded-2xl bg-white/5 dark:bg-black/20 backdrop-blur-md border border-white/10 dark:border-white/5 px-4 py-3 shadow-sm transition-all duration-300">
+                    
+                    <div class="flex items-center gap-3">
+                        <div id="headerAvatar" class="header-avatar flex h-10 w-10 items-center justify-center rounded-full bg-primary/10 text-primary font-bold shadow-inner ring-2 ring-white/50 dark:ring-white/10">
+                            <script>document.write(window.__preloadedUserInitial || 'U');</script>
+                        </div>
+                        <div class="flex flex-col justify-center">
+                            <p id="headerUserName" class="header-user-name text-sm font-bold text-text-light dark:text-text-dark leading-tight">
+                                <script>document.write(window.__preloadedUserName || 'Usuário');</script>
+                            </p>
+                            </div>
                     </div>
-                </div>
+
+                    <button class="logout-btn group flex items-center justify-center p-2.5 rounded-xl text-text-muted-light hover:text-red-600 hover:bg-red-50 dark:text-text-muted-dark dark:hover:text-red-400 dark:hover:bg-red-900/20 transition-all duration-200" title="Voltar para Subtemas" onclick="voltarParaSubtemas()">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 transition-transform group-hover:-translate-x-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+                            <polyline points="16 17 21 12 16 7" />
+                            <line x1="21" y1="12" x2="9" y2="12" />
+                        </svg>
+                    </button>
+                </header>
+
+                <main id="app-content" class="flex-1 w-full animate-fade-in relative z-0 pb-20 lg:pb-0">
+                    </main>
+                
             </div>
         </div>
     </div>
     
-    <div id="addExpenseModal" class="fixed inset-0 bg-black/50 backdrop-blur-sm hidden flex items-center justify-center z-50 animate-in fade-in duration-300" onclick="closeExpenseModal(event)">
-        <div class="bg-white dark:bg-slate-900 border-2 border-primary/20 rounded-xl transform transition-all duration-300 animate-in zoom-in-95 slide-in-from-bottom-4" onclick="event.stopPropagation();">
-            <div class="sticky top-0 bg-white dark:bg-slate-900 border-b border-black/10 dark:border-white/10 px-6 py-4 flex items-center justify-between">
-                <h2 class="text-lg font-bold text-slate-800 dark:text-slate-200">Adicionar Despesa</h2>
-                <button onclick="closeExpenseModal(event)" class="p-1.5 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors duration-200">
-                    <span class="material-symbols-outlined">close</span>
-                </button>
-            </div>
-
-            <div class="px-6 py-4 space-y-4 max-h-[calc(90vh-180px)] overflow-y-auto">
-                <div class="space-y-2">
-                    <label for="expenseDescription" class="block text-sm font-medium text-slate-700 dark:text-slate-300">
-                        Descrição <span class="text-red-500">*</span>
-                    </label>
-                    <input 
-                        type="text" 
-                        id="expenseDescription" 
-                        placeholder="Ex: Supermercado" 
-                        class="w-full px-4 py-2.5 border border-black/10 dark:border-white/10 rounded-lg bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-200 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all duration-200"
-                    />
+    <div id="addExpenseModal" class="fixed inset-0 z-modal hidden" onclick="closeExpenseModal(event)">
+        <div class="absolute inset-0 bg-black/60 backdrop-blur-[2px] transition-opacity duration-300 animate-fade-in"></div>
+        
+        <div class="absolute inset-0 flex items-end justify-center sm:items-center sm:p-4 pointer-events-none">
+            <div class="pointer-events-auto w-full bg-surface-light dark:bg-surface-dark rounded-t-3xl sm:rounded-2xl shadow-2xl shadow-black/50 border-t border-white/20 sm:border dark:border-white/10 max-w-lg max-h-[95vh] sm:max-h-[90vh] flex flex-col transform transition-transform animate-modal-mobile sm:animate-modal-desktop overflow-hidden" onclick="event.stopPropagation();">
+                
+                <div class="w-full flex justify-center pt-3 pb-1 sm:hidden cursor-grab active:cursor-grabbing">
+                    <div class="w-12 h-1.5 rounded-full bg-slate-300 dark:bg-slate-600"></div>
                 </div>
 
-                <div class="space-y-2">
-                    <label for="expenseAmount" class="block text-sm font-medium text-slate-700 dark:text-slate-300">
-                        Valor (R$) <span class="text-red-500">*</span>
-                    </label>
-                    <div class="flex items-center gap-3">
+                <div class="flex items-center justify-between px-6 py-4 border-b border-border dark:border-border-dark shrink-0">
+                    <h2 class="text-xl font-bold text-text-light dark:text-text-dark tracking-tight">Nova Despesa</h2>
+                    <button onclick="closeExpenseModal(event)" class="p-2 -mr-2 text-text-muted-light hover:text-text-light dark:text-text-muted-dark dark:hover:text-text-dark hover:bg-secondary dark:hover:bg-white/10 rounded-full transition-colors">
+                        <span class="material-symbols-outlined text-2xl">close</span>
+                    </button>
+                </div>
+
+                <div class="p-6 space-y-5 overflow-y-auto overscroll-contain">
+                    <div class="space-y-2">
+                        <label for="expenseDescription" class="block text-xs font-bold uppercase tracking-wider text-text-muted-light dark:text-text-muted-dark">
+                            Descrição <span class="text-red-500">*</span>
+                        </label>
                         <input 
                             type="text" 
-                            id="expenseAmount" 
-                            placeholder="0,00" 
-                            oninput="formatCurrencyInput(this)"
-                            class="flex-1 px-4 py-2.5 border border-black/10 dark:border-white/10 rounded-lg bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-200 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all duration-200"
+                            id="expenseDescription" 
+                            placeholder="Ex: Supermercado, Uber..." 
+                            class="w-full px-4 py-3.5 bg-background-light dark:bg-background-dark border border-border dark:border-border-dark rounded-xl text-base text-text-light dark:text-text-dark placeholder-text-muted-light/50 dark:placeholder-text-muted-dark/50 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all shadow-sm"
                         />
-                        <div class="grid grid-cols-2 min-w-[120px] rounded-lg overflow-hidden bg-white dark:bg-slate-800 border border-black/5 dark:border-white/5 shadow-sm" aria-label="Selecionar tipo da transação">
-                            <button type="button" data-expense-type="entrada" class="flex items-center justify-center px-3 py-2.5 text-sm font-semibold text-green-700 dark:text-green-200 hover:shadow-md hover:-translate-y-[0.5px] focus:outline-none transition-all duration-150 hover:bg-green-50 dark:hover:bg-green-900/10" aria-label="Marcar como entrada">
-                                <svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-                                    <path d="M11 5h2v6h6v2h-6v6h-2v-6H5v-2h6z" />
-                                </svg>
-                            </button>
-                            <button type="button" data-expense-type="saida" class="flex items-center justify-center px-3 py-2.5 text-sm font-semibold text-red-700 dark:text-red-200 hover:shadow-md hover:-translate-y-[0.5px] focus:outline-none transition-all duration-150 hover:bg-red-50 dark:hover:bg-red-900/10" aria-label="Marcar como saída">
-                                <svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-                                    <rect x="5" y="11" width="14" height="2" rx="0.5" />
-                                </svg>
+                    </div>
+
+                    <div class="space-y-2">
+                        <label for="expenseAmount" class="block text-xs font-bold uppercase tracking-wider text-text-muted-light dark:text-text-muted-dark">
+                            Valor (R$) <span class="text-red-500">*</span>
+                        </label>
+                        <div class="flex items-stretch gap-3">
+                            <input 
+                                type="text" 
+                                id="expenseAmount" 
+                                placeholder="0,00" 
+                                oninput="formatCurrencyInput(this)"
+                                class="flex-1 px-4 py-3.5 bg-background-light dark:bg-background-dark border border-border dark:border-border-dark rounded-xl text-lg font-semibold text-text-light dark:text-text-dark placeholder-text-muted-light/50 dark:placeholder-text-muted-dark/50 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all shadow-sm"
+                            />
+                            
+                            <div class="grid grid-cols-2 p-1 bg-background-light dark:bg-background-dark border border-border dark:border-border-dark rounded-xl w-[120px] shrink-0">
+                                <button type="button" data-expense-type="entrada" class="flex items-center justify-center rounded-lg text-green-600 dark:text-green-400 hover:bg-green-50 dark:hover:bg-green-900/20 transition-all focus:outline-none focus:ring-2 focus:ring-green-500/50" aria-label="Entrada">
+                                    <svg class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor"><path d="M11 5h2v6h6v2h-6v6h-2v-6H5v-2h6z" /></svg>
+                                </button>
+                                <button type="button" data-expense-type="saida" class="flex items-center justify-center rounded-lg text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-all focus:outline-none focus:ring-2 focus:ring-red-500/50" aria-label="Saída">
+                                    <svg class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor"><rect x="5" y="11" width="14" height="2" rx="0.5" /></svg>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="space-y-2">
+                        <label class="block text-xs font-bold uppercase tracking-wider text-text-muted-light dark:text-text-muted-dark">Categoria</label>
+                        <div class="flex gap-2">
+                            <select 
+                                id="expenseCategory" 
+                                class="w-full px-4 py-3.5 bg-background-light dark:bg-background-dark border border-border dark:border-border-dark rounded-xl text-base text-text-light dark:text-text-dark focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all shadow-sm"
+                            >
+                                <option value="">Selecione (Opcional)</option>
+                                <option value="alimentacao">Alimentação</option>
+                                <option value="transporte">Transporte</option>
+                                <option value="saude">Saúde</option>
+                                <option value="educacao">Educação</option>
+                                <option value="entretenimento">Entretenimento</option>
+                                <option value="outros">Outros</option>
+                            </select>
+                            
+                            <button type="button" id="openAddCategoryBtn" onclick="showAddCategoryFromExpense()" class="shrink-0 w-14 flex items-center justify-center border border-primary/20 bg-primary/5 text-primary rounded-xl hover:bg-primary hover:text-white active:scale-95 transition-all duration-200">
+                                <span class="material-symbols-outlined">add</span>
                             </button>
                         </div>
                     </div>
-                </div>
 
-                <div class="space-y-2">
-                    <label class="text-sm font-medium text-slate-700 dark:text-slate-300">Categoria</label>
-                    <div class="flex gap-2">
-                        <select 
-                            id="expenseCategory" 
-                            class="w-full px-4 py-2.5 border border-black/10 dark:border-white/10 rounded-lg bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all duration-200"
-                            title="Categoria opcional"
-                        >
-                            <option value="">(Opcional) Selecione uma categoria</option>
-                            <option value="alimentacao">Alimentação</option>
-                            <option value="transporte">Transporte</option>
-                            <option value="saude">Saúde</option>
-                            <option value="educacao">Educação</option>
-                            <option value="entretenimento">Entretenimento</option>
-                            <option value="outros">Outros</option>
-                        </select>
-                        <button type="button" id="openAddCategoryBtn" onclick="showAddCategoryFromExpense()" class="shrink-0 px-3 py-2.5 rounded-lg border border-primary/50 text-primary font-semibold bg-primary/5 hover:bg-primary/10 focus:outline-none transition-all duration-200 hover:shadow-sm" title="Adicionar nova categoria">
-                            <span class="material-symbols-outlined text-base">add</span>
-                        </button>
+                    <div class="space-y-2">
+                        <label for="expenseDate" class="block text-xs font-bold uppercase tracking-wider text-text-muted-light dark:text-text-muted-dark">
+                            Data <span class="text-red-500">*</span>
+                        </label>
+                        <input 
+                            type="date" 
+                            id="expenseDate" 
+                            class="w-full px-4 py-3.5 bg-background-light dark:bg-background-dark border border-border dark:border-border-dark rounded-xl text-base text-text-light dark:text-text-dark focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all shadow-sm"
+                        />
+                    </div>
+
+                    <div id="errorMessage" class="hidden p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl text-red-700 dark:text-red-300 text-sm font-semibold animate-fade-in flex items-center gap-2">
+                        <span class="material-symbols-outlined text-lg">error</span>
+                        <span class="msg-text"></span>
+                    </div>
+                    <div id="successMessage" class="hidden p-4 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-xl text-green-700 dark:text-green-300 text-sm font-semibold animate-fade-in flex items-center gap-2">
+                        <span class="material-symbols-outlined text-lg">check_circle</span>
+                        <span class="msg-text"></span>
                     </div>
                 </div>
 
-                <div class="space-y-2">
-                    <label for="expenseDate" class="block text-sm font-medium text-slate-700 dark:text-slate-300">
-                        Data <span class="text-red-500">*</span>
-                    </label>
-                    <input 
-                        type="date" 
-                        id="expenseDate" 
-                        class="w-full px-4 py-2.5 border border-black/10 dark:border-white/10 rounded-lg bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all duration-200"
-                        title="Selecione a data da transação"
-                    />
-                </div>
-
-                <div id="errorMessage" class="hidden p-3 bg-red-100 dark:bg-red-900/30 border border-red-300 dark:border-red-700 rounded-lg text-red-700 dark:text-red-300 text-sm animate-in slide-in-from-top-2 duration-300"></div>
-
-                <div id="successMessage" class="hidden p-3 bg-green-100 dark:bg-green-900/30 border border-green-300 dark:border-green-700 rounded-lg text-green-700 dark:text-green-300 text-sm animate-in slide-in-from-top-2 duration-300"></div>
-            </div>
-
-            <div class="sticky bottom-0 bg-white dark:bg-slate-900 border-t border-black/10 dark:border-white/10 px-6 py-4 flex gap-3 justify-end">
-                <!-- Botão negativo (Cancelar) -->
-                <button onclick="closeExpenseModal(event)" class="btn-negative px-4 py-2.5 rounded-lg border border-black/10 dark:border-white/10 text-slate-800 dark:text-slate-200 font-medium hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors duration-200">
-                    Cancelar
-                </button>
-                <!-- Botão positivo (Adicionar/Salvar) -->
-                <button
-                  class="btn-positive bg-primary text-white px-4 py-2.5 rounded-lg font-medium shadow-sm hover:shadow-md"
-                  data-action="submit-expense"
-                >
-                  Adicionar
-                </button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Modal de Categoria -->
-    <div id="addCategoryModal" class="fixed inset-0 bg-black/50 backdrop-blur-sm hidden items-center justify-center z-[60] animate-in fade-in duration-300" onclick="closeAddCategoryModal()">
-        <div class="bg-white dark:bg-slate-900 modal-rounded shadow-2xl w-full max-w-md mx-4 border-2 border-primary/20 transform transition-all duration-300 animate-in zoom-in-95 slide-in-from-bottom-4" onclick="event.stopPropagation();">
-            <div class="sticky top-0 bg-white dark:bg-slate-900 border-b border-black/10 dark:border-white/10 px-6 py-4 flex items-center justify-between">
-                <h2 class="text-lg font-bold text-slate-800 dark:text-slate-200">Nova Categoria</h2>
-                <button onclick="closeAddCategoryModal()" class="p-1.5 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors duration-200">
-                    <span class="material-symbols-outlined">close</span>
-                </button>
-            </div>
-
-            <div class="px-6 py-4 space-y-4 max-h-[calc(90vh-180px)] overflow-y-auto">
-                <div class="space-y-2">
-                    <label for="newCategoryName" class="block text-sm font-medium text-slate-700 dark:text-slate-300">
-                        Nome <span class="text-red-500">*</span>
-                    </label>
-                    <input 
-                        type="text" 
-                        id="newCategoryName" 
-                        placeholder="Ex: Viagens, Pets, Investimentos..." 
-                        class="w-full px-4 py-2.5 border border-black/10 dark:border-white/10 rounded-lg bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-200 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all duration-200"
-                    />
-                </div>
-
-                <div class="space-y-2">
-                    <label class="text-sm font-medium text-slate-700 dark:text-slate-300">Ícone</label>
-                    <div class="grid grid-cols-4 gap-2" id="categoryIconGrid">
-                        <!-- Ícones SVG em tom primário -->
-                        <button type="button" data-icon="bag" class="category-icon-btn flex items-center justify-center p-3 border border-black/10 dark:border-white/10 rounded-lg hover:border-primary hover:bg-primary/5 transition-all duration-200">
-                            <svg class="w-5 h-5 text-primary" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 7V6a4 4 0 0 1 8 0v1" /><path d="M5 7h14l-1 12a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2Z" /></svg>
-                        </button>
-                        <button type="button" data-icon="car" class="category-icon-btn flex items-center justify-center p-3 border border-black/10 dark:border-white/10 rounded-lg hover:border-primary hover:bg-primary/5 transition-all duration-200">
-                            <svg class="w-5 h-5 text-primary" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 13h18l-1.8-6a2 2 0 0 0-1.9-1.4H6.7a2 2 0 0 0-1.9 1.4Z" /><circle cx="7" cy="17" r="1.4" /><circle cx="17" cy="17" r="1.4" /><path d="M5 13v3m14-3v3" /></svg>
-                        </button>
-                        <button type="button" data-icon="home" class="category-icon-btn flex items-center justify-center p-3 border border-black/10 dark:border-white/10 rounded-lg hover:border-primary hover:bg-primary/5 transition-all duration-200">
-                            <svg class="w-5 h-5 text-primary" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11.5 12 4l9 7.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1Z" /></svg>
-                        </button>
-                        <button type="button" data-icon="heart" class="category-icon-btn flex items-center justify-center p-3 border border-black/10 dark:border-white/10 rounded-lg hover:border-primary hover:bg-primary/5 transition-all duration-200">
-                            <svg class="w-5 h-5 text-primary" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1-1.1a5.5 5.5 0 0 0-7.8 7.8l8.8 8.8 8.8-8.8a5.5 5.5 0 0 0 0-7.8Z" /></svg>
-                        </button>
-                        <button type="button" data-icon="school" class="category-icon-btn flex items-center justify-center p-3 border border-black/10 dark:border-white/10 rounded-lg hover:border-primary hover:bg-primary/5 transition-all duration-200">
-                            <svg class="w-5 h-5 text-primary" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m22 10-10-6-10 6 10 6 10-6Z" /><path d="M6 12v5c3 3 9 3 12 0v-5" /></svg>
-                        </button>
-                        <button type="button" data-icon="movie" class="category-icon-btn flex items-center justify-center p-3 border border-black/10 dark:border-white/10 rounded-lg hover:border-primary hover:bg-primary/5 transition-all duration-200">
-                            <svg class="w-5 h-5 text-primary" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2" /><path d="M7 5v14m10-14v14" /></svg>
-                        </button>
-                        <button type="button" data-icon="plane" class="category-icon-btn flex items-center justify-center p-3 border border-black/10 dark:border-white/10 rounded-lg hover:border-primary hover:bg-primary/5 transition-all duration-200">
-                            <svg class="w-5 h-5 text-primary" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2 16l20-7-8 12-2-6-4 3-1-3 4-3-7-2Z" /></svg>
-                        </button>
-                        <button type="button" data-icon="pet" class="category-icon-btn flex items-center justify-center p-3 border border-black/10 dark:border-white/10 rounded-lg hover:border-primary hover:bg-primary/5 transition-all duration-200">
-                            <svg class="w-5 h-5 text-primary" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 8a2.5 2.5 0 1 1 5 0 2.5 2.5 0 1 1-5 0Zm9 0a2.5 2.5 0 1 1 5 0 2.5 2.5 0 1 1-5 0Z" /><path d="M4 14a6 6 0 0 1 16 0v2a4 4 0 0 1-4 4H8a4 4 0 0 1-4-4Z" /></svg>
-                        </button>
-                    </div>
-                </div>
-
-                <div id="categoryErrorMessage" class="hidden p-3 bg-red-100 dark:bg-red-900/30 border border-red-300 dark:border-red-700 rounded-lg text-red-700 dark:text-red-300 text-sm animate-in slide-in-from-top-2 duration-300"></div>
-                <div id="categorySuccessMessage" class="hidden p-3 bg-green-100 dark:bg-green-900/30 border border-green-300 dark:border-green-700 rounded-lg text-green-700 dark:text-green-300 text-sm animate-in slide-in-from-top-2 duration-300"></div>
-            </div>
-
-            <div class="sticky bottom-0 bg-white dark:bg-slate-900 border-t border-black/10 dark:border-white/10 px-6 py-4 flex gap-3 justify-end">
-                <button onclick="closeAddCategoryAndReturnToExpense()" class="px-4 py-2.5 rounded-lg border border-black/10 dark:border-white/10 text-slate-800 dark:text-slate-200 font-medium hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors duration-200">
-                    Cancelar
-                </button>
-                <button onclick="saveNewCategory()" class="px-4 py-2.5 rounded-lg bg-primary text-white font-medium hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all duration-200 shadow-sm hover:shadow-md">
-                    Adicionar
-                </button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Modal de Gasto Fixo -->
-    <!-- Modal de Gasto Fixo -->
-    <div id="modalGastoFixoGlobal" class="fixed inset-0 bg-black/50 backdrop-blur-sm hidden items-center justify-center z-50 animate-in fade-in duration-300" onclick="closeGastoFixoModal(event)">
-        <div class="bg-white dark:bg-slate-900 border-2 border-primary/20 rounded-xl transform transition-all duration-300 animate-in zoom-in-95 slide-in-from-bottom-4" onclick="event.stopPropagation();">
-            <div class="sticky top-0 bg-white dark:bg-slate-900 border-b border-black/10 dark:border-white/10 px-6 py-4 flex items-center justify-between">
-                <h2 id="modalGastoFixoTitle" class="text-lg font-bold text-slate-800 dark:text-slate-200">Adicionar Gasto Fixo</h2>
-                <button onclick="closeGastoFixoModal(event)" class="p-1.5 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors duration-200">
-                    <span class="material-symbols-outlined">close</span>
-                </button>
-            </div>
-
-            <div class="px-6 py-4 space-y-4 max-h-[calc(90vh-180px)] overflow-y-auto">
-                <div class="space-y-2">
-                    <label for="gastoFixoDescription" class="block text-sm font-medium text-slate-700 dark:text-slate-300">
-                        Descrição <span class="text-red-500">*</span>
-                    </label>
-                    <input 
-                        type="text" 
-                        id="gastoFixoDescription" 
-                        placeholder="Ex: Aluguel, Condomínio, Internet..." 
-                        class="w-full px-4 py-2.5 border border-black/10 dark:border-white/10 rounded-lg bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-200 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all duration-200"
-                    />
-                </div>
-
-                <div class="space-y-2">
-                    <label for="gastoFixoAmount" class="block text-sm font-medium text-slate-700 dark:text-slate-300">
-                        Valor (R$) <span class="text-red-500">*</span>
-                    </label>
-                    <input 
-                        type="text" 
-                        id="gastoFixoAmount" 
-                        placeholder="0,00" 
-                        oninput="formatCurrencyInput(this)"
-                        class="w-full px-4 py-2.5 border border-black/10 dark:border-white/10 rounded-lg bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-200 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all duration-200"
-                    />
-                </div>
-
-                <div class="space-y-2">
-                    <label class="text-sm font-medium text-slate-700 dark:text-slate-300">Categoria</label>
-                    <div class="flex gap-2">
-                        <select 
-                            id="gastoFixoCategory" 
-                            class="w-full px-4 py-2.5 border border-black/10 dark:border-white/10 rounded-lg bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all duration-200"
-                            title="Categoria opcional"
-                        >
-                            <option value="">(Opcional) Selecione uma categoria</option>
-                            <option value="alimentacao">Alimentação</option>
-                            <option value="transporte">Transporte</option>
-                            <option value="saude">Saúde</option>
-                            <option value="educacao">Educação</option>
-                            <option value="entretenimento">Entretenimento</option>
-                            <option value="outros">Outros</option>
-                        </select>
-                        <button type="button" id="openAddCategoryBtnGastoFixo" onclick="showAddCategoryFromGastoFixo()" class="shrink-0 px-3 py-2.5 rounded-lg border border-primary/50 text-primary font-semibold bg-primary/5 hover:bg-primary/10 focus:outline-none transition-all duration-200 hover:shadow-sm" title="Adicionar nova categoria">
-                            <span class="material-symbols-outlined text-base">add</span>
-                        </button>
-                    </div>
-                </div>
-
-                <div class="space-y-2">
-                    <label for="gastoFixoDueDay" class="block text-sm font-medium text-slate-700 dark:text-slate-300">
-                        Dia do Vencimento <span class="text-red-500">*</span>
-                    </label>
-                    <select 
-                        id="gastoFixoDueDay" 
-                        class="w-full px-4 py-2.5 border border-black/10 dark:border-white/10 rounded-lg bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all duration-200"
-                        title="Selecione o dia do vencimento"
+                <div class="flex items-center justify-end gap-3 px-6 py-4 border-t border-border dark:border-border-dark bg-background-light/50 dark:bg-background-dark/50 shrink-0 pb-8 sm:pb-4">
+                    <button onclick="closeExpenseModal(event)" class="px-5 py-3 rounded-xl border border-border dark:border-border-dark text-text-light dark:text-text-dark font-bold hover:bg-secondary dark:hover:bg-white/5 active:scale-95 transition-all">
+                        Cancelar
+                    </button>
+                    <button
+                      class="px-8 py-3 rounded-xl bg-primary text-white font-bold shadow-lg shadow-primary/25 hover:bg-primary/90 hover:shadow-primary/40 active:scale-95 transition-all duration-200"
+                      data-action="submit-expense"
                     >
-                        <option value="">Selecione o dia</option>
-                        <option value="1">Dia 1</option>
-                        <option value="5">Dia 5</option>
-                        <option value="10">Dia 10</option>
-                        <option value="15">Dia 15</option>
-                        <option value="20">Dia 20</option>
-                        <option value="25">Dia 25</option>
-                        <option value="30">Dia 30</option>
-                    </select>
+                      Salvar
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="addCategoryModal" class="fixed inset-0 z-[60] hidden" onclick="closeAddCategoryModal()">
+        <div class="absolute inset-0 bg-black/60 backdrop-blur-[2px] transition-opacity duration-300 animate-fade-in"></div>
+        
+        <div class="absolute inset-0 flex items-end justify-center sm:items-center sm:p-4 pointer-events-none">
+            <div class="pointer-events-auto w-full bg-surface-light dark:bg-surface-dark rounded-t-3xl sm:rounded-2xl shadow-2xl border-t border-white/20 sm:border dark:border-white/10 max-w-md max-h-[90vh] flex flex-col transform transition-transform animate-modal-mobile sm:animate-modal-desktop overflow-hidden" onclick="event.stopPropagation();">
+                
+                <div class="w-full flex justify-center pt-3 pb-1 sm:hidden cursor-grab">
+                    <div class="w-12 h-1.5 rounded-full bg-slate-300 dark:bg-slate-600"></div>
                 </div>
 
-                <div id="gastoFixoErrorMessage" class="hidden p-3 bg-red-100 dark:bg-red-900/30 border border-red-300 dark:border-red-700 rounded-lg text-red-700 dark:text-red-300 text-sm animate-in slide-in-from-top-2 duration-300"></div>
-                <div id="gastoFixoSuccessMessage" class="hidden p-3 bg-green-100 dark:bg-green-900/30 border border-green-300 dark:border-green-700 rounded-lg text-green-700 dark:text-green-300 text-sm animate-in slide-in-from-top-2 duration-300"></div>
-            </div>
+                <div class="flex items-center justify-between px-6 py-4 border-b border-border dark:border-border-dark shrink-0">
+                    <h2 class="text-xl font-bold text-text-light dark:text-text-dark tracking-tight">Nova Categoria</h2>
+                    <button onclick="closeAddCategoryModal()" class="p-2 -mr-2 text-text-muted-light hover:text-text-light dark:text-text-muted-dark dark:hover:text-text-dark hover:bg-secondary dark:hover:bg-white/10 rounded-full transition-colors">
+                        <span class="material-symbols-outlined text-2xl">close</span>
+                    </button>
+                </div>
 
-            <div class="sticky bottom-0 bg-white dark:bg-slate-900 border-t border-black/10 dark:border-white/10 px-6 py-4 flex gap-3 justify-end">
-                <button onclick="closeGastoFixoModal(event)" class="px-4 py-2.5 rounded-lg border border-black/10 dark:border-white/10 text-slate-800 dark:text-slate-200 font-medium hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors duration-200">
-                    Cancelar
-                </button>
-                <button onclick="submitGastoFixo(event)" data-action="submit-gasto-fixo" class="px-4 py-2.5 rounded-lg bg-primary text-white font-medium hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all duration-200 shadow-sm hover:shadow-md">
-                    Adicionar
-                </button>
+                <div class="p-6 space-y-5 overflow-y-auto">
+                    <div class="space-y-2">
+                        <label for="newCategoryName" class="block text-xs font-bold uppercase tracking-wider text-text-muted-light dark:text-text-muted-dark">
+                            Nome <span class="text-red-500">*</span>
+                        </label>
+                        <input 
+                            type="text" 
+                            id="newCategoryName" 
+                            placeholder="Ex: Viagens, Pets..." 
+                            class="w-full px-4 py-3.5 bg-background-light dark:bg-background-dark border border-border dark:border-border-dark rounded-xl text-base text-text-light dark:text-text-dark focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all shadow-sm"
+                        />
+                    </div>
+
+                    <div class="space-y-2">
+                        <label class="block text-xs font-bold uppercase tracking-wider text-text-muted-light dark:text-text-muted-dark">Ícone</label>
+                        <div class="grid grid-cols-4 gap-3" id="categoryIconGrid">
+                            <button type="button" data-icon="bag" class="category-icon-btn aspect-square flex items-center justify-center rounded-xl border border-border dark:border-border-dark text-text-muted-light dark:text-text-muted-dark hover:border-primary hover:text-primary hover:bg-primary/5 focus:ring-2 focus:ring-primary/50 transition-all duration-200">
+                                <span class="material-symbols-outlined text-2xl">shopping_bag</span>
+                            </button>
+                            <button type="button" data-icon="car" class="category-icon-btn aspect-square flex items-center justify-center rounded-xl border border-border dark:border-border-dark text-text-muted-light dark:text-text-muted-dark hover:border-primary hover:text-primary hover:bg-primary/5 focus:ring-2 focus:ring-primary/50 transition-all duration-200">
+                                <span class="material-symbols-outlined text-2xl">directions_car</span>
+                            </button>
+                            <button type="button" data-icon="home" class="category-icon-btn aspect-square flex items-center justify-center rounded-xl border border-border dark:border-border-dark text-text-muted-light dark:text-text-muted-dark hover:border-primary hover:text-primary hover:bg-primary/5 focus:ring-2 focus:ring-primary/50 transition-all duration-200">
+                                <span class="material-symbols-outlined text-2xl">home</span>
+                            </button>
+                            <button type="button" data-icon="heart" class="category-icon-btn aspect-square flex items-center justify-center rounded-xl border border-border dark:border-border-dark text-text-muted-light dark:text-text-muted-dark hover:border-primary hover:text-primary hover:bg-primary/5 focus:ring-2 focus:ring-primary/50 transition-all duration-200">
+                                <span class="material-symbols-outlined text-2xl">favorite</span>
+                            </button>
+                            <button type="button" data-icon="school" class="category-icon-btn aspect-square flex items-center justify-center rounded-xl border border-border dark:border-border-dark text-text-muted-light dark:text-text-muted-dark hover:border-primary hover:text-primary hover:bg-primary/5 focus:ring-2 focus:ring-primary/50 transition-all duration-200">
+                                <span class="material-symbols-outlined text-2xl">school</span>
+                            </button>
+                            <button type="button" data-icon="movie" class="category-icon-btn aspect-square flex items-center justify-center rounded-xl border border-border dark:border-border-dark text-text-muted-light dark:text-text-muted-dark hover:border-primary hover:text-primary hover:bg-primary/5 focus:ring-2 focus:ring-primary/50 transition-all duration-200">
+                                <span class="material-symbols-outlined text-2xl">movie</span>
+                            </button>
+                            <button type="button" data-icon="plane" class="category-icon-btn aspect-square flex items-center justify-center rounded-xl border border-border dark:border-border-dark text-text-muted-light dark:text-text-muted-dark hover:border-primary hover:text-primary hover:bg-primary/5 focus:ring-2 focus:ring-primary/50 transition-all duration-200">
+                                <span class="material-symbols-outlined text-2xl">flight</span>
+                            </button>
+                            <button type="button" data-icon="pet" class="category-icon-btn aspect-square flex items-center justify-center rounded-xl border border-border dark:border-border-dark text-text-muted-light dark:text-text-muted-dark hover:border-primary hover:text-primary hover:bg-primary/5 focus:ring-2 focus:ring-primary/50 transition-all duration-200">
+                                <span class="material-symbols-outlined text-2xl">pets</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div id="categoryErrorMessage" class="hidden p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl text-red-700 dark:text-red-300 text-sm font-semibold animate-fade-in flex items-center gap-2"></div>
+                    <div id="categorySuccessMessage" class="hidden p-4 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-xl text-green-700 dark:text-green-300 text-sm font-semibold animate-fade-in flex items-center gap-2"></div>
+                </div>
+
+                <div class="flex items-center justify-end gap-3 px-6 py-4 border-t border-border dark:border-border-dark bg-background-light/50 dark:bg-background-dark/50 shrink-0 pb-8 sm:pb-4">
+                    <button onclick="closeAddCategoryAndReturnToExpense()" class="px-5 py-3 rounded-xl border border-border dark:border-border-dark text-text-light dark:text-text-dark font-bold hover:bg-secondary dark:hover:bg-white/5 active:scale-95 transition-all">
+                        Cancelar
+                    </button>
+                    <button onclick="saveNewCategory()" class="px-8 py-3 rounded-xl bg-primary text-white font-bold shadow-lg shadow-primary/25 hover:bg-primary/90 hover:shadow-primary/40 active:scale-95 transition-all duration-200">
+                        Adicionar
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="modalGastoFixoGlobal" class="fixed inset-0 z-modal hidden" onclick="closeGastoFixoModal(event)">
+        <div class="absolute inset-0 bg-black/60 backdrop-blur-[2px] transition-opacity duration-300 animate-fade-in"></div>
+        
+        <div class="absolute inset-0 flex items-end justify-center sm:items-center sm:p-4 pointer-events-none">
+            <div class="pointer-events-auto w-full bg-surface-light dark:bg-surface-dark rounded-t-3xl sm:rounded-2xl shadow-2xl border-t border-white/20 sm:border dark:border-white/10 max-w-lg max-h-[90vh] flex flex-col transform transition-transform animate-modal-mobile sm:animate-modal-desktop overflow-hidden" onclick="event.stopPropagation();">
+                
+                <div class="w-full flex justify-center pt-3 pb-1 sm:hidden cursor-grab">
+                    <div class="w-12 h-1.5 rounded-full bg-slate-300 dark:bg-slate-600"></div>
+                </div>
+
+                <div class="flex items-center justify-between px-6 py-4 border-b border-border dark:border-border-dark shrink-0">
+                    <h2 id="modalGastoFixoTitle" class="text-xl font-bold text-text-light dark:text-text-dark tracking-tight">Adicionar Gasto Fixo</h2>
+                    <button onclick="closeGastoFixoModal(event)" class="p-2 -mr-2 text-text-muted-light hover:text-text-light dark:text-text-muted-dark dark:hover:text-text-dark hover:bg-secondary dark:hover:bg-white/10 rounded-full transition-colors">
+                        <span class="material-symbols-outlined text-2xl">close</span>
+                    </button>
+                </div>
+
+                <div class="p-6 space-y-5 overflow-y-auto overscroll-contain">
+                    <div class="space-y-2">
+                        <label for="gastoFixoDescription" class="block text-xs font-bold uppercase tracking-wider text-text-muted-light dark:text-text-muted-dark">
+                            Descrição <span class="text-red-500">*</span>
+                        </label>
+                        <input 
+                            type="text" 
+                            id="gastoFixoDescription" 
+                            placeholder="Ex: Aluguel, Condomínio..." 
+                            class="w-full px-4 py-3.5 bg-background-light dark:bg-background-dark border border-border dark:border-border-dark rounded-xl text-base text-text-light dark:text-text-dark placeholder-text-muted-light/50 dark:placeholder-text-muted-dark/50 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all shadow-sm"
+                        />
+                    </div>
+
+                    <div class="space-y-2">
+                        <label for="gastoFixoAmount" class="block text-xs font-bold uppercase tracking-wider text-text-muted-light dark:text-text-muted-dark">
+                            Valor (R$) <span class="text-red-500">*</span>
+                        </label>
+                        <input 
+                            type="text" 
+                            id="gastoFixoAmount" 
+                            placeholder="0,00" 
+                            oninput="formatCurrencyInput(this)"
+                            class="w-full px-4 py-3.5 bg-background-light dark:bg-background-dark border border-border dark:border-border-dark rounded-xl text-lg font-semibold text-text-light dark:text-text-dark placeholder-text-muted-light/50 dark:placeholder-text-muted-dark/50 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all shadow-sm"
+                        />
+                    </div>
+
+                    <div class="space-y-2">
+                        <label class="block text-xs font-bold uppercase tracking-wider text-text-muted-light dark:text-text-muted-dark">Categoria</label>
+                        <div class="flex gap-2">
+                            <select 
+                                id="gastoFixoCategory" 
+                                class="w-full px-4 py-3.5 bg-background-light dark:bg-background-dark border border-border dark:border-border-dark rounded-xl text-base text-text-light dark:text-text-dark focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all shadow-sm"
+                            >
+                                <option value="">Selecione (Opcional)</option>
+                                <option value="alimentacao">Alimentação</option>
+                                <option value="transporte">Transporte</option>
+                                <option value="saude">Saúde</option>
+                                <option value="educacao">Educação</option>
+                                <option value="entretenimento">Entretenimento</option>
+                                <option value="outros">Outros</option>
+                            </select>
+                            <button type="button" id="openAddCategoryBtnGastoFixo" onclick="showAddCategoryFromGastoFixo()" class="shrink-0 w-14 flex items-center justify-center border border-primary/20 bg-primary/5 text-primary rounded-xl hover:bg-primary hover:text-white active:scale-95 transition-all duration-200">
+                                <span class="material-symbols-outlined">add</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="space-y-2">
+                        <label for="gastoFixoDueDay" class="block text-xs font-bold uppercase tracking-wider text-text-muted-light dark:text-text-muted-dark">
+                            Dia do Vencimento <span class="text-red-500">*</span>
+                        </label>
+                        <div class="relative">
+                            <select 
+                                id="gastoFixoDueDay" 
+                                class="w-full pl-4 pr-10 py-3.5 bg-background-light dark:bg-background-dark border border-border dark:border-border-dark rounded-xl text-base text-text-light dark:text-text-dark focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all appearance-none shadow-sm"
+                            >
+                                <option value="">Selecione o dia</option>
+                                <option value="1">Dia 1</option>
+                                <option value="5">Dia 5</option>
+                                <option value="10">Dia 10</option>
+                                <option value="15">Dia 15</option>
+                                <option value="20">Dia 20</option>
+                                <option value="25">Dia 25</option>
+                                <option value="30">Dia 30</option>
+                            </select>
+                            <div class="absolute inset-y-0 right-3 flex items-center pointer-events-none text-text-muted-light dark:text-text-muted-dark">
+                                <span class="material-symbols-outlined">calendar_today</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="gastoFixoErrorMessage" class="hidden p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl text-red-700 dark:text-red-300 text-sm font-semibold animate-fade-in flex items-center gap-2"></div>
+                    <div id="gastoFixoSuccessMessage" class="hidden p-4 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-xl text-green-700 dark:text-green-300 text-sm font-semibold animate-fade-in flex items-center gap-2"></div>
+                </div>
+
+                <div class="flex items-center justify-end gap-3 px-6 py-4 border-t border-border dark:border-border-dark bg-background-light/50 dark:bg-background-dark/50 shrink-0 pb-8 sm:pb-4">
+                    <button onclick="closeGastoFixoModal(event)" class="px-5 py-3 rounded-xl border border-border dark:border-border-dark text-text-light dark:text-text-dark font-bold hover:bg-secondary dark:hover:bg-white/5 active:scale-95 transition-all">
+                        Cancelar
+                    </button>
+                    <button onclick="submitGastoFixo(event)" data-action="submit-gasto-fixo" class="px-8 py-3 rounded-xl bg-primary text-white font-bold shadow-lg shadow-primary/25 hover:bg-primary/90 hover:shadow-primary/40 active:scale-95 transition-all duration-200">
+                        Salvar
+                    </button>
+                </div>
             </div>
         </div>
     </div>
