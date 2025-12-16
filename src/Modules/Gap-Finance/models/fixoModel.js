@@ -1,6 +1,6 @@
 const db = require('../../../config/db');
 
-const ALLOWED_FIELDS = ['descricao', 'valor', 'dia_vencimento', 'categoria_id', 'user_id'];
+const ALLOWED_FIELDS = ['nome', 'valor', 'dia_vencimento', 'categoria_id', 'user_id'];
 
 function filterAllowedFields(data) {
   const filtered = {};
@@ -16,8 +16,8 @@ module.exports = {
   create(data, callback) {
     const filteredData = filterAllowedFields(data);
 
-    if (!filteredData.descricao || !filteredData.valor || !filteredData.user_id) {
-      return callback(new Error('Descricao, valor e user_id são obrigatórios'));
+    if (!filteredData.nome || !filteredData.valor || !filteredData.user_id) {
+      return callback(new Error('Nome, valor e user_id são obrigatórios'));
     }
 
     const fields = Object.keys(filteredData);

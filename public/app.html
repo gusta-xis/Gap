@@ -172,7 +172,7 @@
     </div>
     
     <div id="addExpenseModal" class="fixed inset-0 bg-black/50 backdrop-blur-sm hidden flex items-center justify-center z-50 animate-in fade-in duration-300" onclick="closeExpenseModal(event)">
-        <div class="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl w-full max-w-md mx-4 transform transition-all duration-300 animate-in zoom-in-95 slide-in-from-bottom-4" onclick="event.stopPropagation();">
+        <div class="bg-white dark:bg-slate-900 border-2 border-primary/20 rounded-xl transform transition-all duration-300 animate-in zoom-in-95 slide-in-from-bottom-4" onclick="event.stopPropagation();">
             <div class="sticky top-0 bg-white dark:bg-slate-900 border-b border-black/10 dark:border-white/10 px-6 py-4 flex items-center justify-between">
                 <h2 class="text-lg font-bold text-slate-800 dark:text-slate-200">Adicionar Despesa</h2>
                 <button onclick="closeExpenseModal(event)" class="p-1.5 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors duration-200">
@@ -260,11 +260,16 @@
             </div>
 
             <div class="sticky bottom-0 bg-white dark:bg-slate-900 border-t border-black/10 dark:border-white/10 px-6 py-4 flex gap-3 justify-end">
-                <button onclick="closeExpenseModal(event)" class="px-4 py-2.5 rounded-lg border border-black/10 dark:border-white/10 text-slate-800 dark:text-slate-200 font-medium hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors duration-200">
+                <!-- Botão negativo (Cancelar) -->
+                <button onclick="closeExpenseModal(event)" class="btn-negative px-4 py-2.5 rounded-lg border border-black/10 dark:border-white/10 text-slate-800 dark:text-slate-200 font-medium hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors duration-200">
                     Cancelar
                 </button>
-                <button onclick="submitExpense(event)" data-action="submit-expense" class="px-4 py-2.5 rounded-lg bg-primary text-white font-medium hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all duration-200 shadow-sm hover:shadow-md">
-                    Adicionar
+                <!-- Botão positivo (Adicionar/Salvar) -->
+                <button
+                  class="btn-positive bg-primary text-white px-4 py-2.5 rounded-lg font-medium shadow-sm hover:shadow-md"
+                  data-action="submit-expense"
+                >
+                  Adicionar
                 </button>
             </div>
         </div>
@@ -272,7 +277,7 @@
 
     <!-- Modal de Categoria -->
     <div id="addCategoryModal" class="fixed inset-0 bg-black/50 backdrop-blur-sm hidden items-center justify-center z-[60] animate-in fade-in duration-300" onclick="closeAddCategoryModal()">
-        <div class="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl w-full max-w-md mx-4 transform transition-all duration-300 animate-in zoom-in-95 slide-in-from-bottom-4" onclick="event.stopPropagation();">
+        <div class="bg-white dark:bg-slate-900 modal-rounded shadow-2xl w-full max-w-md mx-4 border-2 border-primary/20 transform transition-all duration-300 animate-in zoom-in-95 slide-in-from-bottom-4" onclick="event.stopPropagation();">
             <div class="sticky top-0 bg-white dark:bg-slate-900 border-b border-black/10 dark:border-white/10 px-6 py-4 flex items-center justify-between">
                 <h2 class="text-lg font-bold text-slate-800 dark:text-slate-200">Nova Categoria</h2>
                 <button onclick="closeAddCategoryModal()" class="p-1.5 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors duration-200">
@@ -342,7 +347,7 @@
     <!-- Modal de Gasto Fixo -->
     <!-- Modal de Gasto Fixo -->
     <div id="modalGastoFixoGlobal" class="fixed inset-0 bg-black/50 backdrop-blur-sm hidden items-center justify-center z-50 animate-in fade-in duration-300" onclick="closeGastoFixoModal(event)">
-        <div class="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl w-full max-w-md mx-4 transform transition-all duration-300 animate-in zoom-in-95 slide-in-from-bottom-4" onclick="event.stopPropagation();">
+        <div class="bg-white dark:bg-slate-900 border-2 border-primary/20 rounded-xl transform transition-all duration-300 animate-in zoom-in-95 slide-in-from-bottom-4" onclick="event.stopPropagation();">
             <div class="sticky top-0 bg-white dark:bg-slate-900 border-b border-black/10 dark:border-white/10 px-6 py-4 flex items-center justify-between">
                 <h2 id="modalGastoFixoTitle" class="text-lg font-bold text-slate-800 dark:text-slate-200">Adicionar Gasto Fixo</h2>
                 <button onclick="closeGastoFixoModal(event)" class="p-1.5 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors duration-200">

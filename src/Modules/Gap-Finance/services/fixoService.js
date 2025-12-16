@@ -33,7 +33,7 @@ module.exports = {
     fixoModel.remove(id, callback);
   },
 
-  deleteByIdAndUser: (id, userId, callback) => {
+  removeByIdAndUser: (id, userId, callback) => {
     fixoModel.removeByIdAndUser(id, userId, callback);
   },
 };

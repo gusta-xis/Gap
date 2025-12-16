@@ -467,28 +467,34 @@ function createTransactionRow(transaction) {
         ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300'
         : 'bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300';
     
-    const actionButtons = transaction.canEdit || transaction.canDelete ? `
-        <div class="flex gap-2">
-            ${transaction.canEdit ? `
-                <button class="text-slate-500 hover:text-primary transition-colors" aria-label="Editar" onclick="editTransaction(${transaction.id}, '${transaction.origem}')">
-                    <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                        <path d="M12 20h9" />
-                        <path d="M16.5 3.5a2.121 2.121 0 1 1 3 3L7 19l-4 1 1-4Z" />
-                    </svg>
-                </button>
-            ` : ''}
-            ${transaction.canDelete ? `
-                <button class="text-slate-500 hover:text-red-500 transition-colors" aria-label="Excluir" onclick="deleteTransaction(${transaction.id}, '${transaction.origem}')">
-                    <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                        <polyline points="3 6 5 6 21 6" />
-                        <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6" />
-                        <path d="M10 11v6" />
-                        <path d="M14 11v6" />
-                        <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2" />
-                    </svg>
-                </button>
-            ` : ''}
-        </div>
+    let editHandler = '';
+    let deleteHandler = '';
+
+    if (transaction.origem === 'fixo') {
+      editHandler = `openGastoFixoModal(${transaction.id})`;
+      deleteHandler = `deleteGasto(${transaction.id}, '${transaction.nome}')`;
+    } else if (transaction.origem === 'variavel') {
+      editHandler = `openExpenseModalForEdit(${JSON.stringify(transaction)})`;
+      deleteHandler = `deleteExpense(${transaction.id}, '${transaction.nome}')`;
+    } // salários normalmente não são editáveis
+
+    // Renderiza botões se for fixo ou variável
+    const actions = (transaction.origem === 'fixo' || transaction.origem === 'variavel') ? `
+      <button onclick="${editHandler}" class="text-slate-500 hover:text-primary transition-colors" aria-label="Editar">
+          <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M12 20h9" />
+              <path d="M16.5 3.5a2.121 2.121 0 1 1 3 3L7 19l-4 1 1-4Z" />
+          </svg>
+      </button>
+      <button onclick="${deleteHandler}" class="text-slate-500 hover:text-red-500 transition-colors" aria-label="Excluir">
+          <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <polyline points="3 6 5 6 21 6" />
+              <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6" />
+              <path d="M10 11v6" />
+              <path d="M14 11v6" />
+              <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2" />
+          </svg>
+      </button>
     ` : '';
     
     div.className = `transaction-row grid grid-cols-[64px_2fr_1.5fr_2fr_1.2fr_1fr_72px] items-center px-6 py-4 ${borderClass}`;
@@ -515,7 +521,7 @@ function createTransactionRow(transaction) {
             <div class="${valorClass} font-bold whitespace-nowrap">${valorFormatado}</div>
         </div>
         <div class="flex items-center justify-end gap-3">
-            ${actionButtons}
+            ${actions}
         </div>
     `;
     
@@ -531,7 +537,7 @@ function getTransactionIcon(transaction) {
         despesa: `<svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9" /><line x1="8" y1="12" x2="16" y2="12" /></svg>`,
         mercado: `<svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="21" r="1" /><circle cx="20" cy="21" r="1" /><path d="M1 1h4l2.68 13.39a1 1 0 0 0 1 .81h9.72a1 1 0 0 0 .98-.8l1.2-6H6" /></svg>`,
         transporte: `<svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="11" width="18" height="7" rx="2" /><path d="M3 11l2-4h14l2 4" /><circle cx="7.5" cy="18.5" r="1" /><circle cx="16.5" cy="18.5" r="1" /></svg>`,
-        moradia: `<svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 9.5 12 4l9 5.5V20a1 1 0 0 1-1 1h-5v-5H9v5H4a1 1 0 0 1-1-1Z" /></svg>`,
+        moradia: `<svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 9.5 12 4l9 5.5V20a1 1 0 0 1-1 1h-5v-5H9v5H4a1 1 0 0 1-1-1V6" /></svg>`,
         saude: `<svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78L12 21.23l8.84-8.84a5.5 5.5 0 0 0 0-7.78Z" /></svg>`,
         educacao: `<svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 10L12 4 2 10l10 6 10-6Z" /><path d="M6 12v5c3 3 9 3 12 0v-5" /></svg>`,
         entretenimento: `<svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2" /><path d="M7 5v14" /><path d="M17 5v14" /></svg>`,

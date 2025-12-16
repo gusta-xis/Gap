@@ -60,6 +60,10 @@ module.exports = {
   },
 
   findById(req, res) {
+    if (parseInt(req.params.id, 10) !== req.user.id) {
+      return res.status(403).json({ error: 'Acesso negado' });
+    }
+
     userService.findById(req.params.id, (err, r) => {
       if (err) return sendError(res, err);
 
@@ -101,14 +105,6 @@ module.exports = {
         error: 'Email obrigatório'
       });
     }
-
-    res.json({
-  id: user.id,
-  nome: user.nome,
-  email: user.email,
-  introducao_vista: user.introducao_vista,
-  // outros campos...
-});
 
     userService.generatePasswordResetToken(email, (err, result) => {
       if (err) return sendError(res, err);

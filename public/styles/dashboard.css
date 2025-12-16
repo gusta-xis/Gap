@@ -10,7 +10,7 @@
 }
 
 button, a, [role="button"] {
-    transition: all 0.3s ease;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 button:hover, a:hover {
@@ -161,7 +161,7 @@ aside {
     background: transparent;
     border: none;
     cursor: pointer;
-    transition: all 0.3s ease;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     color: #A0430A;
     padding: 0.5rem;
 }
@@ -208,34 +208,7 @@ aside {
     display: flex !important;
 }
 
-#addExpenseModal > div {
-    position: relative;
-    z-index: 51;
-}
-
-/* -------------------- Animações e Efeitos Transações -------------------- */
-@keyframes fadeInUp {
-    from {
-        opacity: 0;
-        transform: translateY(20px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-
-@keyframes slideIn {
-    from {
-        opacity: 0;
-        transform: translateX(-20px);
-    }
-    to {
-        opacity: 1;
-        transform: translateX(0);
-    }
-}
-
+/* Cards e tabelas */
 .stats-card {
     animation: fadeInUp 0.5s ease-out backwards;
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
@@ -355,4 +328,36 @@ button[data-action]::before {
 button[data-action]:active::before {
     width: 300px;
     height: 300px;
+}
+
+/* Botão positivo (confirmação) */
+.btn-positive {
+    /* Nenhuma cor de fundo ou borda definida aqui */
+    border-radius: 0.75rem;
+    transition: background 0.22s cubic-bezier(0.4, 0, 0.2, 1), color 0.2s, transform 0.22s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.22s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 2px 8px rgba(160,67,10,0.08);
+    will-change: transform, box-shadow;
+}
+.btn-positive:hover, .btn-positive:focus {
+    transform: translateY(-2px) scale(1.045);
+    box-shadow: 0 6px 18px rgba(160,67,10,0.13);
+}
+.btn-positive:active {
+    transform: scale(0.97);
+    box-shadow: 0 2px 8px rgba(160,67,10,0.10);
+}
+
+/* Botão negativo (cancelar/excluir) */
+.btn-negative {
+    border-radius: 0.75rem;
+    transition: background 0.22s cubic-bezier(0.4, 0, 0.2, 1), color 0.2s, transform 0.22s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.22s cubic-bezier(0.4, 0, 0.2, 1);
+    will-change: transform, box-shadow;
+}
+.btn-negative:hover, .btn-negative:focus {
+    transform: translateY(-2px) scale(1.045);
+    box-shadow: 0 6px 18px rgba(160,67,10,0.10);
+}
+.btn-negative:active {
+    transform: scale(0.97);
+    box-shadow: 0 2px 8px rgba(160,67,10,0.10);
 }

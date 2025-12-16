@@ -181,7 +181,7 @@
         const tr = document.createElement('tr');
         tr.className = 'hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors';
         
-        const descricao = sanitizeHTML(gasto.descricao || '-');
+        const nome = sanitizeHTML(gasto.nome || '-');
         const categoria = sanitizeHTML(gasto.categoria || 'Sem categoria');
         const diaVencimento = gasto.dia_vencimento || '-';
         const valor = formatCurrency(gasto.valor || 0);
@@ -193,7 +193,7 @@
                         <span class="material-symbols-outlined text-primary text-lg">event_repeat</span>
                     </div>
                     <div>
-                        <p class="text-sm font-medium text-slate-800 dark:text-slate-200">${descricao}</p>
+                        <p class="text-sm font-medium text-slate-800 dark:text-slate-200">${nome}</p>
                     </div>
                 </div>
             </td>
@@ -218,7 +218,7 @@
                         <span class="material-symbols-outlined text-lg">edit</span>
                     </button>
                     <button 
-                        onclick="deleteGasto(${gasto.id}, '${descricao}')"
+                        onclick="deleteGasto(${gasto.id}, '${nome}')"
                         class="p-2 text-slate-600 dark:text-slate-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
                         title="Excluir"
                     >
@@ -262,7 +262,7 @@
                 .sort((a, b) => a.dia_vencimento - b.dia_vencimento);
             
             const proximoVencimentoEl = document.getElementById('proximoVencimento');
-            const proximoVencimentoDescEl = document.getElementById('proximoVencimentoDescricao');
+            const proximoVencimentoDescEl = document.getElementById('proximoVencimentoNome');
             
             if (proximosGastos.length > 0) {
                 const proximo = proximosGastos[0];
@@ -270,7 +270,7 @@
                     proximoVencimentoEl.textContent = `Dia ${proximo.dia_vencimento}`;
                 }
                 if (proximoVencimentoDescEl) {
-                    proximoVencimentoDescEl.textContent = sanitizeHTML(proximo.descricao);
+                    proximoVencimentoDescEl.textContent = sanitizeHTML(proximo.nome);
                 }
             } else {
                 // Buscar o primeiro vencimento do próximo mês
@@ -283,7 +283,7 @@
                         proximoVencimentoEl.textContent = `Dia ${proximo.dia_vencimento}`;
                     }
                     if (proximoVencimentoDescEl) {
-                        proximoVencimentoDescEl.textContent = `${sanitizeHTML(proximo.descricao)} (próx. mês)`;
+                        proximoVencimentoDescEl.textContent = `${sanitizeHTML(proximo.nome)} (próx. mês)`;
                     }
                 }
             }
@@ -303,8 +303,8 @@
         }
     };
 
-    window.deleteGasto = async function(gastoId, descricao) {
-        if (!confirm(`Deseja realmente excluir o gasto fixo "${descricao}"?`)) {
+    window.deleteGasto = async function(gastoId, nome) {
+        if (!confirm(`Deseja realmente excluir o gasto fixo "${nome}"?`)) {
             return;
         }
         
@@ -431,6 +431,21 @@
     function showError(message) {
         console.error('❌ ' + message);
         // Aqui você pode adicionar uma notificação visual de erro se necessário
+    }
+
+    // Função auto-executável para verificar o carregamento
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', () => {
+            // Verifica se a função existe antes de chamar
+            if (typeof window.initializeGastosFixos === 'function') {
+                window.initializeGastosFixos();
+            }
+        });
+    } else {
+        // Verifica se a função existe antes de chamar
+        if (typeof window.initializeGastosFixos === 'function') {
+            window.initializeGastosFixos();
+        }
     }
 
 })(); // Fecha o IIFE

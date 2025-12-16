@@ -8,13 +8,107 @@
 
     let editingGastoId = null;
 
+    // Busca categorias do backend e sincroniza localStorage/modal
+    async function fetchAndSyncCustomCategoriesGastoFixo() {
+        const userId = getUserIdFromStorage();
+        console.log('[GastoFixo] userId:', userId);
+        if (!userId) {
+            console.warn('[GastoFixo] Nenhum userId encontrado!');
+            return;
+        }
+
+        try {
+            const token = sessionStorage.getItem('accessToken') || localStorage.getItem('token');
+            console.log('[GastoFixo] Token usado:', token);
+            const response = await fetch('/api/v1/categorias', {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+            console.log('[GastoFixo] Status da resposta categorias:', response.status);
+            if (!response.ok) {
+                console.warn('[GastoFixo] Erro ao buscar categorias do backend:', response.status);
+                return;
+            }
+            const categorias = await response.json();
+            console.log('[GastoFixo] Categorias recebidas do backend:', categorias);
+            localStorage.setItem(`customCategories_${userId}`, JSON.stringify(categorias));
+        } catch (e) {
+            console.error('[GastoFixo] Erro ao buscar categorias:', e);
+        }
+    }
+
     // Aguarda o DOM estar pronto
-    function init() {
-        // Event listeners já são configurados via onclick no HTML
+    async function init() {
+        await fetchAndSyncCustomCategoriesGastoFixo();
+        syncGastoFixoCategories();
+    }
+
+    // Sincroniza o select de categorias de gasto fixo com todas as categorias do banco
+    function syncGastoFixoCategories() {
+        const select = document.getElementById('gastoFixoCategory');
+        if (!select) {
+            console.warn('[GastoFixo] Select de categorias não encontrado!');
+            return;
+        }
+
+        let categorias = [];
+        try {
+            const userId = getUserIdFromStorage();
+            if (userId) {
+                const stored = localStorage.getItem(`customCategories_${userId}`);
+                categorias = stored ? JSON.parse(stored) : [];
+            }
+        } catch (e) {
+            categorias = [];
+        }
+
+        // Categorias padrão (caso o backend não retorne nada)
+        const categoriasPadrao = [
+            { id: 1, nome: 'Alimentação' },
+            { id: 2, nome: 'Transporte' },
+            { id: 3, nome: 'Moradia' },
+            { id: 4, nome: 'Saúde' },
+            { id: 5, nome: 'Lazer' },
+            { id: 6, nome: 'Educação' },
+            { id: 7, nome: 'Cartão de crédito' },
+            { id: 8, nome: 'Outros' }
+        ];
+
+        // Se não houver categorias do backend, usa padrão
+        if (!categorias || categorias.length === 0) {
+            categorias = categoriasPadrao;
+        }
+
+        // Sempre adiciona um placeholder
+        select.innerHTML = '';
+        const placeholder = document.createElement('option');
+        placeholder.value = '';
+        placeholder.textContent = 'Selecione uma categoria';
+        select.appendChild(placeholder);
+
+        categorias.forEach(cat => {
+            const opt = document.createElement('option');
+            opt.value = String(cat.id); // Garante string
+            opt.textContent = cat.nome;
+            opt.setAttribute('data-custom', 'true');
+            select.appendChild(opt);
+        });
+    }
+
+    function getUserIdFromStorage() {
+        try {
+            const userDataString = sessionStorage.getItem('user') || localStorage.getItem('user');
+            if (!userDataString) return null;
+            const userData = JSON.parse(userDataString);
+            return userData.id || userData.user_id || userData.userId || null;
+        } catch (e) {
+            return null;
+        }
     }
 
     // Funções globais para abrir/fechar modal
-    window.openGastoFixoModal = function(gastoId = null) {
+    window.openGastoFixoModal = async function(gastoId = null) {
         const modal = document.getElementById('modalGastoFixoGlobal');
         const modalTitle = document.getElementById('modalGastoFixoTitle');
 
@@ -35,6 +129,9 @@
         modal.classList.remove('hidden');
         modal.classList.add('flex');
         document.body.style.overflow = 'hidden';
+
+        await fetchAndSyncCustomCategoriesGastoFixo();
+        syncGastoFixoCategories();
     };
 
     window.closeGastoFixoModal = function(event) {
@@ -65,12 +162,13 @@
             submitBtn.disabled = true;
             submitBtn.textContent = 'Salvando...';
 
-            const descricao = document.getElementById('gastoFixoDescription').value.trim();
+            const nome = document.getElementById('gastoFixoDescription').value.trim();
             const valor = parseCurrencyValue(document.getElementById('gastoFixoAmount').value);
             const dia_vencimento = parseInt(document.getElementById('gastoFixoDueDay').value);
-            const categoria_id = document.getElementById('gastoFixoCategory').value || null;
+            let categoria_id = document.getElementById('gastoFixoCategory').value;
+            categoria_id = categoria_id ? parseInt(categoria_id, 10) : null;
 
-            if (!descricao) {
+            if (!nome) {
                 showGastoFixoError('Por favor, informe a descrição do gasto fixo.');
                 return;
             }
@@ -86,7 +184,7 @@
             }
 
             const formData = {
-                descricao,
+                nome,
                 valor,
                 dia_vencimento,
                 categoria_id
@@ -128,6 +226,8 @@
                 if (typeof window.loadDashboardData === 'function') {
                     window.loadDashboardData();
                 }
+
+                if (window.refreshGastoFixoCategories) window.refreshGastoFixoCategories();
             }, 1500);
 
         } catch (error) {
@@ -158,7 +258,7 @@
             const gasto = await response.json();
 
             // Preenche o formulário
-            document.getElementById('gastoFixoDescription').value = gasto.descricao || '';
+            document.getElementById('gastoFixoDescription').value = gasto.nome || '';
             document.getElementById('gastoFixoAmount').value = formatCurrencyForInput(gasto.valor || 0);
             document.getElementById('gastoFixoDueDay').value = gasto.dia_vencimento || '';
             document.getElementById('gastoFixoCategory').value = gasto.categoria_id || '';
@@ -220,6 +320,19 @@
         if (!value) return 0;
         const cleaned = value.replace(/[^\d,]/g, '').replace(',', '.');
         return parseFloat(cleaned) || 0;
+    }
+
+    function sortCategoriesWithOutrosLast(categorias) {
+        if (!Array.isArray(categorias)) return [];
+        return categorias.slice().sort((a, b) => {
+            const aNome = (a.nome || a.label || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+            const bNome = (b.nome || b.label || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+            const aIsOutros = aNome === 'outros';
+            const bIsOutros = bNome === 'outros';
+            if (aIsOutros && !bIsOutros) return 1;
+            if (!aIsOutros && bIsOutros) return -1;
+            return aNome.localeCompare(bNome, 'pt-BR');
+        });
     }
 
     // Inicializa quando o DOM estiver pronto
