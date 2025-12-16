@@ -861,3 +861,5 @@ function showError(message) {
 })();
 
 console.log('✅ Script de Transações carregado com sucesso!');
+
+if (window.initTransacoesPage) window.initTransacoesPage();

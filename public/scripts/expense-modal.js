@@ -1,10 +1,8 @@
-console.log('🔵 expense-modal.js carregado');
-
+console.log('🔵 expense-modal.js carregado (Versão Correção Erro 500)');
 
 // ========================================
-// UTILITÁRIOS DE FORMATAÇÃO
+// UTILITÁRIOS DE FORMATAÇÃO E DATA
 // ========================================
-
 
 function formatCurrencyInput(input) {
     if (!input) return;
@@ -26,7 +24,6 @@ function formatCurrencyInput(input) {
     });
 }
 
-
 function parseCurrency(value) {
     if (!value) return 0;
     try {
@@ -38,11 +35,16 @@ function parseCurrency(value) {
     }
 }
 
+function getLocalDateString() {
+    const now = new Date();
+    const offset = now.getTimezoneOffset() * 60000;
+    const localDate = new Date(now.getTime() - offset);
+    return localDate.toISOString().split('T')[0];
+}
 
 // ========================================
 // GESTÃO DE USUÁRIO E ARMAZENAMENTO
 // ========================================
-
 
 function getUserIdFromStorage() {
     try {
@@ -56,7 +58,6 @@ function getUserIdFromStorage() {
     }
 }
 
-
 function loadCustomCategoriesFromStorage() {
     const userId = getUserIdFromStorage();
     if (!userId) return [];
@@ -69,7 +70,6 @@ function loadCustomCategoriesFromStorage() {
     }
 }
 
-
 function saveCustomCategoriesToStorage(list) {
     const userId = getUserIdFromStorage();
     if (!userId) return;
@@ -80,11 +80,9 @@ function saveCustomCategoriesToStorage(list) {
     }
 }
 
-
 // ========================================
-// GESTÃO DE CATEGORIAS
+// GESTÃO DE CATEGORIAS (CORREÇÃO ERRO 500)
 // ========================================
-
 
 function syncExpenseCategories() {
     const select = document.getElementById('expenseCategory');
@@ -93,62 +91,64 @@ function syncExpenseCategories() {
         return;
     }
 
-    let categorias = loadCustomCategoriesFromStorage();
-    if (!Array.isArray(categorias)) categorias = [];
+    let categoriasDoBanco = loadCustomCategoriesFromStorage();
+    if (!Array.isArray(categoriasDoBanco)) categoriasDoBanco = [];
 
+    // Categorias padrão que queremos exibir
     const defaultCategories = [
-        { id: 'alimentacao', nome: 'Alimentação' },
-        { id: 'transporte', nome: 'Transporte' },
-        { id: 'moradia', nome: 'Moradia' },
-        { id: 'saude', nome: 'Saúde' },
-        { id: 'lazer', nome: 'Lazer' },
-        { id: 'educacao', nome: 'Educação' },
-        { id: 'outros', nome: 'Outros' }
+        { nome: 'Alimentação', icon: 'restaurant' },
+        { nome: 'Transporte', icon: 'directions_car' },
+        { nome: 'Moradia', icon: 'home' },
+        { nome: 'Saúde', icon: 'favorite' },
+        { nome: 'Lazer', icon: 'movie' },
+        { nome: 'Educação', icon: 'school' },
+        { nome: 'Outros', icon: 'more_horiz' }
     ];
 
-    const allCategories = [...defaultCategories];
+    const finalCategories = [];
+    const addedNames = new Set();
 
-    categorias.forEach(customCat => {
-        // Normaliza resposta do backend de categorias
-        const cat = {
-            id: customCat.id ?? customCat.categoria_id ?? customCat.slug ?? customCat.nome,
-            nome: customCat.nome || customCat.label || customCat.descricao || 'Sem nome'
-        };
-
-        const exists = allCategories.some(c =>
-            String(c.id) === String(cat.id) ||
-            c.nome.toLowerCase() === cat.nome.toLowerCase()
-        );
-        if (!exists) {
-            allCategories.push(cat);
+    // 1. Adiciona primeiro as categorias que vieram do BANCO (pois elas têm ID numérico válido)
+    categoriasDoBanco.forEach(cat => {
+        const nomeNormalizado = cat.nome.trim().toLowerCase();
+        if (!addedNames.has(nomeNormalizado)) {
+            finalCategories.push({
+                id: cat.id, // ID numérico do banco (ex: 15)
+                nome: cat.nome
+            });
+            addedNames.add(nomeNormalizado);
         }
     });
 
-    const uniqueMap = new Map();
-    allCategories.forEach(cat => {
-        const key = String(cat.id);
-        if (!uniqueMap.has(key)) {
-            uniqueMap.set(key, cat);
+    // 2. Adiciona as categorias padrão APENAS se não existirem ainda
+    // Se a categoria padrão for adicionada aqui, ela NÃO tem ID do banco.
+    // Isso é perigoso para o backend, então usaremos um ID temporário e trataremos no submit.
+    defaultCategories.forEach(def => {
+        const nomeNormalizado = def.nome.trim().toLowerCase();
+        if (!addedNames.has(nomeNormalizado)) {
+            finalCategories.push({
+                id: `temp_${nomeNormalizado.replace(/\s+/g, '_')}`, // ID de texto temporário
+                nome: def.nome
+            });
+            addedNames.add(nomeNormalizado);
         }
     });
-    const uniqueCategories = Array.from(uniqueMap.values());
 
-    uniqueCategories.sort((a, b) => {
-        const normalize = (s) =>
-            s.trim().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
-        const aIsOutros = normalize(a.nome) === 'outros';
-        const bIsOutros = normalize(b.nome) === 'outros';
-        if (aIsOutros && !bIsOutros) return 1;
-        if (!aIsOutros && bIsOutros) return -1;
+    // Ordenação
+    finalCategories.sort((a, b) => {
+        const normalize = (s) => s.trim().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+        if (normalize(a.nome) === 'outros') return 1;
+        if (normalize(b.nome) === 'outros') return -1;
         return a.nome.localeCompare(b.nome, 'pt-BR');
     });
 
+    // Renderiza o Select
     const currentValue = select.value;
     select.innerHTML = '<option value="">(Opcional) Selecione uma categoria</option>';
 
-    uniqueCategories.forEach(cat => {
+    finalCategories.forEach(cat => {
         const opt = document.createElement('option');
-        opt.value = cat.id != null ? String(cat.id) : '';
+        opt.value = String(cat.id);
         opt.textContent = cat.nome;
         select.appendChild(opt);
     });
@@ -157,7 +157,6 @@ function syncExpenseCategories() {
         select.value = currentValue;
     }
 }
-
 
 async function fetchAndSyncCustomCategories(retryCount = 0) {
     const userId = getUserIdFromStorage();
@@ -169,56 +168,46 @@ async function fetchAndSyncCustomCategories(retryCount = 0) {
 
     try {
         const token = sessionStorage.getItem('accessToken') || localStorage.getItem('token');
-        if (!token) {
-            throw new Error('Token não encontrado');
-        }
+        if (!token) throw new Error('Token não encontrado');
 
         const response = await fetch('/api/v1/categorias', {
             headers: { 'Authorization': `Bearer ${token}` }
         });
         
         if (!response.ok) {
-            if (response.status === 401) {
-                throw new Error('Sessão expirada');
-            }
+            if (response.status === 401) throw new Error('Sessão expirada');
             throw new Error(`Erro ${response.status}`);
         }
         
         const categoriasBackendRaw = await response.json();
 
-        // Normaliza estrutura das categorias vindas do backend
+        // Normaliza
         const categoriasBackend = (Array.isArray(categoriasBackendRaw) ? categoriasBackendRaw : []).map(c => ({
-            id: c.id ?? c.categoria_id ?? c.slug ?? c.nome,
-            nome: c.nome || c.label || c.descricao || 'Sem nome',
-            icon: c.icon || c.icone || 'category'
+            id: c.id ?? c.categoria_id, // Garante pegar o ID numérico
+            nome: c.nome || c.label || 'Sem nome',
+            icon: c.icon || 'category'
         }));
 
         saveCustomCategoriesToStorage(categoriasBackend);
-        syncExpenseCategories();
+        syncExpenseCategories(); // Atualiza o select mesclando corretamente
         
         console.log('✅ Categorias sincronizadas');
     } catch (e) {
         console.error('❌ Erro ao buscar categorias:', e);
-        
         if (retryCount < 1 && e.message !== 'Sessão expirada') {
-            console.log('🔄 Tentando novamente...');
             setTimeout(() => fetchAndSyncCustomCategories(retryCount + 1), 1000);
             return;
         }
-        
         syncExpenseCategories();
     }
 }
-
 
 // ========================================
 // GESTÃO DE TIPO DE TRANSAÇÃO
 // ========================================
 
-
 let selectedExpenseType = 'saida';
 let editingExpenseId = null;
-
 
 function setExpenseType(type) {
     selectedExpenseType = type || 'saida';
@@ -248,7 +237,6 @@ function setExpenseType(type) {
     });
 }
 
-
 function setupExpenseTypeToggle() {
     const buttons = document.querySelectorAll('[data-expense-type]');
     buttons.forEach((btn) => {
@@ -258,17 +246,14 @@ function setupExpenseTypeToggle() {
     setExpenseType('saida');
 }
 
-
 function handleExpenseTypeClick(e) {
     e.preventDefault();
     setExpenseType(this.dataset.expenseType);
 }
 
-
 // ========================================
 // CONTROLE DO MODAL
 // ========================================
-
 
 function openExpenseModal(event) {
     if (event) { 
@@ -279,15 +264,10 @@ function openExpenseModal(event) {
     console.log('📝 Abrindo modal para NOVA despesa');
     
     const modal = document.getElementById('addExpenseModal');
-    if (!modal) {
-        console.error('❌ Modal addExpenseModal não encontrado');
-        return;
-    }
+    if (!modal) return;
     
     const titleEl = modal.querySelector('h2');
-    if (titleEl) {
-        titleEl.textContent = 'Nova Despesa';
-    }
+    if (titleEl) titleEl.textContent = 'Nova Despesa';
 
     const descField = document.getElementById('expenseDescription');
     const amountField = document.getElementById('expenseAmount');
@@ -297,7 +277,7 @@ function openExpenseModal(event) {
     if (descField) descField.value = '';
     if (amountField) amountField.value = '';
     if (categoryField) categoryField.value = '';
-    if (dateField) dateField.value = new Date().toISOString().split('T')[0];
+    if (dateField) dateField.value = getLocalDateString();
     
     editingExpenseId = null;
     
@@ -313,26 +293,19 @@ function openExpenseModal(event) {
     if (successDiv) successDiv.classList.add('hidden');
 
     setExpenseType('saida');
-    fetchAndSyncCustomCategories();
+    fetchAndSyncCustomCategories(); // Garante lista atualizada
 
     modal.classList.remove('hidden');
     modal.classList.add('flex');
     
-    setTimeout(() => {
-        if (descField) descField.focus();
-    }, 100);
-    
-    console.log('✅ Modal aberto');
+    setTimeout(() => { if (descField) descField.focus(); }, 100);
 }
-
 
 function closeExpenseModal(event) {
     if (event) { 
         event.preventDefault(); 
         event.stopPropagation(); 
     }
-    
-    console.log('❌ Fechando modal');
     
     const modal = document.getElementById('addExpenseModal');
     if (modal) {
@@ -348,104 +321,61 @@ function closeExpenseModal(event) {
     if (successDiv) successDiv.classList.add('hidden');
 }
 
-
 function openExpenseModalForEdit(expense) {
-    if (!expense || !expense.id) {
-        console.error('❌ Despesa inválida:', expense);
-        return;
-    }
-    
-    console.log('🔧 Abrindo modal para EDIÇÃO:', expense);
+    if (!expense || !expense.id) return;
     
     const modal = document.getElementById('addExpenseModal');
-    if (!modal) {
-        console.error('❌ Modal não encontrado');
-        return;
-    }
+    if (!modal) return;
 
     const titleEl = modal.querySelector('h2');
-    if (titleEl) {
-        titleEl.textContent = 'Editar Despesa';
-    }
+    if (titleEl) titleEl.textContent = 'Editar Despesa';
 
-    // Garante que categorias estão sincronizadas antes de setar o valor
     fetchAndSyncCustomCategories().then(() => {
         const descField = document.getElementById('expenseDescription');
-        if (descField) {
-            descField.value = expense.nome || expense.descricao || '';
-        }
+        if (descField) descField.value = expense.nome || expense.descricao || '';
 
         const amountField = document.getElementById('expenseAmount');
         if (amountField) {
             const amountVal = parseFloat(expense.valor || 0);
-            amountField.value = amountVal.toLocaleString('pt-BR', { 
-                minimumFractionDigits: 2,
-                maximumFractionDigits: 2 
-            });
+            amountField.value = amountVal.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
         }
 
         const categoryField = document.getElementById('expenseCategory');
         if (categoryField) {
-            // Tenta obter o id da categoria de forma robusta
-            const catId =
-                expense.categoria?.id != null
-                    ? String(expense.categoria.id)
-                    : (expense.categoria_id != null
-                        ? String(expense.categoria_id)
-                        : '');
-
-            const catNome = (expense.categoria_nome || expense.categoria || '').toString().trim().toLowerCase();
-
-            console.log('📂 Categoria id bruto:', expense.categoria_id, ' | catId usado:', catId, ' | nome:', catNome);
-
+            const catId = expense.categoria?.id != null ? String(expense.categoria.id) : (expense.categoria_id != null ? String(expense.categoria_id) : '');
+            
+            // Tenta setar pelo ID
             let selected = false;
-
-            // 1) tenta por id
-            if (catId && Array.from(categoryField.options).some(o => o.value === catId)) {
-                categoryField.value = catId;
-                selected = true;
-            }
-
-            // 2) fallback: tenta por nome da categoria
-            if (!selected && catNome) {
-                const match = Array.from(categoryField.options).find(o =>
-                    o.textContent.trim().toLowerCase() === catNome
-                );
-                if (match) {
-                    categoryField.value = match.value;
+            if (catId) {
+                const option = Array.from(categoryField.options).find(o => o.value === catId);
+                if (option) {
+                    categoryField.value = catId;
                     selected = true;
                 }
             }
-
-            console.log('📂 Categoria selecionada?', selected, ' | valor final:', categoryField.value);
+            
+            // Fallback pelo nome se não achou ID
+            if (!selected) {
+                 const catNome = (expense.categoria_nome || expense.categoria || '').toString().trim().toLowerCase();
+                 if (catNome) {
+                     const match = Array.from(categoryField.options).find(o => o.textContent.trim().toLowerCase() === catNome);
+                     if (match) categoryField.value = match.value;
+                 }
+            }
         }
 
         const dateField = document.getElementById('expenseDate');
         if (dateField) {
-            let dateVal = '';
-            const rawDate = expense.data_gasto || expense.data || expense.created_at;
-            if (rawDate) {
-                try {
-                    const date = new Date(rawDate);
-                    if (!isNaN(date.getTime())) {
-                        dateVal = date.toISOString().split('T')[0];
-                    } else {
-                        dateVal = new Date().toISOString().split('T')[0];
-                    }
-                } catch (e) {
-                    console.error('Erro ao formatar data:', e);
-                    dateVal = new Date().toISOString().split('T')[0];
-                }
+            try {
+                const rawDate = expense.data_gasto || expense.data || expense.created_at;
+                dateField.value = rawDate ? new Date(rawDate).toISOString().split('T')[0] : getLocalDateString();
+            } catch (e) {
+                dateField.value = getLocalDateString();
             }
-            dateField.value = dateVal;
         }
 
-        const tipo = expense.tipo || 'saida';
-        console.log('💰 Tipo:', tipo);
-        setExpenseType(tipo);
-
+        setExpenseType(expense.tipo || 'saida');
         editingExpenseId = expense.id;
-        console.log('🆔 ID:', editingExpenseId);
 
         const submitBtn = document.querySelector('[data-action="submit-expense"]');
         if (submitBtn) {
@@ -454,24 +384,16 @@ function openExpenseModalForEdit(expense) {
         }
 
         const errorDiv = document.getElementById('errorMessage');
-        const successDiv = document.getElementById('successMessage');
         if (errorDiv) errorDiv.classList.add('hidden');
-        if (successDiv) successDiv.classList.add('hidden');
-
-        console.log('✅ Modal preenchido para edição');
-    }).catch(err => {
-        console.error('❌ Erro ao carregar categorias:', err);
     });
 
     modal.classList.remove('hidden');
     modal.classList.add('flex');
 }
 
-
 // ========================================
-// SUBMISSÃO DO FORMULÁRIO
+// SUBMISSÃO DO FORMULÁRIO (CORREÇÃO DE PAYLOAD)
 // ========================================
-
 
 async function submitExpense(event) {
     if (event) event.preventDefault();
@@ -479,10 +401,7 @@ async function submitExpense(event) {
     console.log('💾 Iniciando submissão...');
     
     const submitBtn = document.querySelector('[data-action="submit-expense"]');
-    if (!submitBtn) {
-        console.error('❌ Botão de submit não encontrado');
-        return;
-    }
+    if (!submitBtn) return;
     
     const originalText = submitBtn.textContent;
     submitBtn.textContent = 'Salvando...';
@@ -494,25 +413,20 @@ async function submitExpense(event) {
     const dateField = document.getElementById('expenseDate');
     
     const description = descField ? descField.value.trim() : '';
-    const amountInput = amountField ? amountField.value : '';
-    const amount = parseCurrency(amountInput);
-    const category = categoryField ? categoryField.value : '';
-    const categoriaId = category ? category : null;
-    const type = selectedExpenseType;
+    const amount = parseCurrency(amountField ? amountField.value : '');
     const date = dateField ? dateField.value : '';
-
+    const type = selectedExpenseType;
+    
+    const rawCategoryValue = categoryField ? categoryField.value : '';
+    
     const errorDiv = document.getElementById('errorMessage');
     const successDiv = document.getElementById('successMessage');
 
     if (!description || amount <= 0 || !date) {
-        const errorMsg = 'Preencha todos os campos obrigatórios: descrição, valor e data.';
-        console.error('❌ Validação falhou:', errorMsg);
-        
         if (errorDiv) {
-            errorDiv.textContent = errorMsg;
+            errorDiv.textContent = 'Preencha todos os campos obrigatórios.';
             errorDiv.classList.remove('hidden');
         }
-        
         submitBtn.textContent = originalText;
         submitBtn.disabled = false;
         return;
@@ -520,25 +434,36 @@ async function submitExpense(event) {
 
     try {
         const token = sessionStorage.getItem('accessToken') || localStorage.getItem('token');
-        const userString = sessionStorage.getItem('user') || localStorage.getItem('user');
+        const userId = getUserIdFromStorage();
         
-        if (!token || !userString) {
-            throw new Error('Sessão expirada. Faça login novamente.');
-        }
+        if (!token) throw new Error('Sessão expirada. Faça login novamente.');
+        if (!userId) throw new Error('Erro de usuário. Faça login novamente.');
 
-        const user = JSON.parse(userString);
-        if (!user.id) {
-            throw new Error('Usuário inválido.');
-        }
-
+        // Construção do Payload Seguro
         const payload = {
             nome: description,
             valor: amount,
-            categoria_id: categoriaId,
             data_gasto: date,
             tipo: type,
-            user_id: user.id
+            user_id: userId
         };
+        
+        // TRATAMENTO CRÍTICO DE CATEGORIA:
+        // Se o valor for numérico (ID do banco), envia.
+        // Se for string começando com "temp_" (categoria padrão sem ID), NÃO ENVIA o campo categoria_id.
+        // Muitos backends explodem com 'temp_xxx' ou com 'null'. 
+        // Se não enviarmos a chave, o banco assume NULL ou DEFAULT, o que evita o erro 500.
+        
+        if (rawCategoryValue && !rawCategoryValue.startsWith('temp_')) {
+            const numId = Number(rawCategoryValue);
+            if (!isNaN(numId) && numId > 0) {
+                payload.categoria_id = numId;
+            }
+        } else {
+            console.log('⚠️ Categoria sem ID de banco selecionada. Enviando sem categoria_id para evitar erro 500.');
+            // Opcional: Se seu backend aceitar nome da categoria, descomente abaixo:
+            // payload.categoria_nome = categoryField.options[categoryField.selectedIndex].text;
+        }
 
         console.log('📤 Payload:', payload);
 
@@ -547,8 +472,6 @@ async function submitExpense(event) {
             ? `/api/v1/gastos-variaveis/${editingExpenseId}` 
             : '/api/v1/gastos-variaveis';
         const method = isEdit ? 'PUT' : 'POST';
-
-        console.log(`🌐 ${method} ${url}`);
 
         const response = await fetch(url, {
             method,
@@ -560,53 +483,39 @@ async function submitExpense(event) {
         });
 
         if (!response.ok) {
-            const err = await response.json().catch(() => ({ message: 'Erro desconhecido' }));
-            throw new Error(err.message || `Erro ${response.status}`);
+            // Tenta ler o erro do backend mesmo se for 500
+            const errText = await response.text();
+            let errMsg = `Erro ${response.status}`;
+            try {
+                const errJson = JSON.parse(errText);
+                errMsg = errJson.message || errMsg;
+            } catch (e) {
+                console.warn('Backend retornou erro não-JSON:', errText);
+            }
+            throw new Error(errMsg);
         }
 
         const result = await response.json();
         console.log('✅ Sucesso:', result);
 
-        const successMsg = isEdit 
-            ? 'Despesa atualizada com sucesso!' 
-            : 'Despesa adicionada com sucesso!';
-        
         if (successDiv) {
-            successDiv.textContent = successMsg;
+            successDiv.textContent = isEdit ? 'Atualizado com sucesso!' : 'Salvo com sucesso!';
             successDiv.classList.remove('hidden');
         }
-        
-        if (errorDiv) {
-            errorDiv.classList.add('hidden');
-        }
+        if (errorDiv) errorDiv.classList.add('hidden');
 
         setTimeout(() => {
             closeExpenseModal();
-            
-            if (window.loadAllTransactions) {
-                console.log('🔄 Recarregando transações...');
-                window.loadAllTransactions();
-            }
-            if (window.loadDashboardData) {
-                console.log('🔄 Recarregando dashboard...');
-                window.loadDashboardData();
-            }
-            if (window.initializeTransactionsPage) {
-                console.log('🔄 Reinicializando transações...');
-                window.initializeTransactionsPage();
-            }
+            if (window.loadAllTransactions) window.loadAllTransactions();
+            if (window.loadDashboardData) window.loadDashboardData();
+            if (window.initTransacoesPage) window.initTransacoesPage();
         }, 1000);
 
     } catch (error) {
-        console.error('❌ Erro:', error);
-        
+        console.error('❌ Erro no submit:', error);
         if (errorDiv) {
             errorDiv.textContent = error.message || 'Erro ao salvar despesa.';
             errorDiv.classList.remove('hidden');
-        }
-        
-        if (successDiv) {
-            successDiv.classList.add('hidden');
         }
     } finally {
         submitBtn.textContent = originalText;
@@ -614,14 +523,11 @@ async function submitExpense(event) {
     }
 }
 
-
 // ========================================
 // MODAL DE ADICIONAR CATEGORIA
 // ========================================
 
-
 let customCategoryIcon = null;
-
 
 function openAddCategoryModal() {
     const modal = document.getElementById('addCategoryModal');
@@ -645,7 +551,6 @@ function openAddCategoryModal() {
     if (successMsg) successMsg.classList.add('hidden');
 }
 
-
 function closeAddCategoryModal() {
     const modal = document.getElementById('addCategoryModal');
     if (modal) {
@@ -653,7 +558,6 @@ function closeAddCategoryModal() {
         modal.classList.remove('flex');
     }
 }
-
 
 function setupCategoryIconGrid() {
     const buttons = document.querySelectorAll('.category-icon-btn');
@@ -666,7 +570,6 @@ function setupCategoryIconGrid() {
         };
     });
 }
-
 
 async function saveNewCategory() {
     const nameInput = document.getElementById('newCategoryName');
@@ -699,123 +602,77 @@ async function saveNewCategory() {
         });
 
         if (!response.ok) {
-            const err = await response.json().catch(() => ({ message: 'Erro desconhecido' }));
-            throw new Error(err.message || 'Erro ao criar categoria.');
+            throw new Error('Erro ao criar categoria.');
         }
 
         const newCatRaw = await response.json();
-
+        
+        // Formata para salvar no storage
         const newCat = {
-            id: newCatRaw.id ?? newCatRaw.categoria_id ?? newCatRaw.slug ?? newCatRaw.nome,
-            nome: newCatRaw.nome || newCatRaw.label || newCatRaw.descricao || 'Sem nome',
-            icon: newCatRaw.icon || newCatRaw.icone || 'category'
+            id: newCatRaw.id ?? newCatRaw.categoria_id,
+            nome: newCatRaw.nome || 'Sem nome',
+            icon: newCatRaw.icon || 'category'
         };
         
         let currentCats = loadCustomCategoriesFromStorage();
         currentCats.push(newCat);
         saveCustomCategoriesToStorage(currentCats);
         
-        syncExpenseCategories();
+        syncExpenseCategories(); // Atualiza a lista
         
         if (typeof window.syncGastoFixoCategories === 'function') {
             window.syncGastoFixoCategories();
         }
 
         if (successMsg) {
-            successMsg.textContent = 'Categoria criada com sucesso!';
+            successMsg.textContent = 'Criado com sucesso!';
             successMsg.classList.remove('hidden');
         }
-        
-        if (errorMsg) {
-            errorMsg.classList.add('hidden');
-        }
+        if (errorMsg) errorMsg.classList.add('hidden');
         
         setTimeout(() => {
             closeAddCategoryModal();
             const select = document.getElementById('expenseCategory');
-            if (select && newCat.id) {
-                select.value = String(newCat.id);
-            }
+            if (select && newCat.id) select.value = String(newCat.id);
         }, 800);
 
     } catch (e) {
-        console.error('Erro ao salvar categoria:', e);
         if (errorMsg) {
-            errorMsg.textContent = e.message || 'Erro ao criar categoria.';
+            errorMsg.textContent = e.message;
             errorMsg.classList.remove('hidden');
         }
     }
 }
 
-
 // ========================================
 // INICIALIZAÇÃO
 // ========================================
-
 
 function initializeExpenseModal() {
     console.log('🚀 Inicializando Expense Modal...');
     
     const addBtn = document.querySelector('[data-action="add-expense"]');
-    if (addBtn) {
-        addBtn.removeEventListener('click', openExpenseModal);
-        addBtn.addEventListener('click', openExpenseModal);
-        console.log('✅ Botão "Adicionar Despesa" configurado');
-    } else {
-        console.warn('⚠️ Botão [data-action="add-expense"] não encontrado');
-    }
+    if (addBtn) addBtn.addEventListener('click', openExpenseModal);
 
     const closeBtn = document.querySelector('[data-action="close-expense-modal"]');
-    if (closeBtn) {
-        closeBtn.removeEventListener('click', closeExpenseModal);
-        closeBtn.addEventListener('click', closeExpenseModal);
-        console.log('✅ Botão "Fechar" configurado');
-    }
+    if (closeBtn) closeBtn.addEventListener('click', closeExpenseModal);
 
     const submitBtn = document.querySelector('[data-action="submit-expense"]');
-    if (submitBtn) {
-        submitBtn.removeEventListener('click', submitExpense);
-        submitBtn.addEventListener('click', submitExpense);
-        console.log('✅ Botão "Submit" configurado');
-    }
+    if (submitBtn) submitBtn.addEventListener('click', submitExpense);
 
     const amountField = document.getElementById('expenseAmount');
-    if (amountField) {
-        amountField.removeEventListener('input', handleAmountInput);
-        amountField.addEventListener('input', handleAmountInput);
-        console.log('✅ Campo de valor configurado');
-    }
+    if (amountField) amountField.addEventListener('input', handleAmountInput);
 
     const modal = document.getElementById('addExpenseModal');
-    if (modal) {
-        modal.removeEventListener('click', handleModalBackdropClick);
-        modal.addEventListener('click', handleModalBackdropClick);
-    }
+    if (modal) modal.addEventListener('click', handleModalBackdropClick);
 
     setupExpenseTypeToggle();
     fetchAndSyncCustomCategories();
     setupCategoryIconGrid();
-    
-    console.log('✅ Expense Modal inicializado');
 }
 
-
-function handleAmountInput() {
-    formatCurrencyInput(this);
-}
-
-
-function handleModalBackdropClick(e) {
-    if (e.target === this) {
-        closeExpenseModal();
-    }
-}
-
-
-// ========================================
-// EXPORTA FUNÇÕES GLOBAIS
-// ========================================
-
+function handleAmountInput() { formatCurrencyInput(this); }
+function handleModalBackdropClick(e) { if (e.target === this) closeExpenseModal(); }
 
 window.openExpenseModal = openExpenseModal;
 window.closeExpenseModal = closeExpenseModal;
@@ -827,33 +684,18 @@ window.saveNewCategory = saveNewCategory;
 window.initializeExpenseModal = initializeExpenseModal;
 window.syncExpenseCategories = syncExpenseCategories;
 window.fetchAndSyncCustomCategories = fetchAndSyncCustomCategories;
-
 window.showAddCategoryFromExpense = openAddCategoryModal;
 window.showAddCategoryFromGastoFixo = openAddCategoryModal;
 window.closeAddCategoryAndReturnToExpense = closeAddCategoryModal;
 
 window.refreshGastoFixoCategories = async function() {
-    console.log('🔄 Atualizando categorias...');
     await fetchAndSyncCustomCategories();
-    
-    if (typeof window.syncGastoFixoCategories === 'function') {
-        window.syncGastoFixoCategories();
-    }
+    if (typeof window.syncGastoFixoCategories === 'function') window.syncGastoFixoCategories();
 };
 
-
-// ========================================
-// AUTO-INICIALIZAÇÃO
-// ========================================
-
-
 let isInitialized = false;
-
 function safeInitialize() {
-    if (isInitialized) {
-        console.log('⚠️ Expense Modal já foi inicializado');
-        return;
-    }
+    if (isInitialized) return;
     isInitialized = true;
     initializeExpenseModal();
 }
@@ -863,5 +705,4 @@ if (document.readyState === 'loading') {
 } else {
     safeInitialize();
 }
-
 console.log('✅ expense-modal.js carregado e pronto');

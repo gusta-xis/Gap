@@ -1,3 +1,11 @@
+-- Apaga as tabelas se já existirem (ordem reversa por causa das FKs)
+DROP TABLE IF EXISTS transacoes;
+DROP TABLE IF EXISTS salarios;
+DROP TABLE IF EXISTS gastos_variaveis;
+DROP TABLE IF EXISTS gastos_fixos;
+DROP TABLE IF EXISTS categorias;
+DROP TABLE IF EXISTS users;
+
 -- Criação do Banco de Dados
 CREATE DATABASE IF NOT EXISTS gap_db
   DEFAULT CHARACTER SET utf8mb4
@@ -5,10 +13,7 @@ CREATE DATABASE IF NOT EXISTS gap_db
 
 USE gap_db;
 
--- --------------------------------------------------------
 -- 1. TABELA DE USUÁRIOS
--- Inclui campos para fluxo de recuperação de senha
--- --------------------------------------------------------
 CREATE TABLE users (
     id INT AUTO_INCREMENT PRIMARY KEY,
     nome VARCHAR(100) NOT NULL,
@@ -20,9 +25,7 @@ CREATE TABLE users (
     INDEX idx_email (email)
 );
 
--- --------------------------------------------------------
 -- 2. TABELA DE CATEGORIAS
--- --------------------------------------------------------
 CREATE TABLE categorias (
     id INT AUTO_INCREMENT PRIMARY KEY,
     nome VARCHAR(50) NOT NULL UNIQUE
@@ -34,9 +37,7 @@ INSERT INTO categorias (nome) VALUES
 ('Lazer'), ('Educação'), ('Cartão de crédito'), ('Outros'),
 ('Renda Extra'), ('Salário');
 
--- --------------------------------------------------------
 -- 3. GASTOS FIXOS (Recorrentes)
--- --------------------------------------------------------
 CREATE TABLE gastos_fixos (
     id INT AUTO_INCREMENT PRIMARY KEY,
     user_id INT NOT NULL,
@@ -45,14 +46,11 @@ CREATE TABLE gastos_fixos (
     valor DECIMAL(10,2) NOT NULL,
     dia_vencimento INT NOT NULL,
     criado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
     FOREIGN KEY (categoria_id) REFERENCES categorias(id) ON DELETE SET NULL
 );
 
--- --------------------------------------------------------
 -- 4. GASTOS VARIÁVEIS (Pontuais)
--- --------------------------------------------------------
 CREATE TABLE gastos_variaveis (
     id INT AUTO_INCREMENT PRIMARY KEY,
     user_id INT NOT NULL,
@@ -62,15 +60,12 @@ CREATE TABLE gastos_variaveis (
     data_gasto DATE NOT NULL,
     tipo ENUM('entrada','saida') DEFAULT 'saida',
     criado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
     FOREIGN KEY (categoria_id) REFERENCES categorias(id) ON DELETE SET NULL,
     INDEX idx_user_data (user_id, data_gasto)
 );
 
--- --------------------------------------------------------
 -- 5. SALÁRIOS / RECEITAS
--- --------------------------------------------------------
 CREATE TABLE salarios (
     id INT AUTO_INCREMENT PRIMARY KEY,
     user_id INT NOT NULL,
@@ -78,14 +73,10 @@ CREATE TABLE salarios (
     data_recebimento DATE NOT NULL,
     descricao VARCHAR(100) DEFAULT 'Salário',
     criado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
--- --------------------------------------------------------
 -- 6. HISTÓRICO DE TRANSAÇÕES (Log Unificado)
--- Tabela usada para gerar o extrato completo rapidamente
--- --------------------------------------------------------
 CREATE TABLE transacoes (
     id INT AUTO_INCREMENT PRIMARY KEY,
     user_id INT NOT NULL,
@@ -94,17 +85,12 @@ CREATE TABLE transacoes (
     tipo ENUM('entrada','saida') NOT NULL,
     descricao VARCHAR(255),
     valor DECIMAL(10,2) NOT NULL,
-    data_transacao DATETIME DEFAULT CURRENT_TIMESTAMP,
-    
+    data_transacao DATE NOT NULL,
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
     INDEX idx_extrato (user_id, data_transacao)
 );
 
--- --------------------------------------------------------
 -- GATILHOS (TRIGGERS) - AUTOMAÇÃO
--- Mantém a tabela 'transacoes' sempre atualizada
--- --------------------------------------------------------
-
 DELIMITER $$
 
 -- 1. Ao INSERIR um Gasto Variável -> Adiciona no Histórico
