@@ -1,11 +1,24 @@
 console.log('🔵 expense-modal.js carregado');
 
+
+// ========================================
+// UTILITÁRIOS DE FORMATAÇÃO
+// ========================================
+
+
 function formatCurrencyInput(input) {
+    if (!input) return;
+    
     let value = input.value.replace(/\D/g, '');
     if (value.length === 0) {
         input.value = '';
         return;
     }
+    
+    if (value.length > 10) {
+        value = value.substring(0, 10);
+    }
+    
     const numericValue = parseInt(value, 10) / 100;
     input.value = numericValue.toLocaleString('pt-BR', {
         minimumFractionDigits: 2,
@@ -13,24 +26,23 @@ function formatCurrencyInput(input) {
     });
 }
 
+
 function parseCurrency(value) {
     if (!value) return 0;
-    return parseFloat(value.replace(/\./g, '').replace(',', '.'));
+    try {
+        const parsed = parseFloat(value.replace(/\./g, '').replace(',', '.'));
+        return isNaN(parsed) ? 0 : parsed;
+    } catch (e) {
+        console.error('Erro ao parsear valor:', e);
+        return 0;
+    }
 }
 
-function normalizeCategorySlug(value) {
-    const v = (value || '').toString().trim().toLowerCase();
-    if (!v) return '';
-    
-    if (v.includes('aliment') || v.includes('merc')) return 'alimentacao';
-    if (v.includes('transp')) return 'transporte';
-    if (v.includes('saud')) return 'saude';
-    if (v.includes('educ')) return 'educacao';
-    if (v.includes('entreten') || v.includes('lazer')) return 'entretenimento';
-    if (v.includes('outros') || v.includes('outro')) return 'outros';
-    
-    return v.normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/\s+/g, '-');
-}
+
+// ========================================
+// GESTÃO DE USUÁRIO E ARMAZENAMENTO
+// ========================================
+
 
 function getUserIdFromStorage() {
     try {
@@ -39,9 +51,11 @@ function getUserIdFromStorage() {
         const userData = JSON.parse(userDataString);
         return userData.id || userData.user_id || null;
     } catch (e) {
+        console.error('Erro ao obter user ID:', e);
         return null;
     }
 }
+
 
 function loadCustomCategoriesFromStorage() {
     const userId = getUserIdFromStorage();
@@ -50,19 +64,34 @@ function loadCustomCategoriesFromStorage() {
         const stored = localStorage.getItem(`customCategories_${userId}`);
         return stored ? JSON.parse(stored) : [];
     } catch (e) {
+        console.error('Erro ao carregar categorias:', e);
         return [];
     }
 }
 
+
 function saveCustomCategoriesToStorage(list) {
     const userId = getUserIdFromStorage();
     if (!userId) return;
-    localStorage.setItem(`customCategories_${userId}`, JSON.stringify(list || []));
+    try {
+        localStorage.setItem(`customCategories_${userId}`, JSON.stringify(list || []));
+    } catch (e) {
+        console.error('Erro ao salvar categorias:', e);
+    }
 }
+
+
+// ========================================
+// GESTÃO DE CATEGORIAS
+// ========================================
+
 
 function syncExpenseCategories() {
     const select = document.getElementById('expenseCategory');
-    if (!select) return;
+    if (!select) {
+        console.warn('⚠️ Select de categoria não encontrado');
+        return;
+    }
 
     let categorias = loadCustomCategoriesFromStorage();
     if (!Array.isArray(categorias)) categorias = [];
@@ -78,67 +107,118 @@ function syncExpenseCategories() {
     ];
 
     const allCategories = [...defaultCategories];
+
     categorias.forEach(customCat => {
+        // Normaliza resposta do backend de categorias
+        const cat = {
+            id: customCat.id ?? customCat.categoria_id ?? customCat.slug ?? customCat.nome,
+            nome: customCat.nome || customCat.label || customCat.descricao || 'Sem nome'
+        };
+
         const exists = allCategories.some(c =>
-            c.id == customCat.id ||
-            c.nome.toLowerCase() === customCat.nome.toLowerCase()
+            String(c.id) === String(cat.id) ||
+            c.nome.toLowerCase() === cat.nome.toLowerCase()
         );
         if (!exists) {
-            allCategories.push(customCat);
+            allCategories.push(cat);
         }
     });
 
-    const seenIds = new Set();
-    const uniqueCategories = [];
+    const uniqueMap = new Map();
     allCategories.forEach(cat => {
-        if (!seenIds.has(cat.id)) {
-            uniqueCategories.push(cat);
-            seenIds.add(cat.id);
+        const key = String(cat.id);
+        if (!uniqueMap.has(key)) {
+            uniqueMap.set(key, cat);
         }
     });
+    const uniqueCategories = Array.from(uniqueMap.values());
 
     uniqueCategories.sort((a, b) => {
-        const aIsOutros = a.nome.trim().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '') === 'outros';
-        const bIsOutros = b.nome.trim().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '') === 'outros';
+        const normalize = (s) =>
+            s.trim().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+        const aIsOutros = normalize(a.nome) === 'outros';
+        const bIsOutros = normalize(b.nome) === 'outros';
         if (aIsOutros && !bIsOutros) return 1;
         if (!aIsOutros && bIsOutros) return -1;
         return a.nome.localeCompare(b.nome, 'pt-BR');
     });
 
+    const currentValue = select.value;
     select.innerHTML = '<option value="">(Opcional) Selecione uma categoria</option>';
 
     uniqueCategories.forEach(cat => {
         const opt = document.createElement('option');
-        // Use sempre o id numérico como string
         opt.value = cat.id != null ? String(cat.id) : '';
         opt.textContent = cat.nome;
         select.appendChild(opt);
     });
+
+    if (currentValue && Array.from(select.options).some(opt => opt.value === currentValue)) {
+        select.value = currentValue;
+    }
 }
 
-async function fetchAndSyncCustomCategories() {
+
+async function fetchAndSyncCustomCategories(retryCount = 0) {
     const userId = getUserIdFromStorage();
-    if (!userId) return;
+    if (!userId) {
+        console.warn('⚠️ Usuário não identificado, usando categorias locais');
+        syncExpenseCategories();
+        return;
+    }
 
     try {
         const token = sessionStorage.getItem('accessToken') || localStorage.getItem('token');
+        if (!token) {
+            throw new Error('Token não encontrado');
+        }
+
         const response = await fetch('/api/v1/categorias', {
             headers: { 'Authorization': `Bearer ${token}` }
         });
         
-        if (!response.ok) return;
+        if (!response.ok) {
+            if (response.status === 401) {
+                throw new Error('Sessão expirada');
+            }
+            throw new Error(`Erro ${response.status}`);
+        }
         
-        const categoriasBackend = await response.json();
+        const categoriasBackendRaw = await response.json();
+
+        // Normaliza estrutura das categorias vindas do backend
+        const categoriasBackend = (Array.isArray(categoriasBackendRaw) ? categoriasBackendRaw : []).map(c => ({
+            id: c.id ?? c.categoria_id ?? c.slug ?? c.nome,
+            nome: c.nome || c.label || c.descricao || 'Sem nome',
+            icon: c.icon || c.icone || 'category'
+        }));
+
         saveCustomCategoriesToStorage(categoriasBackend);
         syncExpenseCategories();
+        
+        console.log('✅ Categorias sincronizadas');
     } catch (e) {
-        console.error('Erro ao buscar categorias:', e);
-        syncExpenseCategories(); 
+        console.error('❌ Erro ao buscar categorias:', e);
+        
+        if (retryCount < 1 && e.message !== 'Sessão expirada') {
+            console.log('🔄 Tentando novamente...');
+            setTimeout(() => fetchAndSyncCustomCategories(retryCount + 1), 1000);
+            return;
+        }
+        
+        syncExpenseCategories();
     }
 }
 
+
+// ========================================
+// GESTÃO DE TIPO DE TRANSAÇÃO
+// ========================================
+
+
 let selectedExpenseType = 'saida';
 let editingExpenseId = null;
+
 
 function setExpenseType(type) {
     selectedExpenseType = type || 'saida';
@@ -157,46 +237,75 @@ function setExpenseType(type) {
                 btn.classList.add('bg-red-600', 'text-white', 'border-red-600', 'shadow-md');
             }
         } else {
-            btn.classList.add('bg-white', 'text-slate-600', 'border-slate-200', 'hover:bg-slate-50', 'dark:bg-slate-800', 'dark:text-slate-300', 'dark:border-slate-700');
-            if (isEntrada) btn.classList.add('hover:text-green-600', 'hover:border-green-200');
-            else btn.classList.add('hover:text-red-600', 'hover:border-red-200');
+            btn.classList.add('bg-white', 'text-slate-600', 'border-slate-200', 'hover:bg-slate-50');
+            btn.classList.add('dark:bg-slate-800', 'dark:text-slate-300', 'dark:border-slate-700');
+            if (isEntrada) {
+                btn.classList.add('hover:text-green-600', 'hover:border-green-200');
+            } else {
+                btn.classList.add('hover:text-red-600', 'hover:border-red-200');
+            }
         }
     });
 }
 
+
 function setupExpenseTypeToggle() {
     const buttons = document.querySelectorAll('[data-expense-type]');
     buttons.forEach((btn) => {
-        btn.addEventListener('click', () => {
-            setExpenseType(btn.dataset.expenseType);
-        });
+        btn.removeEventListener('click', handleExpenseTypeClick);
+        btn.addEventListener('click', handleExpenseTypeClick);
     });
     setExpenseType('saida');
 }
 
+
+function handleExpenseTypeClick(e) {
+    e.preventDefault();
+    setExpenseType(this.dataset.expenseType);
+}
+
+
+// ========================================
+// CONTROLE DO MODAL
+// ========================================
+
+
 function openExpenseModal(event) {
-    if (event) { event.preventDefault(); event.stopPropagation(); }
+    if (event) { 
+        event.preventDefault(); 
+        event.stopPropagation(); 
+    }
+    
+    console.log('📝 Abrindo modal para NOVA despesa');
     
     const modal = document.getElementById('addExpenseModal');
-    if (!modal) return console.error('Modal addExpenseModal não encontrado');
+    if (!modal) {
+        console.error('❌ Modal addExpenseModal não encontrado');
+        return;
+    }
     
-    // Altera o título do modal para "Nova Despesa"
     const titleEl = modal.querySelector('h2');
     if (titleEl) {
         titleEl.textContent = 'Nova Despesa';
     }
 
-    modal.classList.remove('hidden');
-    modal.classList.add('flex');
-
-    document.getElementById('expenseDescription').value = '';
-    document.getElementById('expenseAmount').value = '';
-    document.getElementById('expenseCategory').value = '';
-    document.getElementById('expenseDate').value = new Date().toISOString().split('T')[0];
+    const descField = document.getElementById('expenseDescription');
+    const amountField = document.getElementById('expenseAmount');
+    const categoryField = document.getElementById('expenseCategory');
+    const dateField = document.getElementById('expenseDate');
+    
+    if (descField) descField.value = '';
+    if (amountField) amountField.value = '';
+    if (categoryField) categoryField.value = '';
+    if (dateField) dateField.value = new Date().toISOString().split('T')[0];
     
     editingExpenseId = null;
+    
     const submitBtn = document.querySelector('[data-action="submit-expense"]');
-    if(submitBtn) submitBtn.textContent = 'Adicionar';
+    if (submitBtn) {
+        submitBtn.textContent = 'Adicionar';
+        submitBtn.disabled = false;
+    }
     
     const errorDiv = document.getElementById('errorMessage');
     const successDiv = document.getElementById('successMessage');
@@ -205,19 +314,48 @@ function openExpenseModal(event) {
 
     setExpenseType('saida');
     fetchAndSyncCustomCategories();
+
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+    
+    setTimeout(() => {
+        if (descField) descField.focus();
+    }, 100);
+    
+    console.log('✅ Modal aberto');
 }
 
+
 function closeExpenseModal(event) {
-    if (event) { event.preventDefault(); event.stopPropagation(); }
+    if (event) { 
+        event.preventDefault(); 
+        event.stopPropagation(); 
+    }
+    
+    console.log('❌ Fechando modal');
+    
     const modal = document.getElementById('addExpenseModal');
     if (modal) {
         modal.classList.add('hidden');
         modal.classList.remove('flex');
     }
+    
+    editingExpenseId = null;
+    
+    const errorDiv = document.getElementById('errorMessage');
+    const successDiv = document.getElementById('successMessage');
+    if (errorDiv) errorDiv.classList.add('hidden');
+    if (successDiv) successDiv.classList.add('hidden');
 }
 
+
 function openExpenseModalForEdit(expense) {
-    console.log('🔧 Abrindo modal para edição:', expense);
+    if (!expense || !expense.id) {
+        console.error('❌ Despesa inválida:', expense);
+        return;
+    }
+    
+    console.log('🔧 Abrindo modal para EDIÇÃO:', expense);
     
     const modal = document.getElementById('addExpenseModal');
     if (!modal) {
@@ -225,12 +363,12 @@ function openExpenseModalForEdit(expense) {
         return;
     }
 
-    // Altera o título do modal para "Editar Despesa"
     const titleEl = modal.querySelector('h2');
     if (titleEl) {
         titleEl.textContent = 'Editar Despesa';
     }
 
+    // Garante que categorias estão sincronizadas antes de setar o valor
     fetchAndSyncCustomCategories().then(() => {
         const descField = document.getElementById('expenseDescription');
         if (descField) {
@@ -248,11 +386,38 @@ function openExpenseModalForEdit(expense) {
 
         const categoryField = document.getElementById('expenseCategory');
         if (categoryField) {
-            let catId = '';
-            if (expense.categoria_id != null) {
-                catId = String(expense.categoria_id);
+            // Tenta obter o id da categoria de forma robusta
+            const catId =
+                expense.categoria?.id != null
+                    ? String(expense.categoria.id)
+                    : (expense.categoria_id != null
+                        ? String(expense.categoria_id)
+                        : '');
+
+            const catNome = (expense.categoria_nome || expense.categoria || '').toString().trim().toLowerCase();
+
+            console.log('📂 Categoria id bruto:', expense.categoria_id, ' | catId usado:', catId, ' | nome:', catNome);
+
+            let selected = false;
+
+            // 1) tenta por id
+            if (catId && Array.from(categoryField.options).some(o => o.value === catId)) {
+                categoryField.value = catId;
+                selected = true;
             }
-            categoryField.value = catId;
+
+            // 2) fallback: tenta por nome da categoria
+            if (!selected && catNome) {
+                const match = Array.from(categoryField.options).find(o =>
+                    o.textContent.trim().toLowerCase() === catNome
+                );
+                if (match) {
+                    categoryField.value = match.value;
+                    selected = true;
+                }
+            }
+
+            console.log('📂 Categoria selecionada?', selected, ' | valor final:', categoryField.value);
         }
 
         const dateField = document.getElementById('expenseDate');
@@ -262,7 +427,11 @@ function openExpenseModalForEdit(expense) {
             if (rawDate) {
                 try {
                     const date = new Date(rawDate);
-                    dateVal = date.toISOString().split('T')[0];
+                    if (!isNaN(date.getTime())) {
+                        dateVal = date.toISOString().split('T')[0];
+                    } else {
+                        dateVal = new Date().toISOString().split('T')[0];
+                    }
                 } catch (e) {
                     console.error('Erro ao formatar data:', e);
                     dateVal = new Date().toISOString().split('T')[0];
@@ -272,15 +441,16 @@ function openExpenseModalForEdit(expense) {
         }
 
         const tipo = expense.tipo || 'saida';
-        console.log('💰 Tipo da transação:', tipo);
+        console.log('💰 Tipo:', tipo);
         setExpenseType(tipo);
 
         editingExpenseId = expense.id;
-        console.log('🆔 ID de edição:', editingExpenseId);
+        console.log('🆔 ID:', editingExpenseId);
 
         const submitBtn = document.querySelector('[data-action="submit-expense"]');
         if (submitBtn) {
             submitBtn.textContent = 'Salvar Alterações';
+            submitBtn.disabled = false;
         }
 
         const errorDiv = document.getElementById('errorMessage');
@@ -288,37 +458,61 @@ function openExpenseModalForEdit(expense) {
         if (errorDiv) errorDiv.classList.add('hidden');
         if (successDiv) successDiv.classList.add('hidden');
 
-        console.log('✅ Modal preenchido com sucesso');
+        console.log('✅ Modal preenchido para edição');
     }).catch(err => {
-        console.error('❌ Erro ao sincronizar categorias:', err);
+        console.error('❌ Erro ao carregar categorias:', err);
     });
 
     modal.classList.remove('hidden');
     modal.classList.add('flex');
 }
 
+
+// ========================================
+// SUBMISSÃO DO FORMULÁRIO
+// ========================================
+
+
 async function submitExpense(event) {
     if (event) event.preventDefault();
     
+    console.log('💾 Iniciando submissão...');
+    
     const submitBtn = document.querySelector('[data-action="submit-expense"]');
+    if (!submitBtn) {
+        console.error('❌ Botão de submit não encontrado');
+        return;
+    }
+    
     const originalText = submitBtn.textContent;
     submitBtn.textContent = 'Salvando...';
     submitBtn.disabled = true;
 
-    const description = document.getElementById('expenseDescription').value.trim();
-    const amountInput = document.getElementById('expenseAmount').value;
+    const descField = document.getElementById('expenseDescription');
+    const amountField = document.getElementById('expenseAmount');
+    const categoryField = document.getElementById('expenseCategory');
+    const dateField = document.getElementById('expenseDate');
+    
+    const description = descField ? descField.value.trim() : '';
+    const amountInput = amountField ? amountField.value : '';
     const amount = parseCurrency(amountInput);
-    const category = document.getElementById('expenseCategory').value;
+    const category = categoryField ? categoryField.value : '';
     const categoriaId = category ? category : null;
     const type = selectedExpenseType;
-    const date = document.getElementById('expenseDate').value;
+    const date = dateField ? dateField.value : '';
 
     const errorDiv = document.getElementById('errorMessage');
     const successDiv = document.getElementById('successMessage');
 
-    if (!description || !amount || !date) {
-        errorDiv.textContent = 'Preencha todos os campos obrigatórios (*).';
-        errorDiv.classList.remove('hidden');
+    if (!description || amount <= 0 || !date) {
+        const errorMsg = 'Preencha todos os campos obrigatórios: descrição, valor e data.';
+        console.error('❌ Validação falhou:', errorMsg);
+        
+        if (errorDiv) {
+            errorDiv.textContent = errorMsg;
+            errorDiv.classList.remove('hidden');
+        }
+        
         submitBtn.textContent = originalText;
         submitBtn.disabled = false;
         return;
@@ -333,21 +527,28 @@ async function submitExpense(event) {
         }
 
         const user = JSON.parse(userString);
+        if (!user.id) {
+            throw new Error('Usuário inválido.');
+        }
 
         const payload = {
             nome: description,
             valor: amount,
-            categoria_id: categoriaId, // <-- CORRETO!
+            categoria_id: categoriaId,
             data_gasto: date,
             tipo: type,
             user_id: user.id
         };
+
+        console.log('📤 Payload:', payload);
 
         const isEdit = !!editingExpenseId;
         const url = isEdit 
             ? `/api/v1/gastos-variaveis/${editingExpenseId}` 
             : '/api/v1/gastos-variaveis';
         const method = isEdit ? 'PUT' : 'POST';
+
+        console.log(`🌐 ${method} ${url}`);
 
         const response = await fetch(url, {
             method,
@@ -359,49 +560,91 @@ async function submitExpense(event) {
         });
 
         if (!response.ok) {
-            const err = await response.json();
-            throw new Error(err.message || 'Erro ao salvar despesa.');
+            const err = await response.json().catch(() => ({ message: 'Erro desconhecido' }));
+            throw new Error(err.message || `Erro ${response.status}`);
         }
 
         const result = await response.json();
+        console.log('✅ Sucesso:', result);
 
-        successDiv.textContent = isEdit 
+        const successMsg = isEdit 
             ? 'Despesa atualizada com sucesso!' 
             : 'Despesa adicionada com sucesso!';
-        successDiv.classList.remove('hidden');
-        errorDiv.classList.add('hidden');
+        
+        if (successDiv) {
+            successDiv.textContent = successMsg;
+            successDiv.classList.remove('hidden');
+        }
+        
+        if (errorDiv) {
+            errorDiv.classList.add('hidden');
+        }
 
         setTimeout(() => {
             closeExpenseModal();
-            if (window.loadAllTransactions) window.loadAllTransactions();
-            if (window.loadDashboardData) window.loadDashboardData();
-            if (window.initializeTransactionsPage) window.initializeTransactionsPage();
+            
+            if (window.loadAllTransactions) {
+                console.log('🔄 Recarregando transações...');
+                window.loadAllTransactions();
+            }
+            if (window.loadDashboardData) {
+                console.log('🔄 Recarregando dashboard...');
+                window.loadDashboardData();
+            }
+            if (window.initializeTransactionsPage) {
+                console.log('🔄 Reinicializando transações...');
+                window.initializeTransactionsPage();
+            }
         }, 1000);
 
     } catch (error) {
-        errorDiv.textContent = error.message;
-        errorDiv.classList.remove('hidden');
+        console.error('❌ Erro:', error);
+        
+        if (errorDiv) {
+            errorDiv.textContent = error.message || 'Erro ao salvar despesa.';
+            errorDiv.classList.remove('hidden');
+        }
+        
+        if (successDiv) {
+            successDiv.classList.add('hidden');
+        }
     } finally {
         submitBtn.textContent = originalText;
         submitBtn.disabled = false;
     }
 }
 
+
+// ========================================
+// MODAL DE ADICIONAR CATEGORIA
+// ========================================
+
+
 let customCategoryIcon = null;
+
 
 function openAddCategoryModal() {
     const modal = document.getElementById('addCategoryModal');
     if (!modal) return;
+    
     modal.classList.remove('hidden');
     modal.classList.add('flex');
     
-    document.getElementById('newCategoryName').value = '';
+    const nameField = document.getElementById('newCategoryName');
+    if (nameField) nameField.value = '';
+    
     customCategoryIcon = null;
+    
     document.querySelectorAll('.category-icon-btn').forEach(btn => 
         btn.classList.remove('border-primary', 'bg-primary/10')
     );
-    document.getElementById('categoryErrorMessage')?.classList.add('hidden');
+    
+    const errorMsg = document.getElementById('categoryErrorMessage');
+    const successMsg = document.getElementById('categorySuccessMessage');
+    if (errorMsg) errorMsg.classList.add('hidden');
+    if (successMsg) successMsg.classList.add('hidden');
 }
+
 
 function closeAddCategoryModal() {
     const modal = document.getElementById('addCategoryModal');
@@ -410,6 +653,7 @@ function closeAddCategoryModal() {
         modal.classList.remove('flex');
     }
 }
+
 
 function setupCategoryIconGrid() {
     const buttons = document.querySelectorAll('.category-icon-btn');
@@ -423,20 +667,25 @@ function setupCategoryIconGrid() {
     });
 }
 
+
 async function saveNewCategory() {
     const nameInput = document.getElementById('newCategoryName');
     const errorMsg = document.getElementById('categoryErrorMessage');
     const successMsg = document.getElementById('categorySuccessMessage');
     
-    const nome = nameInput.value.trim();
+    const nome = nameInput ? nameInput.value.trim() : '';
     if (!nome) {
-        errorMsg.textContent = 'Informe o nome da categoria.';
-        errorMsg.classList.remove('hidden');
+        if (errorMsg) {
+            errorMsg.textContent = 'Informe o nome da categoria.';
+            errorMsg.classList.remove('hidden');
+        }
         return;
     }
 
     try {
         const token = sessionStorage.getItem('accessToken') || localStorage.getItem('token');
+        if (!token) throw new Error('Token não encontrado');
+        
         const response = await fetch('/api/v1/categorias', {
             method: 'POST',
             headers: {
@@ -449,50 +698,124 @@ async function saveNewCategory() {
             })
         });
 
-        if (!response.ok) throw new Error('Erro ao criar categoria.');
+        if (!response.ok) {
+            const err = await response.json().catch(() => ({ message: 'Erro desconhecido' }));
+            throw new Error(err.message || 'Erro ao criar categoria.');
+        }
 
-        const newCat = await response.json();
+        const newCatRaw = await response.json();
+
+        const newCat = {
+            id: newCatRaw.id ?? newCatRaw.categoria_id ?? newCatRaw.slug ?? newCatRaw.nome,
+            nome: newCatRaw.nome || newCatRaw.label || newCatRaw.descricao || 'Sem nome',
+            icon: newCatRaw.icon || newCatRaw.icone || 'category'
+        };
         
         let currentCats = loadCustomCategoriesFromStorage();
         currentCats.push(newCat);
         saveCustomCategoriesToStorage(currentCats);
         
         syncExpenseCategories();
-        if (window.refreshGastoFixoCategories) window.refreshGastoFixoCategories();
+        
+        if (typeof window.syncGastoFixoCategories === 'function') {
+            window.syncGastoFixoCategories();
+        }
 
-        successMsg.textContent = 'Categoria criada!';
-        successMsg.classList.remove('hidden');
+        if (successMsg) {
+            successMsg.textContent = 'Categoria criada com sucesso!';
+            successMsg.classList.remove('hidden');
+        }
+        
+        if (errorMsg) {
+            errorMsg.classList.add('hidden');
+        }
         
         setTimeout(() => {
             closeAddCategoryModal();
             const select = document.getElementById('expenseCategory');
-            if(select) select.value = newCat.id;
+            if (select && newCat.id) {
+                select.value = String(newCat.id);
+            }
         }, 800);
 
     } catch (e) {
-        errorMsg.textContent = e.message;
-        errorMsg.classList.remove('hidden');
+        console.error('Erro ao salvar categoria:', e);
+        if (errorMsg) {
+            errorMsg.textContent = e.message || 'Erro ao criar categoria.';
+            errorMsg.classList.remove('hidden');
+        }
     }
 }
 
-window.showAddCategoryFromExpense = openAddCategoryModal;
-window.showAddCategoryFromGastoFixo = openAddCategoryModal;
-window.closeAddCategoryAndReturnToExpense = closeAddCategoryModal;
+
+// ========================================
+// INICIALIZAÇÃO
+// ========================================
+
 
 function initializeExpenseModal() {
     console.log('🚀 Inicializando Expense Modal...');
     
     const addBtn = document.querySelector('[data-action="add-expense"]');
     if (addBtn) {
-        const newBtn = addBtn.cloneNode(true);
-        addBtn.parentNode.replaceChild(newBtn, addBtn);
-        newBtn.addEventListener('click', openExpenseModal);
+        addBtn.removeEventListener('click', openExpenseModal);
+        addBtn.addEventListener('click', openExpenseModal);
+        console.log('✅ Botão "Adicionar Despesa" configurado');
+    } else {
+        console.warn('⚠️ Botão [data-action="add-expense"] não encontrado');
+    }
+
+    const closeBtn = document.querySelector('[data-action="close-expense-modal"]');
+    if (closeBtn) {
+        closeBtn.removeEventListener('click', closeExpenseModal);
+        closeBtn.addEventListener('click', closeExpenseModal);
+        console.log('✅ Botão "Fechar" configurado');
+    }
+
+    const submitBtn = document.querySelector('[data-action="submit-expense"]');
+    if (submitBtn) {
+        submitBtn.removeEventListener('click', submitExpense);
+        submitBtn.addEventListener('click', submitExpense);
+        console.log('✅ Botão "Submit" configurado');
+    }
+
+    const amountField = document.getElementById('expenseAmount');
+    if (amountField) {
+        amountField.removeEventListener('input', handleAmountInput);
+        amountField.addEventListener('input', handleAmountInput);
+        console.log('✅ Campo de valor configurado');
+    }
+
+    const modal = document.getElementById('addExpenseModal');
+    if (modal) {
+        modal.removeEventListener('click', handleModalBackdropClick);
+        modal.addEventListener('click', handleModalBackdropClick);
     }
 
     setupExpenseTypeToggle();
     fetchAndSyncCustomCategories();
     setupCategoryIconGrid();
+    
+    console.log('✅ Expense Modal inicializado');
 }
+
+
+function handleAmountInput() {
+    formatCurrencyInput(this);
+}
+
+
+function handleModalBackdropClick(e) {
+    if (e.target === this) {
+        closeExpenseModal();
+    }
+}
+
+
+// ========================================
+// EXPORTA FUNÇÕES GLOBAIS
+// ========================================
+
 
 window.openExpenseModal = openExpenseModal;
 window.closeExpenseModal = closeExpenseModal;
@@ -502,11 +825,43 @@ window.openAddCategoryModal = openAddCategoryModal;
 window.closeAddCategoryModal = closeAddCategoryModal;
 window.saveNewCategory = saveNewCategory;
 window.initializeExpenseModal = initializeExpenseModal;
+window.syncExpenseCategories = syncExpenseCategories;
+window.fetchAndSyncCustomCategories = fetchAndSyncCustomCategories;
+
+window.showAddCategoryFromExpense = openAddCategoryModal;
+window.showAddCategoryFromGastoFixo = openAddCategoryModal;
+window.closeAddCategoryAndReturnToExpense = closeAddCategoryModal;
+
 window.refreshGastoFixoCategories = async function() {
-    await fetchAndSyncCustomCategoriesGastoFixo();
-    syncGastoFixoCategories();
+    console.log('🔄 Atualizando categorias...');
+    await fetchAndSyncCustomCategories();
+    
+    if (typeof window.syncGastoFixoCategories === 'function') {
+        window.syncGastoFixoCategories();
+    }
+};
+
+
+// ========================================
+// AUTO-INICIALIZAÇÃO
+// ========================================
+
+
+let isInitialized = false;
+
+function safeInitialize() {
+    if (isInitialized) {
+        console.log('⚠️ Expense Modal já foi inicializado');
+        return;
+    }
+    isInitialized = true;
+    initializeExpenseModal();
 }
 
-document.addEventListener('DOMContentLoaded', () => {
-    initializeExpenseModal();
-});
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', safeInitialize);
+} else {
+    safeInitialize();
+}
+
+console.log('✅ expense-modal.js carregado e pronto');
