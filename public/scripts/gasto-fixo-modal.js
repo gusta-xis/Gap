@@ -258,13 +258,14 @@ async function submitGastoFixo(event) {
         successDiv.classList.remove('hidden');
         errorDiv.classList.add('hidden');
 
-        // Atualize imediatamente a tela
-        closeGastoFixoModal();
-
-        if (window.initializeGastosFixos) window.initializeGastosFixos();
-        if (window.loadAllTransactions) window.loadAllTransactions();
-        if (window.loadDashboardData) window.loadDashboardData();
-        if (window.initTransacoesPage) window.initTransacoesPage(); // <-- ADICIONE ESTA LINHA
+        // Aguarde 1 segundo para mostrar a animação/mensagem
+        setTimeout(() => {
+            closeGastoFixoModal();
+            if (window.initializeGastosFixos) window.initializeGastosFixos();
+            if (window.loadAllTransactions) window.loadAllTransactions();
+            if (window.loadDashboardData) window.loadDashboardData();
+            if (window.initTransacoesPage) window.initTransacoesPage();
+        }, 1000);
 
     } catch (error) {
         console.error('❌ Erro ao salvar:', error);

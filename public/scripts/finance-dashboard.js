@@ -466,10 +466,12 @@ function updateRecentActivities() {
             descricao: g.nome || g.descricao || 'Gasto Fixo',
             valor: parseFloat(g.valor || 0),
             data: g.data || new Date(),
-            categoria: g.categoria || 'Geral'
+            categoria: g.categoria || 'Geral',
+            id: g.id,
+            origem: 'fixo' // Adicionado para identificar gastos fixos!
         })),
         ...dashboardData.gastosVariaveis.map(g => ({
-            tipo: g.tipo === 'entrada' ? 'receita' : 'despesa',
+            tipo: g.tipo,
             descricao: g.nome || g.descricao || (g.tipo === 'entrada' ? 'Entrada' : 'Gasto Variável'),
             valor: parseFloat(g.valor || 0),
             data: g.data_gasto || g.data || new Date(),
@@ -477,7 +479,8 @@ function updateRecentActivities() {
             id: g.id,
             origem: 'variavel',
             categoria_slug: normalizeCategorySlug(g.categoria_slug || g.categoria || ''),
-            tipoOriginal: g.tipo || 'saida'
+            tipoOriginal: g.tipo || 'saida',
+            categoria_id: g.categoria_id ?? null
         }))
     ];
     
@@ -503,7 +506,6 @@ function updateRecentActivities() {
     activityContainer.innerHTML = '';
     
     if (recentTransactions.length === 0) {
-        console.log('Nenhuma transação para exibir');
         activityContainer.innerHTML = `
             <div class="text-center py-8">
                 <div class="text-slate-400 dark:text-slate-500 mb-2">
@@ -519,7 +521,6 @@ function updateRecentActivities() {
     recentTransactions.forEach((transaction, index) => {
         const isLast = index === recentTransactions.length - 1;
         const borderClass = isLast ? '' : 'border-b border-black/10 dark:border-white/10';
-        
         const icon = getTransactionIcon(transaction);
         const isReceita = transaction.tipo === 'receita';
         const valorAbsoluto = formatCurrency(Math.abs(transaction.valor));
@@ -529,34 +530,55 @@ function updateRecentActivities() {
         const valorClass = isReceita
             ? 'text-green-600 dark:text-green-400'
             : 'text-red-600 dark:text-red-300';
-        
         const dataFormatada = new Date(transaction.data).toLocaleDateString('pt-BR', {
             day: 'numeric',
             month: 'long',
             year: 'numeric'
         });
-        
-        const serialized = transaction.origem === 'variavel' ? encodeURIComponent(JSON.stringify(transaction)) : '';
-        const actionButtons = transaction.origem === 'variavel' ? `
-            <div class="flex gap-2">
-                <button class="text-slate-500 hover:text-primary" aria-label="Editar" onclick="window.expenseModal && window.expenseModal.openExpenseModalForEdit(JSON.parse(decodeURIComponent('${serialized}')))">
-                    <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                        <path d="M12 20h9" />
-                        <path d="M16.5 3.5a2.121 2.121 0 1 1 3 3L7 19l-4 1 1-4Z" />
-                    </svg>
-                </button>
-                <button class="text-slate-500 hover:text-red-500" aria-label="Excluir" onclick="window.expenseModal && window.expenseModal.deleteExpense(${transaction.id})">
-                    <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                        <polyline points="3 6 5 6 21 6" />
-                        <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6" />
-                        <path d="M10 11v6" />
-                        <path d="M14 11v6" />
-                        <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2" />
-                    </svg>
-                </button>
-            </div>
-        ` : '';
 
+        const serialized = transaction.origem === 'variavel' ? encodeURIComponent(JSON.stringify(transaction)) : '';
+        let actionButtons = '';
+        if (transaction.origem === 'variavel') {
+            actionButtons = `
+                <div class="flex gap-2">
+                    <button class="text-slate-500 hover:text-primary" aria-label="Editar" onclick="window.expenseModal && window.expenseModal.openExpenseModalForEdit(JSON.parse(decodeURIComponent('${serialized}')))">
+                        <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <path d="M12 20h9" />
+                            <path d="M16.5 3.5a2.121 2.121 0 1 1 3 3L7 19l-4 1 1-4Z" />
+                        </svg>
+                    </button>
+                    <button class="text-slate-500 hover:text-red-500" aria-label="Excluir" onclick="window.expenseModal && window.expenseModal.deleteExpense(${transaction.id})">
+                        <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <polyline points="3 6 5 6 21 6" />
+                            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6" />
+                            <path d="M10 11v6" />
+                            <path d="M14 11v6" />
+                            <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2" />
+                        </svg>
+                    </button>
+                </div>
+            `;
+        } else if (transaction.origem === 'fixo') {
+            actionButtons = `
+                <div class="flex gap-2">
+                    <button class="text-slate-500 hover:text-primary" aria-label="Editar" onclick="window.openGastoFixoModal && window.openGastoFixoModal(${transaction.id})">
+                        <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <path d="M12 20h9" />
+                            <path d="M16.5 3.5a2.121 2.121 0 1 1 3 3L7 19l-4 1 1-4Z" />
+                        </svg>
+                    </button>
+                    <button class="text-slate-500 hover:text-red-500" aria-label="Excluir" onclick="window.deleteGasto && window.deleteGasto(${transaction.id}, '${transaction.descricao.replace(/'/g, "\\'")}')">
+                        <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <polyline points="3 6 5 6 21 6" />
+                            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6" />
+                            <path d="M10 11v6" />
+                            <path d="M14 11v6" />
+                            <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2" />
+                        </svg>
+                    </button>
+                </div>
+            `;
+        }
         const tipoLabel = isReceita ? 'Receita' : 'Despesa';
         const tipoClass = isReceita 
             ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300'

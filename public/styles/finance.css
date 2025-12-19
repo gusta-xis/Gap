@@ -30,6 +30,27 @@ body {
     padding: 0;
 }
 
+/* Transições globais para suavidade */
+* {
+    transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+}
+
+button, a, [role="button"] {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+button:hover, a:hover {
+    transform: translateY(-2px);
+}
+
+svg, img[src*="svg"] {
+    transition: all 0.3s ease;
+}
+
+svg:hover, img[src*="svg"]:hover {
+    filter: drop-shadow(0 4px 6px rgba(160, 67, 10, 0.1));
+}
+
 /* -------------------- Link de Retorno -------------------- */
 .back-link {
     position: fixed;
@@ -223,6 +244,39 @@ body {
     transform: translateY(0);
 }
 
+.btn-positive {
+    border-radius: 0.75rem;
+    transition: background 0.22s cubic-bezier(0.4, 0, 0.2, 1), color 0.2s, transform 0.22s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.22s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 2px 8px rgba(160,67,10,0.08);
+    will-change: transform, box-shadow;
+}
+
+.btn-positive:hover, .btn-positive:focus {
+    transform: translateY(-2px) scale(1.045);
+    box-shadow: 0 6px 18px rgba(160,67,10,0.13);
+}
+
+.btn-positive:active {
+    transform: scale(0.97);
+    box-shadow: 0 2px 8px rgba(160,67,10,0.10);
+}
+
+.btn-negative {
+    border-radius: 0.75rem;
+    transition: background 0.22s cubic-bezier(0.4, 0, 0.2, 1), color 0.2s, transform 0.22s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.22s cubic-bezier(0.4, 0, 0.2, 1);
+    will-change: transform, box-shadow;
+}
+
+.btn-negative:hover, .btn-negative:focus {
+    transform: translateY(-2px) scale(1.045);
+    box-shadow: 0 6px 18px rgba(160,67,10,0.10);
+}
+
+.btn-negative:active {
+    transform: scale(0.97);
+    box-shadow: 0 2px 8px rgba(160,67,10,0.10);
+}
+
 /* -------------------- Stepper -------------------- */
 .stepper {
     display: flex;
@@ -296,6 +350,22 @@ body {
 .step-inactive:hover {
     border-color: #A0430A;
     color: #A0430A;
+}
+
+/* -------------------- Animações Adicionais -------------------- */
+.stats-card, .filters-card, .table-card, .transaction-row, #transactionsTableBody > div {
+    animation: fadeInUp 0.5s ease-out backwards;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slideIn {
+    from { opacity: 0; transform: translateX(16px); }
+    to { opacity: 1; transform: translateX(0); }
 }
 
 /* -------------------- Responsividade -------------------- */
@@ -396,4 +466,12 @@ body {
         width: 100%;
         text-align: center;
     }
+}
+
+.transaction-row:hover,
+.table-card:hover,
+.stats-card:hover {
+    background-color: rgba(160, 67, 10, 0.02);
+    transform: translateX(4px);
+    border-radius: 8px;
 }

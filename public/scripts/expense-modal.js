@@ -693,6 +693,25 @@ window.refreshGastoFixoCategories = async function() {
     if (typeof window.syncGastoFixoCategories === 'function') window.syncGastoFixoCategories();
 };
 
+window.expenseModal = {
+    openExpenseModalForEdit,
+    deleteExpense: async function(id) {
+        if (!confirm('Deseja realmente excluir esta despesa?')) return;
+        try {
+            const token = sessionStorage.getItem('accessToken') || localStorage.getItem('token');
+            const response = await fetch(`/api/v1/gastos-variaveis/${id}`, {
+                method: 'DELETE',
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            if (!response.ok) throw new Error('Erro ao excluir despesa');
+            if (window.loadAllTransactions) window.loadAllTransactions();
+            if (window.loadDashboardData) window.loadDashboardData();
+        } catch (e) {
+            alert('Erro ao excluir despesa: ' + e.message);
+        }
+    }
+};
+
 let isInitialized = false;
 function safeInitialize() {
     if (isInitialized) return;

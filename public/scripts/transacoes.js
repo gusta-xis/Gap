@@ -458,13 +458,13 @@ function createTransactionRow(transaction) {
         }).replace(/"/g, '&quot;');
         
         actions = `
-          <button onclick='window.editGastoFixoFromTransaction(${gastoData})' class="text-slate-500 hover:text-primary transition-colors" aria-label="Editar">
+          <button onclick='window.editGastoFixoFromTransaction(${gastoData})' class="text-slate-500 hover:text-primary btn-positive rounded-lg transition-colors" aria-label="Editar">
               <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                   <path d="M12 20h9" />
                   <path d="M16.5 3.5a2.121 2.121 0 1 1 3 3L7 19l-4 1 1-4Z" />
               </svg>
           </button>
-          <button onclick='window.deleteGastoFixoFromTransaction(${transaction.id}, "${transaction.descricao.replace(/'/g, "\\'")}")' class="text-slate-500 hover:text-red-500 transition-colors" aria-label="Excluir">
+          <button onclick='window.deleteGastoFixoFromTransaction(${transaction.id}, "${transaction.descricao.replace(/'/g, "\\'")}")' class="text-slate-500 hover:text-red-600 btn-negative rounded-lg transition-colors" aria-label="Excluir">
               <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                   <polyline points="3 6 5 6 21 6" />
                   <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6" />
