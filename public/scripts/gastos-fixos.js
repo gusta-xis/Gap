@@ -185,7 +185,7 @@
                 <div class="flex items-center justify-end gap-3">
                     <button 
                         onclick="editGasto(${gasto.id})"
-                        class="text-slate-500 hover:text-primary btn-positive rounded-lg transition-colors"
+                        class="btn-positive text-slate-500 hover:text-primary rounded-lg transition-colors"
                         aria-label="Editar"
                         title="Editar"
                     >
@@ -196,7 +196,7 @@
                     </button>
                     <button 
                         onclick="deleteGasto(${gasto.id}, '${nome}')"
-                        class="text-slate-500 hover:text-red-600 btn-negative rounded-lg transition-colors"
+                        class="btn-negative text-slate-500 hover:text-red-600 rounded-lg transition-colors"
                         aria-label="Excluir"
                         title="Excluir"
                     >
