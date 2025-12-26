@@ -287,10 +287,9 @@ async function submitSalary(event) {
         
         setTimeout(() => {
             closeSalaryModal();
-            // Atualiza as listagens globais (Dashboard/Transações) se as funções existirem
             if (window.loadAllTransactions) window.loadAllTransactions();
             if (window.loadDashboardData) window.loadDashboardData();
-            if (window.initTransacoesPage) window.initTransacoesPage();
+            if (window.updateSalaryButton) window.updateSalaryButton();
         }, 1000);
 
     } catch (error) {
@@ -324,6 +323,7 @@ window.salaryModal = {
             // Atualiza UI
             if (window.loadAllTransactions) window.loadAllTransactions();
             if (window.loadDashboardData) window.loadDashboardData();
+            if (window.updateSalaryButton) window.updateSalaryButton();
             alert('Receita excluída com sucesso!');
         } catch (e) {
             alert(`Erro: ${e.message}`);
@@ -362,16 +362,56 @@ function initializeSalaryModal() {
     });
 }
 
+// Função para atualizar o botão de salário
+async function updateSalaryButton() {
+    const btn = document.querySelector(DOM.buttons.open);
+    if (!btn) return;
+
+    try {
+        const token = Utils.getToken();
+        const userId = Utils.getUserId();
+        if (!token || !userId) return;
+
+        // Busca salários do usuário
+        const res = await fetch(`/api/v1/salarios?user_id=${userId}`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (!res.ok) throw new Error();
+
+        const salarios = await res.json();
+        if (Array.isArray(salarios) && salarios.length > 0) {
+            btn.textContent = 'Gerenciar Salário';
+            btn.onclick = async (e) => {
+                e.preventDefault();
+                // Abre o modal já preenchido para edição do primeiro salário
+                openSalaryModalForEdit(salarios[0]);
+            };
+        } else {
+            btn.textContent = 'Adicionar Salário';
+            btn.onclick = openSalaryModal;
+        }
+    } catch {
+        // fallback padrão
+        btn.textContent = 'Adicionar Salário';
+        btn.onclick = openSalaryModal;
+    }
+}
+
 // Exports Globais para uso em outros scripts
 window.openSalaryModal = openSalaryModal;
 window.closeSalaryModal = closeSalaryModal;
 window.submitSalary = submitSalary;
 window.openSalaryModalForEdit = openSalaryModalForEdit;
 window.initializeSalaryModal = initializeSalaryModal;
+window.updateSalaryButton = updateSalaryButton;
 
 // Auto-init ao carregar a página
 if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', initializeSalaryModal);
+    document.addEventListener('DOMContentLoaded', () => {
+        initializeSalaryModal();
+        updateSalaryButton();
+    });
 } else {
     initializeSalaryModal();
+    updateSalaryButton();
 }

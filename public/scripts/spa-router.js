@@ -147,6 +147,11 @@ const SPARouter = {
 
             this.initPage(pageName);
             
+            // Atualiza o botão de salário após inserir o HTML do dashboard
+            if (pageName === 'dashboard' && window.updateSalaryButton) {
+                window.updateSalaryButton();
+            }
+
             this.currentPage = pageName;
             console.log(`✅ Página "${pageName}" carregada com sucesso`);
             
