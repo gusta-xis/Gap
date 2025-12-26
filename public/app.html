@@ -190,12 +190,7 @@
                         <label for="expenseDescription" class="block text-xs font-bold uppercase tracking-wider text-text-muted-light dark:text-text-muted-dark">
                             Descrição <span class="text-red-500">*</span>
                         </label>
-                        <input 
-                            type="text" 
-                            id="expenseDescription" 
-                            placeholder="Ex: Supermercado, Uber..." 
-                            class="w-full px-4 py-3.5 bg-background-light dark:bg-background-dark border border-border dark:border-border-dark rounded-xl text-base text-text-light dark:text-text-dark placeholder-text-muted-light/50 dark:placeholder-text-muted-dark/50 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all shadow-sm"
-                        />
+                        <input type="text" id="expenseDescription" placeholder="Ex: Supermercado, Uber..." class="w-full px-4 py-3.5 bg-background-light dark:bg-background-dark border border-border dark:border-border-dark rounded-xl text-base text-text-light dark:text-text-dark placeholder-text-muted-light/50 dark:placeholder-text-muted-dark/50 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all shadow-sm"/>
                     </div>
 
                     <div class="space-y-2">
@@ -203,13 +198,7 @@
                             Valor (R$) <span class="text-red-500">*</span>
                         </label>
                         <div class="flex items-stretch gap-3">
-                            <input 
-                                type="text" 
-                                id="expenseAmount" 
-                                placeholder="0,00" 
-                                oninput="formatCurrencyInput(this)"
-                                class="flex-1 px-4 py-3.5 bg-background-light dark:bg-background-dark border border-border dark:border-border-dark rounded-xl text-lg font-semibold text-text-light dark:text-text-dark placeholder-text-muted-light/50 dark:placeholder-text-muted-dark/50 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all shadow-sm"
-                            />
+                            <input type="text" id="expenseAmount" placeholder="0,00" oninput="formatCurrencyInput(this)" class="flex-1 px-4 py-3.5 bg-background-light dark:bg-background-dark border border-border dark:border-border-dark rounded-xl text-lg font-semibold text-text-light dark:text-text-dark placeholder-text-muted-light/50 dark:placeholder-text-muted-dark/50 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all shadow-sm"/>
                             
                             <div class="grid grid-cols-2 p-1 bg-background-light dark:bg-background-dark border border-border dark:border-border-dark rounded-xl w-[120px] shrink-0">
                                 <button type="button" data-expense-type="entrada" class="flex items-center justify-center rounded-lg text-green-600 dark:text-green-400 hover:bg-green-50 dark:hover:bg-green-900/20 transition-all focus:outline-none focus:ring-2 focus:ring-green-500/50" aria-label="Entrada">
@@ -225,10 +214,7 @@
                     <div class="space-y-2">
                         <label class="block text-xs font-bold uppercase tracking-wider text-text-muted-light dark:text-text-muted-dark">Categoria</label>
                         <div class="flex gap-2">
-                            <select 
-                                id="expenseCategory" 
-                                class="w-full px-4 py-3.5 bg-background-light dark:bg-background-dark border border-border dark:border-border-dark rounded-xl text-base text-text-light dark:text-text-dark focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all shadow-sm"
-                            >
+                            <select id="expenseCategory" class="w-full px-4 py-3.5 bg-background-light dark:bg-background-dark border border-border dark:border-border-dark rounded-xl text-base text-text-light dark:text-text-dark focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all shadow-sm">
                                 <option value="">Selecione (Opcional)</option>
                                 <option value="alimentacao">Alimentação</option>
                                 <option value="transporte">Transporte</option>
@@ -248,11 +234,7 @@
                         <label for="expenseDate" class="block text-xs font-bold uppercase tracking-wider text-text-muted-light dark:text-text-muted-dark">
                             Data <span class="text-red-500">*</span>
                         </label>
-                        <input 
-                            type="date" 
-                            id="expenseDate" 
-                            class="w-full px-4 py-3.5 bg-background-light dark:bg-background-dark border border-border dark:border-border-dark rounded-xl text-base text-text-light dark:text-text-dark focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all shadow-sm"
-                        />
+                        <input type="date" id="expenseDate" class="w-full px-4 py-3.5 bg-background-light dark:bg-background-dark border border-border dark:border-border-dark rounded-xl text-base text-text-light dark:text-text-dark focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all shadow-sm"/>
                     </div>
 
                     <div id="errorMessage" class="hidden p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl text-red-700 dark:text-red-300 text-sm font-semibold animate-fade-in flex items-center gap-2">
@@ -269,10 +251,7 @@
                     <button onclick="closeExpenseModal(event)" class="px-5 py-3 rounded-xl border border-border dark:border-border-dark text-text-light dark:text-text-dark font-bold hover:bg-secondary dark:hover:bg-white/5 active:scale-95 transition-all">
                         Cancelar
                     </button>
-                    <button
-                      class="px-8 py-3 rounded-xl bg-primary text-white font-bold shadow-lg shadow-primary/25 hover:bg-primary/90 hover:shadow-primary/40 active:scale-95 transition-all duration-200"
-                      data-action="submit-expense"
-                    >
+                    <button class="px-8 py-3 rounded-xl bg-primary text-white font-bold shadow-lg shadow-primary/25 hover:bg-primary/90 hover:shadow-primary/40 active:scale-95 transition-all duration-200" data-action="submit-expense">
                       Salvar
                     </button>
                 </div>
@@ -280,6 +259,118 @@
         </div>
     </div>
 
+    <div id="addSalaryModal" class="fixed inset-0 z-modal hidden" onclick="closeSalaryModal(event)">
+        <div class="absolute inset-0 bg-black/60 backdrop-blur-[2px] transition-opacity duration-300 animate-fade-in"></div>
+        
+        <div class="absolute inset-0 flex items-end justify-center sm:items-center sm:p-4 pointer-events-none">
+            <div class="pointer-events-auto w-full bg-surface-light dark:bg-surface-dark rounded-t-3xl sm:rounded-2xl shadow-2xl shadow-black/50 border-t border-white/20 sm:border dark:border-white/10 max-w-lg max-h-[95vh] sm:max-h-[90vh] flex flex-col transform transition-transform animate-modal-mobile sm:animate-modal-desktop overflow-hidden" onclick="event.stopPropagation();">
+                
+                <div class="w-full flex justify-center pt-3 pb-1 sm:hidden cursor-grab active:cursor-grabbing">
+                    <div class="w-12 h-1.5 rounded-full bg-slate-300 dark:bg-slate-600"></div>
+                </div>
+
+                <div class="flex items-center justify-between px-6 py-4 border-b border-border dark:border-border-dark shrink-0">
+                    <h2 class="text-xl font-bold text-text-light dark:text-text-dark tracking-tight">Novo Salário</h2>
+                    <button onclick="closeSalaryModal(event)" class="p-2 -mr-2 text-text-muted-light hover:text-text-light dark:text-text-muted-dark dark:hover:text-text-dark hover:bg-secondary dark:hover:bg-white/10 rounded-full transition-colors">
+                        <span class="material-symbols-outlined text-2xl">close</span>
+                    </button>
+                </div>
+
+                <div class="p-6 space-y-5 overflow-y-auto overscroll-contain">
+                    <div class="space-y-2">
+                        <label for="salaryDescription" class="block text-xs font-bold uppercase tracking-wider text-text-muted-light dark:text-text-muted-dark">
+                            Descrição / Empresa <span class="text-red-500">*</span>
+                        </label>
+                        <input 
+                            type="text" 
+                            id="salaryDescription" 
+                            placeholder="Ex: Salário Mensal, Freelance..." 
+                            class="w-full px-4 py-3.5 bg-background-light dark:bg-background-dark border border-border dark:border-border-dark rounded-xl text-base text-text-light dark:text-text-dark placeholder-text-muted-light/50 dark:placeholder-text-muted-dark/50 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all shadow-sm"
+                        />
+                    </div>
+
+                    <div class="space-y-2">
+                        <label for="salaryAmount" class="block text-xs font-bold uppercase tracking-wider text-text-muted-light dark:text-text-muted-dark">
+                            Valor Líquido (R$) <span class="text-red-500">*</span>
+                        </label>
+                        <input 
+                            type="text" 
+                            id="salaryAmount" 
+                            placeholder="0,00" 
+                            oninput="formatCurrencyInput(this)"
+                            class="w-full px-4 py-3.5 bg-background-light dark:bg-background-dark border border-border dark:border-border-dark rounded-xl text-lg font-semibold text-text-light dark:text-text-dark placeholder-text-muted-light/50 dark:placeholder-text-muted-dark/50 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all shadow-sm"
+                        />
+                    </div>
+
+<div class="space-y-2">
+    <label for="salaryReceiveDay" class="block text-xs font-bold uppercase tracking-wider text-text-muted-light dark:text-text-muted-dark">
+        Dia do Recebimento <span class="text-red-500">*</span>
+    </label>
+    <div class="relative">
+        <select id="salaryReceiveDay" class="w-full pl-4 pr-10 py-3.5 bg-background-light dark:bg-background-dark border border-border dark:border-border-dark rounded-xl text-base text-text-light dark:text-text-dark focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all appearance-none shadow-sm scroll-smooth-y">
+            <option value="">Selecione o dia</option>
+            <option value="1">Dia 1</option>
+            <option value="2">Dia 2</option>
+            <option value="3">Dia 3</option>
+            <option value="4">Dia 4</option>
+            <option value="5">Dia 5</option>
+            <option value="6">Dia 6</option>
+            <option value="7">Dia 7</option>
+            <option value="8">Dia 8</option>
+            <option value="9">Dia 9</option>
+            <option value="10">Dia 10</option>
+            <option value="11">Dia 11</option>
+            <option value="12">Dia 12</option>
+            <option value="13">Dia 13</option>
+            <option value="14">Dia 14</option>
+            <option value="15">Dia 15</option>
+            <option value="16">Dia 16</option>
+            <option value="17">Dia 17</option>
+            <option value="18">Dia 18</option>
+            <option value="19">Dia 19</option>
+            <option value="20">Dia 20</option>
+            <option value="21">Dia 21</option>
+            <option value="22">Dia 22</option>
+            <option value="23">Dia 23</option>
+            <option value="24">Dia 24</option>
+            <option value="25">Dia 25</option>
+            <option value="26">Dia 26</option>
+            <option value="27">Dia 27</option>
+            <option value="28">Dia 28</option>
+            <option value="29">Dia 29</option>
+            <option value="30">Dia 30</option>
+            <option value="31">Dia 31</option>
+        </select>
+        <div class="absolute inset-y-0 right-3 flex items-center pointer-events-none text-text-muted-light dark:text-text-muted-dark">
+            <span class="material-symbols-outlined">calendar_today</span>
+        </div>
+    </div>
+</div>
+
+                    <div id="salaryErrorMessage" class="hidden p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl text-red-700 dark:text-red-300 text-sm font-semibold animate-fade-in flex items-center gap-2">
+                        <span class="material-symbols-outlined text-lg">error</span>
+                        <span class="msg-text"></span>
+                    </div>
+                    <div id="salarySuccessMessage" class="hidden p-4 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-xl text-green-700 dark:text-green-300 text-sm font-semibold animate-fade-in flex items-center gap-2">
+                        <span class="material-symbols-outlined text-lg">check_circle</span>
+                        <span class="msg-text"></span>
+                    </div>
+                </div>
+
+                <div class="flex items-center justify-end gap-3 px-6 py-4 border-t border-border dark:border-border-dark bg-background-light/50 dark:bg-background-dark/50 shrink-0 pb-8 sm:pb-4">
+                    <button onclick="closeSalaryModal(event)" class="px-5 py-3 rounded-xl border border-border dark:border-border-dark text-text-light dark:text-text-dark font-bold hover:bg-secondary dark:hover:bg-white/5 active:scale-95 transition-all">
+                        Cancelar
+                    </button>
+                    <button
+                      class="px-8 py-3 rounded-xl bg-primary text-white font-bold shadow-lg shadow-primary/25 hover:bg-primary/90 hover:shadow-primary/40 active:scale-95 transition-all duration-200"
+                      data-action="submit-salary"
+                    >
+                      Salvar
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
     <div id="addCategoryModal" class="fixed inset-0 z-[60] hidden" onclick="closeAddCategoryModal()">
         <div class="absolute inset-0 bg-black/60 backdrop-blur-[2px] transition-opacity duration-300 animate-fade-in"></div>
         
@@ -302,12 +393,7 @@
                         <label for="newCategoryName" class="block text-xs font-bold uppercase tracking-wider text-text-muted-light dark:text-text-muted-dark">
                             Nome <span class="text-red-500">*</span>
                         </label>
-                        <input 
-                            type="text" 
-                            id="newCategoryName" 
-                            placeholder="Ex: Viagens, Pets..." 
-                            class="w-full px-4 py-3.5 bg-background-light dark:bg-background-dark border border-border dark:border-border-dark rounded-xl text-base text-text-light dark:text-text-dark focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all shadow-sm"
-                        />
+                        <input type="text" id="newCategoryName" placeholder="Ex: Viagens, Pets..." class="w-full px-4 py-3.5 bg-background-light dark:bg-background-dark border border-border dark:border-border-dark rounded-xl text-base text-text-light dark:text-text-dark focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all shadow-sm"/>
                     </div>
 
                     <div class="space-y-2">
@@ -378,34 +464,20 @@
                         <label for="gastoFixoDescription" class="block text-xs font-bold uppercase tracking-wider text-text-muted-light dark:text-text-muted-dark">
                             Descrição <span class="text-red-500">*</span>
                         </label>
-                        <input 
-                            type="text" 
-                            id="gastoFixoDescription" 
-                            placeholder="Ex: Aluguel, Condomínio..." 
-                            class="w-full px-4 py-3.5 bg-background-light dark:bg-background-dark border border-border dark:border-border-dark rounded-xl text-base text-text-light dark:text-text-dark placeholder-text-muted-light/50 dark:placeholder-text-muted-dark/50 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all shadow-sm"
-                        />
+                        <input type="text" id="gastoFixoDescription" placeholder="Ex: Aluguel, Condomínio..." class="w-full px-4 py-3.5 bg-background-light dark:bg-background-dark border border-border dark:border-border-dark rounded-xl text-base text-text-light dark:text-text-dark placeholder-text-muted-light/50 dark:placeholder-text-muted-dark/50 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all shadow-sm"/>
                     </div>
 
                     <div class="space-y-2">
                         <label for="gastoFixoAmount" class="block text-xs font-bold uppercase tracking-wider text-text-muted-light dark:text-text-muted-dark">
                             Valor (R$) <span class="text-red-500">*</span>
                         </label>
-                        <input 
-                            type="text" 
-                            id="gastoFixoAmount" 
-                            placeholder="0,00" 
-                            oninput="formatCurrencyInput(this)"
-                            class="w-full px-4 py-3.5 bg-background-light dark:bg-background-dark border border-border dark:border-border-dark rounded-xl text-lg font-semibold text-text-light dark:text-text-dark placeholder-text-muted-light/50 dark:placeholder-text-muted-dark/50 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all shadow-sm"
-                        />
+                        <input type="text" id="gastoFixoAmount" placeholder="0,00" oninput="formatCurrencyInput(this)" class="w-full px-4 py-3.5 bg-background-light dark:bg-background-dark border border-border dark:border-border-dark rounded-xl text-lg font-semibold text-text-light dark:text-text-dark placeholder-text-muted-light/50 dark:placeholder-text-muted-dark/50 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all shadow-sm"/>
                     </div>
 
                     <div class="space-y-2">
                         <label class="block text-xs font-bold uppercase tracking-wider text-text-muted-light dark:text-text-muted-dark">Categoria</label>
                         <div class="flex gap-2">
-                            <select 
-                                id="gastoFixoCategory" 
-                                class="w-full px-4 py-3.5 bg-background-light dark:bg-background-dark border border-border dark:border-border-dark rounded-xl text-base text-text-light dark:text-text-dark focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all shadow-sm"
-                            >
+                            <select id="gastoFixoCategory" class="w-full px-4 py-3.5 bg-background-light dark:bg-background-dark border border-border dark:border-border-dark rounded-xl text-base text-text-light dark:text-text-dark focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all shadow-sm">
                                 <option value="">Selecione (Opcional)</option>
                                 <option value="alimentacao">Alimentação</option>
                                 <option value="transporte">Transporte</option>
@@ -425,10 +497,7 @@
                             Dia do Vencimento <span class="text-red-500">*</span>
                         </label>
                         <div class="relative">
-                            <select 
-                                id="gastoFixoDueDay" 
-                                class="w-full pl-4 pr-10 py-3.5 bg-background-light dark:bg-background-dark border border-border dark:border-border-dark rounded-xl text-base text-text-light dark:text-text-dark focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all appearance-none shadow-sm"
-                            >
+                            <select id="gastoFixoDueDay" class="w-full pl-4 pr-10 py-3.5 bg-background-light dark:bg-background-dark border border-border dark:border-border-dark rounded-xl text-base text-text-light dark:text-text-dark focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all appearance-none shadow-sm">
                                 <option value="">Selecione o dia</option>
                                 <option value="1">Dia 1</option>
                                 <option value="5">Dia 5</option>
@@ -464,6 +533,6 @@
     <script src="/scripts/gastos-fixos.js"></script>
     <script src="/scripts/expense-modal.js"></script>
     <script src="/scripts/gasto-fixo-modal.js"></script>
-    <script src="/scripts/spa-router.js"></script>
+    <script src="/scripts/salario-modal.js"></script> <script src="/scripts/spa-router.js"></script>
 </body>
 </html>

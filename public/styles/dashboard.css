@@ -1,6 +1,6 @@
 /*
  * ============================================================
- * Dashboard CSS - Estilos customizados
+ * Dashboard CSS - Estilos customizados (Completo)
  * ============================================================
  */
 
@@ -97,12 +97,6 @@ aside {
     }
 }
 
-@media (max-width: 1023px) {
-    .header-fixed {
-        left: 0;
-    }
-}
-
 /* -------------------- Header -------------------- */
 .header-user-name {
     color: #334155;
@@ -137,6 +131,7 @@ aside {
     height: 0;
 }
 
+/* Alturas Exemplo (Controladas via JS idealmente, mas mantidas do original) */
 .bar-height-jan-income { height: 40%; }
 .bar-height-jan-expense { height: 20%; }
 .bar-height-fev-income { height: 60%; }
@@ -189,8 +184,10 @@ aside {
     background: rgba(160, 67, 10, 0.15);
 }
 
-/* -------------------- Modal de Despesa -------------------- */
-#addExpenseModal {
+/* -------------------- Modais (Despesa e Salário) -------------------- */
+/* ATUALIZADO: Inclui #addSalaryModal nas regras de visibilidade */
+#addExpenseModal,
+#addSalaryModal {
     display: none !important;
     position: fixed !important;
     inset: 0 !important;
@@ -200,15 +197,17 @@ aside {
     z-index: 50 !important;
 }
 
-#addExpenseModal.hidden {
+#addExpenseModal.hidden,
+#addSalaryModal.hidden {
     display: none !important;
 }
 
-#addExpenseModal:not(.hidden) {
+#addExpenseModal:not(.hidden),
+#addSalaryModal:not(.hidden) {
     display: flex !important;
 }
 
-/* Cards e tabelas */
+/* -------------------- Cards e Animações -------------------- */
 .stats-card {
     animation: fadeInUp 0.5s ease-out backwards;
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
@@ -232,6 +231,7 @@ aside {
     animation: fadeInUp 0.6s ease-out 0.5s backwards;
 }
 
+/* Animação para linhas de tabelas genéricas */
 table tbody tr {
     animation: slideIn 0.3s ease-out backwards;
     transition: all 0.2s ease;
@@ -252,6 +252,7 @@ table tbody tr:hover {
     background-color: rgba(160, 67, 10, 0.05);
 }
 
+/* Animação para itens da tabela de transações */
 #transactionsTableBody > div {
     animation: slideIn 0.3s ease-out backwards;
     transition: all 0.2s ease;
@@ -268,6 +269,7 @@ table tbody tr:hover {
 #transactionsTableBody > div:nth-child(9) { animation-delay: 0.45s; }
 #transactionsTableBody > div:nth-child(10) { animation-delay: 0.5s; }
 
+/* Hover padrão (Despesas/Geral) - Laranja */
 #transactionsTableBody > div:hover,
 .transaction-row:hover {
     background-color: rgba(160, 67, 10, 0.02);
@@ -280,6 +282,7 @@ table tbody tr:hover {
     background-color: rgba(160, 67, 10, 0.05);
 }
 
+/* Animação para Atividades Recentes */
 #recent-activities-container > div {
     animation: slideIn 0.3s ease-out backwards;
     transition: all 0.2s ease;
@@ -302,6 +305,7 @@ table tbody tr:hover {
     background-color: rgba(160, 67, 10, 0.05);
 }
 
+/* -------------------- Inputs e Botões Gerais -------------------- */
 input:focus, select:focus {
     transform: translateY(-1px);
     box-shadow: 0 4px 12px rgba(160, 67, 10, 0.1);
@@ -332,7 +336,6 @@ button[data-action]:active::before {
 
 /* Botão positivo (confirmação) */
 .btn-positive {
-    /* Nenhuma cor de fundo ou borda definida aqui */
     border-radius: 0.75rem;
     transition: background 0.22s cubic-bezier(0.4, 0, 0.2, 1), color 0.2s, transform 0.22s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.22s cubic-bezier(0.4, 0, 0.2, 1);
     box-shadow: 0 2px 8px rgba(160,67,10,0.08);

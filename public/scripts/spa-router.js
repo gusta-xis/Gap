@@ -31,7 +31,6 @@ const SPARouter = {
         if (!this.checkAuth()) return;
 
         this.updateUserInfo();
-
         this.setupNavigation();
 
         const initialPage = window.location.hash.replace('#', '') || 'dashboard';
@@ -102,7 +101,6 @@ const SPARouter = {
         }
 
         window.history.pushState({ page: pageName }, '', `#${pageName}`);
-
         this.loadPage(pageName);
     },
 
@@ -123,7 +121,6 @@ const SPARouter = {
             contentDiv.classList.add('loading');
 
             this.updateActiveNav(pageName);
-
             document.title = page.title;
 
             await new Promise(resolve => setTimeout(resolve, 150));
@@ -144,7 +141,6 @@ const SPARouter = {
             this.cleanupPage();
 
             await this.loadScript(page.script);
-
             await new Promise(resolve => setTimeout(resolve, 200));
 
             contentDiv.classList.remove('loading');
@@ -152,7 +148,6 @@ const SPARouter = {
             this.initPage(pageName);
             
             this.currentPage = pageName;
-            
             console.log(`✅ Página "${pageName}" carregada com sucesso`);
             
         } catch (error) {
@@ -189,7 +184,7 @@ const SPARouter = {
             script.remove();
         });
 
-        // Funções de limpeza específicas por página
+        // Limpeza específica de Gastos Fixos
         if (typeof window.cleanupGastosFixos === 'function') {
             window.cleanupGastosFixos();
         }
@@ -202,13 +197,19 @@ const SPARouter = {
             'loadDashboardData', 'loadGastosFixos',
             'updateUserName', 'renderMonthlyChart', 'handleAddExpense',
             'normalizeTransactions', 'applyFilters', 'renderTransactions',
-            'updateStatistics', 'loadCustomCategories', 'saveNewCategory'
+            'updateStatistics', 'loadCustomCategories', 'saveNewCategory',
+            // ADICIONADO: Limpeza de variáveis de salário se necessário (opcional)
+            'initializeSalaryModal' 
         ];
         
         globalVarsToClean.forEach(varName => {
             if (window[varName] !== undefined) {
                 try {
-                    delete window[varName];
+                    // Não deletamos as inicializações globais de modais se elas forem carregadas no HTML principal
+                    // mas limpamos dados de página
+                    if (!varName.includes('Modal')) { 
+                         delete window[varName];
+                    }
                 } catch (e) {
                     window[varName] = undefined;
                 }
@@ -219,9 +220,19 @@ const SPARouter = {
     initPage(pageName) {
         console.log(`🔄 Tentando inicializar página: ${pageName}`);
         
+        // --- INICIALIZAÇÃO DOS MODAIS GLOBAIS ---
+        
+        // 1. Inicializa Modal de Despesa
         if (typeof window.initializeExpenseModal === 'function') {
             window.initializeExpenseModal();
         }
+
+        // 2. Inicializa Modal de Salário (NOVO)
+        if (typeof window.initializeSalaryModal === 'function') {
+            window.initializeSalaryModal();
+        }
+
+        // --- INICIALIZAÇÃO ESPECÍFICA DA PÁGINA ---
 
         if (pageName === 'dashboard') {
             if (typeof window.initializeDashboard === 'function') {
@@ -271,4 +282,4 @@ window.SPARouter = SPARouter;
 document.addEventListener('DOMContentLoaded', function() {
     SPARouter.init();
 });
-console.log('✅ SPA Router carregado');
+console.log('✅ SPA Router carregado (Atualizado)');

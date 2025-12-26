@@ -126,3 +126,10 @@ BEGIN
 END$$
 
 DELIMITER ;
+
+
+--alteracoes--
+ALTER TABLE categorias ADD COLUMN slug VARCHAR(50) UNIQUE AFTER nome;
+ALTER TABLE categorias ADD COLUMN icon VARCHAR(50) DEFAULT NULL AFTER nome;
+
+ALTER TABLE salarios ADD COLUMN referencia_mes VARCHAR(7) NULL;
