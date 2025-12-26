@@ -29,6 +29,8 @@ let dashboardData = {
     historicoMensal: []
 };
 
+// ... (Funções auxiliares como recordBelongsToUser, initDashboard, etc. mantidas iguais) ...
+
 function recordBelongsToUser(item, userId) {
     if (!userId || !item) return false;
     const candidates = [item.user_id, item.userId, item.usuario_id, item.usuarioId, item.user];
@@ -88,23 +90,14 @@ if (user && !user.introducao_vista) {
 }
 
 function mostrarIntroducao() {
-  // Exiba seu modal/banner de introdução aqui
-  // Exemplo simples:
   alert('Bem-vindo! Esta é a introdução do sistema.');
-
-  // Quando o usuário finalizar a introdução:
   fetch(`/api/v1/users/${user.id}/introducao-vista`, { method: 'PUT' })
     .then(() => {
-      // Atualize o localStorage para não mostrar mais
       user.introducao_vista = 1;
       localStorage.setItem('user', JSON.stringify(user));
     });
 }
 
-
-/**
- * Inicializa o dashboard
- */
 async function initializeDashboard() {
     setupMobileMenu();
     setupButtons();
@@ -113,18 +106,13 @@ async function initializeDashboard() {
 }
 
 function updateUserName() {
-    console.log('🔵 updateUserName foi chamado');
+    // ... (Mantido igual) ...
     try {
         const userDataString = sessionStorage.getItem('user') || localStorage.getItem('user');
-        console.log('🔵 userDataString:', userDataString);
         
-        if (!userDataString) {
-            console.warn('Dados do usuário não encontrados no localStorage');
-            return;
-        }
+        if (!userDataString) return;
         
         const userData = JSON.parse(userDataString);
-        console.log('🔵 userData parseado:', userData);
         
         if (userData && userData.nome) {
             const primeiroNome = userData.nome.split(' ')[0];
@@ -132,56 +120,25 @@ function updateUserName() {
             
             const greetingElement = document.querySelector('[data-user-greeting]');
             const expectedGreeting = `Olá, ${primeiroNome}!`;
-            if (greetingElement && greetingElement.textContent !== expectedGreeting) {
-                greetingElement.textContent = expectedGreeting;
-                console.log('Nome atualizado na saudação:', primeiroNome);
-            } else if (greetingElement) {
-                console.log('✅ Saudação já carregada corretamente');
-            }
+            if (greetingElement) greetingElement.textContent = expectedGreeting;
             
-            console.log('🔵 Procurando elemento headerUserName...');
             const headerUserName = document.getElementById('headerUserName');
-            console.log('🔵 headerUserName encontrado:', !!headerUserName);
-            if (headerUserName && headerUserName.textContent !== userName) {
-                headerUserName.textContent = userName;
-                console.log('✅ Nome atualizado no header:', userName);
-            } else if (headerUserName) {
-                console.log('✅ Nome no header já correto');
-            }
+            if (headerUserName) headerUserName.textContent = userName;
             
-            console.log('🔵 Procurando elemento headerAvatar...');
             const headerAvatar = document.getElementById('headerAvatar');
-            console.log('🔵 headerAvatar encontrado:', !!headerAvatar);
             const inicial = userName.charAt(0).toUpperCase();
-            if (headerAvatar && headerAvatar.textContent !== inicial) {
-                headerAvatar.textContent = inicial;
-                console.log('✅ Avatar atualizado com inicial:', inicial);
-            } else if (headerAvatar) {
-                console.log('✅ Avatar já correto');
-            }
-        } else {
-            console.warn('userData.nome não encontrado:', userData);
+            if (headerAvatar) headerAvatar.textContent = inicial;
         }
     } catch (error) {
         console.error('Erro ao atualizar nome do usuário:', error);
     }
 }
 
-/**
- * Carrega todos os dados do dashboard
- * ⚠️ SEGURANÇA: Usa sessionStorage e refresh token automático
- */
 async function loadDashboardData() {
     try {
-        console.log('loadDashboardData iniciado');
         showLoading(true);
-        
         const token = sessionStorage.getItem('accessToken') || localStorage.getItem('token');
-        console.log('Token encontrado:', !!token);
-        
         if (!token) {
-            console.warn('Token não encontrado. Redirecionando para login.');
-            showLoading(false);
             window.location.replace('/');
             return;
         }
@@ -192,78 +149,47 @@ async function loadDashboardData() {
         const userData = userDataRaw ? JSON.parse(userDataRaw) : null;
         const currentUserId = userData && userData.id ? Number(userData.id) : null;
         
-        console.log('Buscando gastos da API...');
         try {
             [gastosFixos, gastosVariaveis] = await Promise.all([
                 apiService.getGastosFixos(),
                 apiService.getGastosVariaveis()
             ]);
-            console.log('Gastos recebidos:', { gastosFixos, gastosVariaveis });
             if (currentUserId) {
                 gastosFixos = (gastosFixos || []).filter(g => recordBelongsToUser(g, currentUserId));
                 gastosVariaveis = (gastosVariaveis || []).filter(g => recordBelongsToUser(g, currentUserId));
             }
         } catch (error) {
-            console.warn('Erro ao buscar gastos, usando dados vazios:', error);
             gastosFixos = [];
             gastosVariaveis = [];
         }
 
         let salario = 0;
-        console.log('Tentando buscar salário...');
         try {
-            const userData = JSON.parse(sessionStorage.getItem('user') || localStorage.getItem('user'));
-            console.log('UserData:', userData);
             if (userData && userData.id) {
-                console.log('Buscando salários para user_id:', userData.id);
                 const salarioList = await apiService.getSalarios();
-                console.log('Salários recebidos:', salarioList);
                 if (Array.isArray(salarioList) && salarioList.length > 0) {
                     salario = salarioList[0].valor || 0;
                 }
             }
         } catch (error) {
-            console.warn('Salário não encontrado, usando valor 0:', error);
             salario = 0;
         }
 
-        console.log('Processando dados...');
         dashboardData.salario = salario;
         dashboardData.gastosFixos = gastosFixos || [];
         dashboardData.gastosVariaveis = gastosVariaveis || [];
         
-        console.log('📊 dashboardData completo:', dashboardData);
-        
-        console.log('Calculando totais...');
         calculateTotals();
-        
-        console.log('Calculando histórico mensal...');
         calculateMonthlyHistory();
-        
-        console.log('Atualizando UI...');
         updateUI();
-        
-        console.log('Atualizando gráfico...');
         updateBarChart();
-        
-        console.log('Finalizando carregamento...');
         showLoading(false);
     } catch (error) {
-        console.error('Erro ao carregar dados do dashboard:', error);
         showLoading(false);
-        dashboardData = {
-            salario: 0,
-            gastosFixos: [],
-            gastosVariaveis: [],
-            totalReceitas: 0,
-            totalDespesas: 0,
-            saldoAtual: 0,
-            historicoMensal: []
-        };
+        dashboardData = { salario: 0, gastosFixos: [], gastosVariaveis: [], totalReceitas: 0, totalDespesas: 0, saldoAtual: 0, historicoMensal: [] };
         updateUI();
     }
 }
-
 
 function calculateTotals() {
     const mesAtual = new Date().getMonth() + 1;
@@ -281,9 +207,7 @@ function calculateTotals() {
 
     dashboardData.totalReceitas = dashboardData.salario + totalEntradasVariaveis;
     
-    const totalFixos = dashboardData.gastosFixos.reduce((sum, gasto) => {
-        return sum + parseFloat(gasto.valor || 0);
-    }, 0);
+    const totalFixos = dashboardData.gastosFixos.reduce((sum, gasto) => sum + parseFloat(gasto.valor || 0), 0);
     
     const totalVariaveis = dashboardData.gastosVariaveis
         .filter(gasto => {
@@ -293,9 +217,7 @@ function calculateTotals() {
                    (dataGasto.getMonth() + 1 === mesAtual) && 
                    (dataGasto.getFullYear() === anoAtual);
         })
-        .reduce((sum, gasto) => {
-            return sum + parseFloat(gasto.valor || 0);
-        }, 0);
+        .reduce((sum, gasto) => sum + parseFloat(gasto.valor || 0), 0);
     
     dashboardData.totalDespesas = totalFixos + totalVariaveis;
     dashboardData.saldoAtual = dashboardData.totalReceitas - dashboardData.totalDespesas;
@@ -323,9 +245,7 @@ function calculateMonthlyHistory() {
 
         const receitas = dashboardData.salario + receitasVariaveis;
         
-        const despesasFixas = dashboardData.gastosFixos.reduce((sum, gasto) => {
-            return sum + parseFloat(gasto.valor || 0);
-        }, 0);
+        const despesasFixas = dashboardData.gastosFixos.reduce((sum, gasto) => sum + parseFloat(gasto.valor || 0), 0);
 
         const despesasVariaveis = dashboardData.gastosVariaveis
             .filter(gasto => {
@@ -335,9 +255,7 @@ function calculateMonthlyHistory() {
                        (dataGasto.getMonth() + 1 === mesNumero) && 
                        (dataGasto.getFullYear() === ano);
             })
-            .reduce((sum, gasto) => {
-                return sum + parseFloat(gasto.valor || 0);
-            }, 0);
+            .reduce((sum, gasto) => sum + parseFloat(gasto.valor || 0), 0);
         
         const totalDespesas = despesasFixas + despesasVariaveis;
         const saldo = receitas - totalDespesas;
@@ -351,16 +269,11 @@ function calculateMonthlyHistory() {
             saldo
         });
     }
-    
     dashboardData.historicoMensal = historicoMensal;
-    console.log('Histórico mensal calculado:', historicoMensal);
 }
 
 function updateBarChart() {
-    if (!dashboardData.historicoMensal || dashboardData.historicoMensal.length === 0) {
-        console.warn('Sem dados históricos para o gráfico');
-        return;
-    }
+    if (!dashboardData.historicoMensal || dashboardData.historicoMensal.length === 0) return;
 
     const incomeBars = document.querySelectorAll('[data-chart-income]');
     const expenseBars = document.querySelectorAll('[data-chart-expense]');
@@ -368,10 +281,7 @@ function updateBarChart() {
     const incomeValues = document.querySelectorAll('[data-chart-income-value]');
     const expenseValues = document.querySelectorAll('[data-chart-expense-value]');
 
-    if (incomeBars.length === 0 || expenseBars.length === 0) {
-        console.warn('Elementos do gráfico não encontrados');
-        return;
-    }
+    if (incomeBars.length === 0) return;
 
     const maxValor = Math.max(
         ...dashboardData.historicoMensal.map(m => Math.max(m.receitas, m.despesas))
@@ -381,23 +291,15 @@ function updateBarChart() {
         const alturaReceita = maxValor > 0 ? Math.round((mes.receitas / maxValor) * 160) : 0;
         const alturaDespesa = maxValor > 0 ? Math.round((mes.despesas / maxValor) * 160) : 0;
 
-        const incomeBar = incomeBars[index];
-        const expenseBar = expenseBars[index];
-        const label = labels[index];
-        const incomeValue = incomeValues[index];
-        const expenseValue = expenseValues[index];
-
-        if (incomeBar) incomeBar.style.height = `${alturaReceita}px`;
-        if (expenseBar) expenseBar.style.height = `${alturaDespesa}px`;
-        if (label) label.textContent = mes.mes || mes.nomeMes || '';
-        if (incomeValue) incomeValue.textContent = formatCurrency(mes.receitas || 0);
-        if (expenseValue) {
+        if (incomeBars[index]) incomeBars[index].style.height = `${alturaReceita}px`;
+        if (expenseBars[index]) expenseBars[index].style.height = `${alturaDespesa}px`;
+        if (labels[index]) labels[index].textContent = mes.mes || mes.nomeMes || '';
+        if (incomeValues[index]) incomeValues[index].textContent = formatCurrency(mes.receitas || 0);
+        if (expenseValues[index]) {
             const valorAbsoluto = formatCurrency(Math.abs(mes.despesas || 0));
-            expenseValue.innerHTML = `<span class="mr-1">-</span>${valorAbsoluto}`;
+            expenseValues[index].innerHTML = `<span class="mr-1">-</span>${valorAbsoluto}`;
         }
     });
-
-    console.log('Gráfico de barras atualizado com dados do usuário');
 }
 
 function updateUI() {
@@ -406,24 +308,12 @@ function updateUI() {
         income: dashboardData.totalReceitas,
         expense: dashboardData.totalDespesas
     });
-    
-    try {
-        updateRecentActivities();
-    } catch (error) {
-        console.error('Erro ao atualizar atividades:', error);
-    }
-    
-    if (dashboardData.salario === 0 && 
-        dashboardData.gastosFixos.length === 0 && 
-        dashboardData.gastosVariaveis.length === 0) {
-        console.log('📊 Dashboard pronto! Nenhum dado cadastrado ainda. Comece adicionando seu salário e despesas.');
-    }
+    updateRecentActivities();
 }
 
 function setupMobileMenu() {
     const menuButton = document.querySelector('.lg\\:hidden button');
     const sidebar = document.querySelector('aside');
-    
     if (menuButton && sidebar) {
         menuButton.addEventListener('click', function() {
             sidebar.classList.toggle('flex');
@@ -434,31 +324,16 @@ function setupMobileMenu() {
 
 function setupButtons() {
     const addExpenseBtn = document.querySelector('button[data-action="add-expense"]');
-    if (addExpenseBtn) {
-        addExpenseBtn.addEventListener('click', function() {
-            handleAddExpense();
-        });
-    }
+    if (addExpenseBtn) addExpenseBtn.addEventListener('click', handleAddExpense);
     
     const viewStatementBtn = document.querySelector('button[data-action="view-statement"]');
-    if (viewStatementBtn) {
-        viewStatementBtn.addEventListener('click', function() {
-            handleViewStatement();
-        });
-    }
+    if (viewStatementBtn) viewStatementBtn.addEventListener('click', handleViewStatement);
 }
 
-/**
- * Atualiza a lista de atividades recentes
- */
 function updateRecentActivities() {
     console.log('Atualizando atividades recentes...');
     const activityContainer = document.getElementById('recent-activities-container');
-    if (!activityContainer) {
-        console.warn('Container de atividades não encontrado');
-        return;
-    }
-    console.log('Container encontrado');
+    if (!activityContainer) return;
     
     const allTransactions = [
         ...dashboardData.gastosFixos.map(g => ({
@@ -468,7 +343,7 @@ function updateRecentActivities() {
             data: g.data || new Date(),
             categoria: g.categoria || 'Geral',
             id: g.id,
-            origem: 'fixo' // Adicionado para identificar gastos fixos!
+            origem: 'fixo'
         })),
         ...dashboardData.gastosVariaveis.map(g => ({
             tipo: g.tipo,
@@ -484,12 +359,9 @@ function updateRecentActivities() {
         }))
     ];
     
-    console.log('🔵 allTransactions:', allTransactions);
-    
     if (dashboardData.salario > 0) {
         const ultimoDiaMes = new Date();
         ultimoDiaMes.setDate(25);
-        
         allTransactions.push({
             tipo: 'receita',
             descricao: 'Pagamento Salário',
@@ -500,7 +372,6 @@ function updateRecentActivities() {
     }
     
     allTransactions.sort((a, b) => new Date(b.data) - new Date(a.data));
-    
     const recentTransactions = allTransactions.slice(0, 6);
     
     activityContainer.innerHTML = '';
@@ -584,8 +455,10 @@ function updateRecentActivities() {
             ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300'
             : 'bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300';
         
+        // ALTERAÇÃO DE RESPONSIVIDADE AQUI:
+        // Adicionado min-w-[800px] e padding ajustado
         const html = `
-            <div class="grid grid-cols-[64px_2fr_1.5fr_2fr_1.2fr_1fr_72px] items-center px-6 py-4 ${borderClass}">
+            <div class="grid grid-cols-[64px_2fr_1.5fr_2fr_1.2fr_1fr_72px] min-w-[800px] items-center px-4 sm:px-6 py-4 ${borderClass}">
                 <div class="bg-primary/10 dark:bg-primary/20 text-primary dark:text-primary rounded-full w-10 h-10 flex items-center justify-center flex-shrink-0">
                     ${icon}
                 </div>
@@ -657,25 +530,14 @@ function normalizeCategorySlug(value) {
 }
 
 function handleAddExpense() {
-    console.log('🔵 handleAddExpense chamado - abrindo modal');
-    try {
-        if (typeof openExpenseModal === 'function') {
-            openExpenseModal();
-            return;
-        }
-        if (window.expenseModal && typeof window.expenseModal.openExpenseModalForEdit === 'function') {
-            // Fallback: abre modal em modo de criação (sem payload)
-            openExpenseModal();
-            return;
-        }
-        console.warn('⚠️ Função openExpenseModal não encontrada');
-    } catch (e) {
-        console.error('Erro ao abrir modal de despesa:', e);
+    if (typeof openExpenseModal === 'function') {
+        openExpenseModal();
+    } else if (window.expenseModal && typeof window.expenseModal.openExpenseModalForEdit === 'function') {
+        openExpenseModal();
     }
 }
 
 function handleViewStatement() {
-    console.log('🔵 handleViewStatement chamado');
     try {
         const rows = buildStatementRows();
         const userData = JSON.parse(sessionStorage.getItem('user') || localStorage.getItem('user') || '{}');
@@ -684,26 +546,23 @@ function handleViewStatement() {
         const printWindow = window.open('', '_blank', 'width=1100,height=800');
 
         if (!printWindow) {
-            showError('Não foi possível abrir a janela de impressão. Verifique se o bloqueador de pop-ups está ativo.');
+            showError('Não foi possível abrir a janela de impressão.');
             return;
         }
 
         printWindow.document.write(html);
         printWindow.document.close();
-
         printWindow.onload = () => {
             printWindow.focus();
             printWindow.print();
         };
     } catch (error) {
-        console.error('Erro ao gerar PDF do extrato:', error);
         showError('Erro ao gerar o PDF do extrato. Tente novamente.');
     }
 }
 
 function buildStatementRows() {
     const rows = [];
-
     (dashboardData.gastosFixos || []).forEach(g => {
         rows.push({
             data: g.data || g.data_gasto || g.created_at || new Date(),
@@ -839,24 +698,15 @@ function formatCurrency(value) {
 
 function updateDashboardData(data) {
     const balanceElement = document.querySelector('[data-value="balance"]');
-    if (balanceElement && data.balance) {
-        balanceElement.textContent = formatCurrency(data.balance);
-    }
+    if (balanceElement && data.balance) balanceElement.textContent = formatCurrency(data.balance);
     
     const incomeElement = document.querySelector('[data-value="income"]');
-    if (incomeElement && data.income) {
-        incomeElement.textContent = formatCurrency(data.income);
-    }
+    if (incomeElement && data.income) incomeElement.textContent = formatCurrency(data.income);
     
     const expenseElement = document.querySelector('[data-value="expense"]');
-    if (expenseElement && data.expense) {
-        expenseElement.textContent = formatCurrency(data.expense);
-    }
+    if (expenseElement && data.expense) expenseElement.textContent = formatCurrency(data.expense);
 }
 
-window.dashboardApp = {
-    updateDashboardData,
-    formatCurrency
-};
+window.dashboardApp = { updateDashboardData, formatCurrency };
 
 })();

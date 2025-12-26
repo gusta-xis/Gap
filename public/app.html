@@ -140,7 +140,10 @@
             <div class="layout-content-container flex flex-col w-full min-h-full max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-10 py-4 sm:py-6">
                 
                 <header class="header-fixed sticky top-0 z-sticky mb-6 flex items-center justify-between rounded-2xl bg-white/5 dark:bg-black/20 backdrop-blur-md border border-white/10 dark:border-white/5 px-4 py-3 shadow-sm transition-all duration-300">
-                    
+                    <!-- Botão Hamburguer Mobile -->
+                    <button id="openMobileMenuBtn" class="lg:hidden mr-3 flex items-center justify-center p-2 rounded-xl text-text-light dark:text-text-dark hover:bg-secondary dark:hover:bg-white/10 transition-all" aria-label="Abrir menu">
+                        <span id="hamburgerIcon" class="material-symbols-outlined text-3xl transition-transform duration-300">menu</span>
+                    </button>
                     <div class="flex items-center gap-3">
                         <div id="headerAvatar" class="header-avatar flex h-10 w-10 items-center justify-center rounded-full bg-primary/10 text-primary font-bold shadow-inner ring-2 ring-white/50 dark:ring-white/10">
                             <script>document.write(window.__preloadedUserInitial || 'U');</script>
@@ -160,6 +163,48 @@
                         </svg>
                     </button>
                 </header>
+
+                <!-- Drawer Mobile Menu -->
+                <div id="mobileMenuDrawer" class="fixed inset-0 z-[70] bg-black/40 backdrop-blur-[2px] transition-opacity duration-300 hidden lg:hidden" onclick="closeMobileMenu()">
+                    <aside class="absolute left-0 top-0 h-full w-64 bg-surface-light dark:bg-surface-dark shadow-2xl flex flex-col transition-transform duration-300 transform -translate-x-full" id="mobileMenuAside" onclick="event.stopPropagation();">
+                        <div class="flex h-20 items-center px-8 shrink-0 justify-between">
+                            <img src="/img/financel.svg" alt="Finance Icon" class="h-10 w-auto object-contain">
+                            <!-- Botão X para fechar -->
+                            <button id="closeMobileMenuBtn" class="flex items-center justify-center p-2 rounded-xl text-text-light dark:text-text-dark hover:bg-secondary dark:hover:bg-white/10 transition-all" aria-label="Fechar menu">
+                                <span class="material-symbols-outlined text-3xl">close</span>
+                            </button>
+                        </div>
+                        <nav class="flex flex-col gap-2 px-4 py-4 flex-1 overflow-y-auto scroll-smooth-y">
+                            <!-- Copie os links do menu lateral aqui -->
+                            <a class="nav-link group flex items-center gap-3 px-4 py-3.5 rounded-xl text-text-muted-light dark:text-text-muted-dark hover:bg-secondary/50 hover:text-primary dark:hover:bg-white/5 dark:hover:text-white transition-all duration-200" href="#" data-page="dashboard">
+                                <span class="material-symbols-outlined text-[24px] group-hover:scale-110 transition-transform">dashboard</span>
+                                <span class="text-sm font-bold tracking-wide">Dashboard</span>
+                            </a>
+                            <a class="nav-link group flex items-center gap-3 px-4 py-3.5 rounded-xl text-text-muted-light dark:text-text-muted-dark hover:bg-secondary/50 hover:text-primary dark:hover:bg-white/5 dark:hover:text-white transition-all duration-200" href="#" data-page="transacoes">
+                                <span class="material-symbols-outlined text-[24px] group-hover:scale-110 transition-transform">receipt_long</span>
+                                <span class="text-sm font-bold tracking-wide">Minhas Transações</span>
+                            </a>
+                            <a class="nav-link group flex items-center gap-3 px-4 py-3.5 rounded-xl text-text-muted-light dark:text-text-muted-dark hover:bg-secondary/50 hover:text-primary dark:hover:bg-white/5 dark:hover:text-white transition-all duration-200" href="#" data-page="gastos-fixos">
+                                <span class="material-symbols-outlined text-[24px] group-hover:scale-110 transition-transform">event_repeat</span>
+                                <span class="text-sm font-bold tracking-wide">Gastos Fixos</span>
+                            </a>
+                            <a class="nav-link group flex items-center gap-3 px-4 py-3.5 rounded-xl text-text-muted-light dark:text-text-muted-dark hover:bg-secondary/50 hover:text-primary dark:hover:bg-white/5 dark:hover:text-white transition-all duration-200" href="#">
+                                <span class="material-symbols-outlined text-[24px] group-hover:scale-110 transition-transform">category</span>
+                                <span class="text-sm font-bold tracking-wide">Categorias</span>
+                            </a>
+                            <a class="nav-link group flex items-center gap-3 px-4 py-3.5 rounded-xl text-text-muted-light dark:text-text-muted-dark hover:bg-secondary/50 hover:text-primary dark:hover:bg-white/5 dark:hover:text-white transition-all duration-200" href="#">
+                                <span class="material-symbols-outlined text-[24px] group-hover:scale-110 transition-transform">trending_up</span>
+                                <span class="text-sm font-bold tracking-wide">Metas Financeiras</span>
+                            </a>
+                        </nav>
+                        <div class="mt-auto px-4 py-6 border-t border-border dark:border-border-dark shrink-0">
+                            <a class="nav-link group flex items-center gap-3 px-4 py-3.5 rounded-xl text-text-muted-light dark:text-text-muted-dark hover:bg-secondary/50 hover:text-primary dark:hover:bg-white/5 dark:hover:text-white transition-all duration-200" href="#">
+                                <span class="material-symbols-outlined text-[24px] group-hover:rotate-45 transition-transform">settings</span>
+                                <span class="text-sm font-bold tracking-wide">Configurações</span>
+                            </a>
+                        </div>
+                    </aside>
+                </div>
 
                 <main id="app-content" class="flex-1 w-full animate-fade-in relative z-0 pb-20 lg:pb-0">
                     </main>
@@ -557,5 +602,69 @@
     <script src="/scripts/expense-modal.js"></script>
     <script src="/scripts/gasto-fixo-modal.js"></script>
     <script src="/scripts/salario-modal.js"></script> <script src="/scripts/spa-router.js"></script>
+    <script>
+// filepath: c:\Users\luizg\Desktop\Projetos\Gap\public\app.html
+function openMobileMenu() {
+    const drawer = document.getElementById('mobileMenuDrawer');
+    const aside = document.getElementById('mobileMenuAside');
+    drawer.classList.remove('hidden');
+    setTimeout(() => aside.classList.remove('-translate-x-full'), 10);
+}
+function closeMobileMenu() {
+    const drawer = document.getElementById('mobileMenuDrawer');
+    const aside = document.getElementById('mobileMenuAside');
+    aside.classList.add('-translate-x-full');
+    setTimeout(() => drawer.classList.add('hidden'), 300);
+}
+</script>
+<script>
+// filepath: c:\Users\luizg\Desktop\Projetos\Gap\public\app.html
+
+// Animação do botão hamburguer
+const openBtn = document.getElementById('openMobileMenuBtn');
+const hamburgerIcon = document.getElementById('hamburgerIcon');
+const drawer = document.getElementById('mobileMenuDrawer');
+const aside = document.getElementById('mobileMenuAside');
+
+openBtn.onclick = function(e) {
+    // animação leve no ícone
+    hamburgerIcon.classList.add('scale-110', 'rotate-12');
+    setTimeout(() => {
+        hamburgerIcon.classList.remove('scale-110', 'rotate-12');
+    }, 250);
+
+    drawer.classList.remove('hidden');
+    // animação do aside
+    setTimeout(() => aside.classList.remove('-translate-x-full'), 10);
+};
+
+// Botão X para fechar
+document.getElementById('closeMobileMenuBtn').onclick = function(e) {
+    e.stopPropagation();
+    closeMobileMenu(true);
+};
+
+// Fecha ao clicar em link do menu mobile
+aside.querySelectorAll('a').forEach(link => {
+    link.addEventListener('click', () => closeMobileMenu(false));
+});
+
+function closeMobileMenu(instant = false) {
+    aside.classList.add('-translate-x-full');
+    if (instant) {
+        // Fecha instantaneamente, mas mantém suavidade do aside
+        setTimeout(() => drawer.classList.add('hidden'), 150);
+    } else {
+        // Fecha instantaneamente ao clicar em link
+        drawer.classList.add('hidden');
+        setTimeout(() => aside.classList.remove('-translate-x-full'), 300); // prepara para próxima abertura
+    }
+}
+
+// Fecha ao clicar fora do aside
+drawer.onclick = function(e) {
+    if (e.target === drawer) closeMobileMenu(true);
+};
+</script>
 </body>
 </html>

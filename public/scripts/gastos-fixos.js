@@ -7,16 +7,9 @@
         try {
             console.log('🚀 Iniciando módulo de gastos fixos...');
             const isAuthenticated = checkAuthentication();
-            if (!isAuthenticated) {
-                console.warn('⚠️ Não autenticado');
-                return;
-            }
-            
-            console.log('🔧 Configurando event listeners...');
+            if (!isAuthenticated) return;
             setupEventListeners();
-            console.log('📥 Carregando dados...');
             await loadGastosFixos();
-            console.log('✅ Módulo de gastos fixos inicializado com sucesso');
         } catch (error) {
             console.error('❌ Erro na inicialização dos gastos fixos:', error);
         }
@@ -25,7 +18,6 @@
     window.initializeGastosFixos = initGastosFixos;
     
     window.cleanupGastosFixos = function() {
-        console.log('🧹 Limpando dados de gastos fixos...');
         gastosFixosData = [];
     };
 
@@ -34,19 +26,9 @@
         const user = sessionStorage.getItem('user') || localStorage.getItem('user');
         
         if (!token || !user) {
-            console.warn('Usuário não autenticado. Redirecionando para login.');
             redirectToLogin();
             return false;
         }
-
-        try {
-            JSON.parse(user);
-        } catch (e) {
-            console.warn('Dados de usuário corrompidos. Limpando sessão.');
-            redirectToLogin();
-            return false;
-        }
-        
         return true;
     }
 
@@ -64,33 +46,23 @@
         
         if (btnAddGastoFixo) {
             btnAddGastoFixo.addEventListener('click', () => {
-                if (typeof openGastoFixoModal === 'function') {
-                    openGastoFixoModal();
-                }
+                if (typeof openGastoFixoModal === 'function') openGastoFixoModal();
             });
         }
         
         if (btnAddGastoFixoEmpty) {
             btnAddGastoFixoEmpty.addEventListener('click', () => {
-                if (typeof openGastoFixoModal === 'function') {
-                    openGastoFixoModal();
-                }
+                if (typeof openGastoFixoModal === 'function') openGastoFixoModal();
             });
         }
     }
 
     async function loadGastosFixos() {
         try {
-            console.log('📥 Iniciando loadGastosFixos...');
             showLoading();
-            
             const token = sessionStorage.getItem('accessToken') || localStorage.getItem('token');
+            if (!token) throw new Error('Token não encontrado');
             
-            if (!token) {
-                throw new Error('Token não encontrado');
-            }
-            
-            console.log('🔍 Fazendo requisição para /api/v1/gastos-fixos');
             const response = await fetch('/api/v1/gastos-fixos', {
                 method: 'GET',
                 headers: {
@@ -100,7 +72,6 @@
             });
 
             if (!response.ok) {
-                console.error('❌ Resposta não OK:', response.status);
                 if (response.status === 401) {
                     redirectToLogin();
                     return;
@@ -109,13 +80,10 @@
             }
 
             gastosFixosData = await response.json();
-            console.log('✅ Dados carregados:', gastosFixosData.length, 'gastos');
-            
             renderGastosFixos();
             updateStatistics();
             
         } catch (error) {
-            console.error('❌ Erro ao carregar gastos fixos:', error);
             hideLoading();
             showError('Erro ao carregar gastos fixos. Tente novamente.');
             showEmpty();
@@ -123,24 +91,18 @@
     }
 
     function renderGastosFixos() {
-        console.log('🎨 Renderizando gastos fixos...');
         hideLoading();
         
         if (!gastosFixosData || gastosFixosData.length === 0) {
-            console.log('📭 Nenhum gasto fixo, mostrando estado vazio');
             showEmpty();
             return;
         }
         
-        console.log(`📊 Renderizando ${gastosFixosData.length} gastos`);
         hideEmpty();
         showTable();
         
         const tbody = document.getElementById('gastosFixosTableBody');
-        if (!tbody) {
-            console.error('❌ Elemento gastosFixosTableBody não encontrado');
-            return;
-        }
+        if (!tbody) return;
         
         tbody.innerHTML = '';
         
@@ -159,8 +121,9 @@
         const diaVencimento = gasto.dia_vencimento || '-';
         const valor = formatCurrency(gasto.valor || 0);
         
+        // RESPONSIVIDADE: Padding ajustado para px-4 sm:px-6
         tr.innerHTML = `
-            <td class="px-6 py-4">
+            <td class="px-4 sm:px-6 py-4">
                 <div class="flex items-center gap-3">
                     <div class="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
                         <span class="material-symbols-outlined text-primary text-lg">event_repeat</span>
@@ -170,18 +133,18 @@
                     </div>
                 </div>
             </td>
-            <td class="px-6 py-4">
+            <td class="px-4 sm:px-6 py-4">
                 <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300">
                     ${categoria}
                 </span>
             </td>
-            <td class="px-6 py-4 text-center">
+            <td class="px-4 sm:px-6 py-4 text-center">
                 <span class="text-sm font-medium text-slate-700 dark:text-slate-300">Dia ${diaVencimento}</span>
             </td>
-            <td class="px-6 py-4 text-right">
+            <td class="px-4 sm:px-6 py-4 text-right">
                 <span class="text-sm font-semibold text-red-600 dark:text-red-400">${valor}</span>
             </td>
-            <td class="px-6 py-4">
+            <td class="px-4 sm:px-6 py-4">
                 <div class="flex items-center justify-end gap-3">
                     <button 
                         onclick="editGasto(${gasto.id})"
@@ -217,21 +180,12 @@
 
     function updateStatistics() {
         try {
-            console.log('📊 Atualizando estatísticas...');
             const total = gastosFixosData.reduce((sum, gasto) => sum + parseFloat(gasto.valor || 0), 0);
             const totalEl = document.getElementById('totalGastosFixos');
-            if (totalEl) {
-                totalEl.textContent = formatCurrency(total);
-            } else {
-                console.warn('⚠️ Elemento totalGastosFixos não encontrado');
-            }
+            if (totalEl) totalEl.textContent = formatCurrency(total);
             
             const quantidadeEl = document.getElementById('quantidadeGastos');
-            if (quantidadeEl) {
-                quantidadeEl.textContent = gastosFixosData.length;
-            } else {
-                console.warn('⚠️ Elemento quantidadeGastos não encontrado');
-            }
+            if (quantidadeEl) quantidadeEl.textContent = gastosFixosData.length;
             
             const hoje = new Date().getDate();
             const proximosGastos = gastosFixosData
@@ -243,36 +197,23 @@
             
             if (proximosGastos.length > 0) {
                 const proximo = proximosGastos[0];
-                if (proximoVencimentoEl) {
-                    proximoVencimentoEl.textContent = `Dia ${proximo.dia_vencimento}`;
-                }
-                if (proximoVencimentoDescEl) {
-                    proximoVencimentoDescEl.textContent = sanitizeHTML(proximo.nome);
-                }
+                if (proximoVencimentoEl) proximoVencimentoEl.textContent = `Dia ${proximo.dia_vencimento}`;
+                if (proximoVencimentoDescEl) proximoVencimentoDescEl.textContent = sanitizeHTML(proximo.nome);
             } else {
-                const primeirosDoMes = gastosFixosData
-                    .sort((a, b) => a.dia_vencimento - b.dia_vencimento);
-                
+                const primeirosDoMes = gastosFixosData.sort((a, b) => a.dia_vencimento - b.dia_vencimento);
                 if (primeirosDoMes.length > 0) {
                     const proximo = primeirosDoMes[0];
-                    if (proximoVencimentoEl) {
-                        proximoVencimentoEl.textContent = `Dia ${proximo.dia_vencimento}`;
-                    }
-                    if (proximoVencimentoDescEl) {
-                        proximoVencimentoDescEl.textContent = `${sanitizeHTML(proximo.nome)} (próx. mês)`;
-                    }
+                    if (proximoVencimentoEl) proximoVencimentoEl.textContent = `Dia ${proximo.dia_vencimento}`;
+                    if (proximoVencimentoDescEl) proximoVencimentoDescEl.textContent = `${sanitizeHTML(proximo.nome)} (próx. mês)`;
                 }
             }
-            console.log('✅ Estatísticas atualizadas');
         } catch (error) {
             console.error('❌ Erro ao atualizar estatísticas:', error);
         }
     }
 
     window.editGasto = function(gastoId) {
-        if (typeof openGastoFixoModal === 'function') {
-            openGastoFixoModal(gastoId);
-        }
+        if (typeof openGastoFixoModal === 'function') openGastoFixoModal(gastoId);
     };
 
     async function deleteGasto(id, nome) {
@@ -296,7 +237,6 @@
         const loading = document.getElementById('loadingStateFixos');
         const empty = document.getElementById('emptyStateFixos');
         const table = document.getElementById('tableContainerFixos');
-        
         if (loading) loading.classList.remove('hidden');
         if (empty) empty.classList.add('hidden');
         if (table) table.classList.add('hidden');
@@ -310,7 +250,6 @@
     function showEmpty() {
         const empty = document.getElementById('emptyStateFixos');
         const table = document.getElementById('tableContainerFixos');
-        
         if (empty) empty.classList.remove('hidden');
         if (table) table.classList.add('hidden');
     }
@@ -327,10 +266,7 @@
 
     function formatCurrency(value) {
         const num = parseFloat(value) || 0;
-        return num.toLocaleString('pt-BR', {
-            style: 'currency',
-            currency: 'BRL'
-        });
+        return num.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
     }
 
     function sanitizeHTML(str) {
@@ -342,14 +278,10 @@
 
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', () => {
-            if (typeof window.initializeGastosFixos === 'function') {
-                window.initializeGastosFixos();
-            }
+            if (typeof window.initializeGastosFixos === 'function') window.initializeGastosFixos();
         });
     } else {
-        if (typeof window.initializeGastosFixos === 'function') {
-            window.initializeGastosFixos();
-        }
+        if (typeof window.initializeGastosFixos === 'function') window.initializeGastosFixos();
     }
 
 })();

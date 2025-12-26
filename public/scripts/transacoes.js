@@ -372,17 +372,7 @@ function renderTransactions(transactions) {
     const emptyState = document.getElementById('emptyState');
     const loadingState = document.getElementById('loadingState');
     
-    console.log('📦 Elementos encontrados:', {
-        tbody: !!tbody,
-        tableContainer: !!tableContainer,
-        emptyState: !!emptyState,
-        loadingState: !!loadingState
-    });
-    
-    if (!tbody) {
-        console.error('❌ Elemento tbody não encontrado!');
-        return;
-    }
+    if (!tbody) return;
     
     if (loadingState) {
         loadingState.style.opacity = '0';
@@ -390,7 +380,6 @@ function renderTransactions(transactions) {
     }
 
     if (!transactions || transactions.length === 0) {
-        console.log('⚠️ Nenhuma transação para renderizar');
         if (tableContainer) {
             tableContainer.style.opacity = '0';
             setTimeout(() => tableContainer.classList.add('hidden'), 300);
@@ -401,8 +390,6 @@ function renderTransactions(transactions) {
         }
         return;
     }
-    
-    console.log('✅ Renderizando', transactions.length, 'transações');
     
     if (tableContainer) {
         tableContainer.classList.remove('hidden');
@@ -415,15 +402,10 @@ function renderTransactions(transactions) {
     }
     
     tbody.innerHTML = '';
-    
-    console.log('🔧 Adicionando', transactions.length, 'linhas na tabela...');
-    
     transactions.forEach((transaction) => {
         const row = createTransactionRow(transaction);
         tbody.appendChild(row);
     });
-    
-    console.log('✅ Renderização concluída - tbody tem', tbody.children.length, 'linhas');
 }
 
 function createTransactionRow(transaction) {
@@ -447,7 +429,7 @@ function createTransactionRow(transaction) {
         : 'bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300';
 
     let actions = '';
-
+    // (Código dos botões actions mantido igual...)
     if (transaction.origem === 'fixo') {
         const gastoData = JSON.stringify({
             id: transaction.id,
@@ -506,7 +488,10 @@ function createTransactionRow(transaction) {
         `;
     }
 
-    div.className = `transaction-row grid grid-cols-[64px_2fr_1.5fr_2fr_1.2fr_1fr_72px] items-center px-6 py-4 ${borderClass}`;
+    // ALTERAÇÃO DE RESPONSIVIDADE AQUI:
+    // Adicionado min-w-[800px] para alinhar com o cabeçalho que permite scroll horizontal
+    // Ajustado padding para px-4 sm:px-6
+    div.className = `transaction-row min-w-[800px] grid grid-cols-[64px_2fr_1.5fr_2fr_1.2fr_1fr_72px] items-center px-4 sm:px-6 py-4 ${borderClass}`;
     div.innerHTML = `
         <div class="bg-primary/10 dark:bg-primary/20 text-primary dark:text-primary rounded-full w-10 h-10 flex items-center justify-center flex-shrink-0">
             ${icon}
@@ -564,21 +549,15 @@ function getTransactionIcon(transaction) {
 }
 
 window.editExpenseFromTransaction = function(expenseData) {
-    console.log('✏️ Editando despesa variável:', expenseData);
     if (typeof window.openExpenseModalForEdit === 'function') {
         window.openExpenseModalForEdit(expenseData);
-    } else {
-        console.error('Função openExpenseModalForEdit não encontrada');
     }
 };
 
 window.deleteExpenseFromTransaction = async function(id, descricao) {
     if (!confirm(`Tem certeza que deseja excluir "${descricao}"?`)) return;
-    
     try {
-        console.log('🗑️ Deletando despesa variável:', id);
         const token = sessionStorage.getItem('accessToken') || localStorage.getItem('token');
-        
         const response = await fetch(`/api/v1/gastos-variaveis/${id}`, {
             method: 'DELETE',
             headers: {
@@ -586,41 +565,24 @@ window.deleteExpenseFromTransaction = async function(id, descricao) {
                 'Content-Type': 'application/json'
             }
         });
-
-        if (!response.ok) {
-            throw new Error('Erro ao deletar despesa');
-        }
-
-        console.log('✅ Despesa deletada com sucesso');
-        
+        if (!response.ok) throw new Error('Erro ao deletar despesa');
         await loadAllTransactions();
-        
-        if (typeof window.loadDashboardData === 'function') {
-            window.loadDashboardData();
-        }
-        
+        if (typeof window.loadDashboardData === 'function') window.loadDashboardData();
     } catch (error) {
-        console.error('❌ Erro ao deletar despesa:', error);
         alert('Erro ao deletar despesa: ' + error.message);
     }
 };
 
 window.editGastoFixoFromTransaction = function(gastoData) {
-    console.log('✏️ Editando gasto fixo:', gastoData);
     if (typeof window.openGastoFixoModal === 'function') {
         window.openGastoFixoModal(gastoData.id);
-    } else {
-        console.error('Função openGastoFixoModal não encontrada');
     }
 };
 
 window.deleteGastoFixoFromTransaction = async function(id, descricao) {
     if (!confirm(`Tem certeza que deseja excluir "${descricao}"?`)) return;
-    
     try {
-        console.log('🗑️ Deletando gasto fixo:', id);
         const token = sessionStorage.getItem('accessToken') || localStorage.getItem('token');
-        
         const response = await fetch(`/api/v1/gastos-fixos/${id}`, {
             method: 'DELETE',
             headers: {
@@ -628,25 +590,11 @@ window.deleteGastoFixoFromTransaction = async function(id, descricao) {
                 'Content-Type': 'application/json'
             }
         });
-
-        if (!response.ok) {
-            throw new Error('Erro ao deletar gasto fixo');
-        }
-
-        console.log('✅ Gasto fixo deletado com sucesso');
-        
+        if (!response.ok) throw new Error('Erro ao deletar gasto fixo');
         await loadAllTransactions();
-        
-        if (typeof window.initializeGastosFixos === 'function') {
-            window.initializeGastosFixos();
-        }
-        
-        if (typeof window.loadDashboardData === 'function') {
-            window.loadDashboardData();
-        }
-        
+        if (typeof window.initializeGastosFixos === 'function') window.initializeGastosFixos();
+        if (typeof window.loadDashboardData === 'function') window.loadDashboardData();
     } catch (error) {
-        console.error('❌ Erro ao deletar gasto fixo:', error);
         alert('Erro ao deletar gasto fixo: ' + error.message);
     }
 };
@@ -698,31 +646,22 @@ function updateStatistics(transactions) {
 
 function calculateMonthlyAverage(despesas) {
     if (despesas.length === 0) return 0;
-    
     const mesesMap = {};
-    
     despesas.forEach(d => {
         const date = new Date(d.data);
         const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
-        
-        if (!mesesMap[monthKey]) {
-            mesesMap[monthKey] = 0;
-        }
+        if (!mesesMap[monthKey]) mesesMap[monthKey] = 0;
         mesesMap[monthKey] += d.valor;
     });
-    
     const totaisMensais = Object.values(mesesMap);
     const soma = totaisMensais.reduce((sum, val) => sum + val, 0);
-    const media = totaisMensais.length > 0 ? soma / totaisMensais.length : 0;
-    
-    return media;
+    return totaisMensais.length > 0 ? soma / totaisMensais.length : 0;
 }
 
 function loadCustomCategories() {
     try {
         const userId = getUserId();
         if (!userId) return;
-        
         const stored = localStorage.getItem(`customCategories_${userId}`);
         if (stored) {
             customCategories = JSON.parse(stored);
@@ -747,7 +686,6 @@ function updateCategoryFilterOptions() {
         option.value = cat.slug;
         option.textContent = cat.nome;
         option.setAttribute('data-custom', 'true');
-        
         if (addNewOption) {
             categoryFilter.insertBefore(option, addNewOption);
         } else {
@@ -771,7 +709,6 @@ window.reloadCustomCategoriesFromStorage = function() {
 };
 
 window.openAddExpenseModal = function() {
-    console.log('🔵 Abrindo modal de adicionar despesa');
     if (typeof openExpenseModal === 'function') {
         openExpenseModal();
     } else {
@@ -784,7 +721,6 @@ window.openAddExpenseModal = function() {
 };
 
 window.viewStatement = function() {
-    console.log('🔵 Abrindo extrato completo...');
     if (window.SPARouter) {
         window.SPARouter.navigateTo('dashboard');
     } else {
@@ -829,7 +765,6 @@ function showLoading() {
     const loadingState = document.getElementById('loadingState');
     const tableContainer = document.getElementById('tableContainer');
     const emptyState = document.getElementById('emptyState');
-    
     if (loadingState) {
         loadingState.classList.remove('hidden');
         loadingState.style.opacity = '1';
