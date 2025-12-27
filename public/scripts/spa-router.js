@@ -261,6 +261,9 @@ const SPARouter = {
                 console.warn('⚠️ initializeGastosFixos não está disponível');
             }
         }
+
+        // ADICIONADO: Chamada para carregar dados do dashboard se a função existir
+        if (window.loadDashboardData) window.loadDashboardData();
     },
 
     updateActiveNav(pageName) {
@@ -288,3 +291,17 @@ document.addEventListener('DOMContentLoaded', function() {
     SPARouter.init();
 });
 console.log('✅ SPA Router carregado (Atualizado)');
+
+function updateUI() {
+    // Atualiza o DOM com os valores de dashboardData
+    // Exemplo:
+    document.getElementById('salarioValor').textContent = dashboardData.salario;
+    // ...outros campos...
+}
+
+async function loadDashboardData() {
+    // ...fetch dos dados...
+    // dashboardData.salario = salarioAtualizado;
+    // ...
+    updateUI();
+}

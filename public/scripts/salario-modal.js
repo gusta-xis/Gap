@@ -287,7 +287,6 @@ async function submitSalary(event) {
         
         setTimeout(() => {
             closeSalaryModal();
-            if (window.loadAllTransactions) window.loadAllTransactions();
             if (window.loadDashboardData) window.loadDashboardData();
             if (window.updateSalaryButton) window.updateSalaryButton();
         }, 1000);
