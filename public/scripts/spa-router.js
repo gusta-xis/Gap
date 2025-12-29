@@ -1,3 +1,6 @@
+// Garante que dashboardData sempre existe no escopo global
+window.dashboardData = window.dashboardData || {};
+
 window.voltarParaSubtemas = function() {
     console.log('🔙 Voltando para subtemas...');
     window.location.href = '/subsistemas';
@@ -294,14 +297,16 @@ console.log('✅ SPA Router carregado (Atualizado)');
 
 function updateUI() {
     // Atualiza o DOM com os valores de dashboardData
-    // Exemplo:
-    document.getElementById('salarioValor').textContent = dashboardData.salario;
+    const salarioEl = document.getElementById('salarioValor');
+    if (salarioEl) {
+        salarioEl.textContent = window.dashboardData.salario || '0,00';
+    }
     // ...outros campos...
 }
 
 async function loadDashboardData() {
     // ...fetch dos dados...
-    // dashboardData.salario = salarioAtualizado;
+    // window.dashboardData.salario = salarioAtualizado;
     // ...
     updateUI();
 }
