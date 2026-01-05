@@ -116,10 +116,7 @@
                 <span class="material-symbols-outlined text-[24px] group-hover:scale-110 transition-transform">event_repeat</span>
                 <span class="text-sm font-bold tracking-wide">Gastos Fixos</span>
             </a>
-            <a class="nav-link group flex items-center gap-3 px-4 py-3.5 rounded-xl text-text-muted-light dark:text-text-muted-dark hover:bg-secondary/50 hover:text-primary dark:hover:bg-white/5 dark:hover:text-white transition-all duration-200" href="#">
-                <span class="material-symbols-outlined text-[24px] group-hover:scale-110 transition-transform">category</span>
-                <span class="text-sm font-bold tracking-wide">Categorias</span>
-            </a>
+
             <a class="nav-link group flex items-center gap-3 px-4 py-3.5 rounded-xl text-text-muted-light dark:text-text-muted-dark hover:bg-secondary/50 hover:text-primary dark:hover:bg-white/5 dark:hover:text-white transition-all duration-200" href="#">
                 <span class="material-symbols-outlined text-[24px] group-hover:scale-110 transition-transform">trending_up</span>
                 <span class="text-sm font-bold tracking-wide">Metas Financeiras</span>
@@ -420,7 +417,7 @@
         <div class="absolute inset-0 bg-black/60 backdrop-blur-[2px] transition-opacity duration-300 animate-fade-in"></div>
         
         <div class="absolute inset-0 flex items-end justify-center sm:items-center sm:p-4 pointer-events-none">
-            <div class="pointer-events-auto w-full bg-surface-light dark:bg-surface-dark rounded-t-3xl sm:rounded-2xl shadow-2xl border-t border-white/20 sm:border dark:border-white/10 max-w-md max-h-[90vh] flex flex-col transform transition-transform animate-modal-mobile sm:animate-modal-desktop overflow-hidden" onclick="event.stopPropagation();">
+            <div class="pointer-events-auto w-full bg-surface-light dark:bg-surface-dark rounded-t-3xl sm:rounded-2xl shadow-2xl border-t border-white/20 sm:border dark:border-white/10 max-w-2xl max-h-[90vh] flex flex-col transform transition-transform animate-modal-mobile sm:animate-modal-desktop overflow-hidden" onclick="event.stopPropagation();">
                 
                 <div class="w-full flex justify-center pt-3 pb-1 sm:hidden cursor-grab">
                     <div class="w-12 h-1.5 rounded-full bg-slate-300 dark:bg-slate-600"></div>
@@ -442,31 +439,226 @@
                     </div>
 
                     <div class="space-y-2">
-                        <label class="block text-xs font-bold uppercase tracking-wider text-text-muted-light dark:text-text-muted-dark">Ícone</label>
-                        <div class="grid grid-cols-4 gap-3" id="categoryIconGrid">
-                            <button type="button" data-icon="bag" class="category-icon-btn aspect-square flex items-center justify-center rounded-xl border border-border dark:border-border-dark text-text-muted-light dark:text-text-muted-dark hover:border-primary hover:text-primary hover:bg-primary/5 focus:ring-2 focus:ring-primary/50 transition-all duration-200">
-                                <span class="material-symbols-outlined text-2xl">shopping_bag</span>
+                        <label class="block text-xs font-bold uppercase tracking-wider text-text-muted-light dark:text-text-muted-dark mb-3">Selecione um ícone</label>
+                        <div class="grid grid-cols-5 gap-2 max-h-64 overflow-y-auto p-3 border border-border dark:border-border-dark rounded-xl bg-background-light/50 dark:bg-background-dark/50">
+                            <!-- Linha 1 -->
+                            <button type="button" data-icon="restaurant" class="category-icon-btn p-3 flex flex-col items-center justify-center rounded-xl border-2 border-border dark:border-border-dark text-text-muted-light dark:text-text-muted-dark hover:border-primary hover:text-primary hover:bg-primary/5 focus:ring-2 focus:ring-primary/50 transition-all duration-200" title="Alimentação">
+                                <span class="material-symbols-outlined text-2xl">restaurant</span>
+                                <span class="text-xs mt-1 text-center">Alimentação</span>
                             </button>
-                            <button type="button" data-icon="car" class="category-icon-btn aspect-square flex items-center justify-center rounded-xl border border-border dark:border-border-dark text-text-muted-light dark:text-text-muted-dark hover:border-primary hover:text-primary hover:bg-primary/5 focus:ring-2 focus:ring-primary/50 transition-all duration-200">
+                            <button type="button" data-icon="directions_car" class="category-icon-btn p-3 flex flex-col items-center justify-center rounded-xl border-2 border-border dark:border-border-dark text-text-muted-light dark:text-text-muted-dark hover:border-primary hover:text-primary hover:bg-primary/5 focus:ring-2 focus:ring-primary/50 transition-all duration-200" title="Transporte">
                                 <span class="material-symbols-outlined text-2xl">directions_car</span>
+                                <span class="text-xs mt-1 text-center">Transporte</span>
                             </button>
-                            <button type="button" data-icon="home" class="category-icon-btn aspect-square flex items-center justify-center rounded-xl border border-border dark:border-border-dark text-text-muted-light dark:text-text-muted-dark hover:border-primary hover:text-primary hover:bg-primary/5 focus:ring-2 focus:ring-primary/50 transition-all duration-200">
+                            <button type="button" data-icon="home" class="category-icon-btn p-3 flex flex-col items-center justify-center rounded-xl border-2 border-border dark:border-border-dark text-text-muted-light dark:text-text-muted-dark hover:border-primary hover:text-primary hover:bg-primary/5 focus:ring-2 focus:ring-primary/50 transition-all duration-200" title="Moradia">
                                 <span class="material-symbols-outlined text-2xl">home</span>
+                                <span class="text-xs mt-1 text-center">Moradia</span>
                             </button>
-                            <button type="button" data-icon="heart" class="category-icon-btn aspect-square flex items-center justify-center rounded-xl border border-border dark:border-border-dark text-text-muted-light dark:text-text-muted-dark hover:border-primary hover:text-primary hover:bg-primary/5 focus:ring-2 focus:ring-primary/50 transition-all duration-200">
+                            <button type="button" data-icon="favorite" class="category-icon-btn p-3 flex flex-col items-center justify-center rounded-xl border-2 border-border dark:border-border-dark text-text-muted-light dark:text-text-muted-dark hover:border-primary hover:text-primary hover:bg-primary/5 focus:ring-2 focus:ring-primary/50 transition-all duration-200" title="Saúde">
                                 <span class="material-symbols-outlined text-2xl">favorite</span>
+                                <span class="text-xs mt-1 text-center">Saúde</span>
                             </button>
-                            <button type="button" data-icon="school" class="category-icon-btn aspect-square flex items-center justify-center rounded-xl border border-border dark:border-border-dark text-text-muted-light dark:text-text-muted-dark hover:border-primary hover:text-primary hover:bg-primary/5 focus:ring-2 focus:ring-primary/50 transition-all duration-200">
-                                <span class="material-symbols-outlined text-2xl">school</span>
-                            </button>
-                            <button type="button" data-icon="movie" class="category-icon-btn aspect-square flex items-center justify-center rounded-xl border border-border dark:border-border-dark text-text-muted-light dark:text-text-muted-dark hover:border-primary hover:text-primary hover:bg-primary/5 focus:ring-2 focus:ring-primary/50 transition-all duration-200">
+                            <button type="button" data-icon="movie" class="category-icon-btn p-3 flex flex-col items-center justify-center rounded-xl border-2 border-border dark:border-border-dark text-text-muted-light dark:text-text-muted-dark hover:border-primary hover:text-primary hover:bg-primary/5 focus:ring-2 focus:ring-primary/50 transition-all duration-200" title="Lazer">
                                 <span class="material-symbols-outlined text-2xl">movie</span>
+                                <span class="text-xs mt-1 text-center">Lazer</span>
                             </button>
-                            <button type="button" data-icon="plane" class="category-icon-btn aspect-square flex items-center justify-center rounded-xl border border-border dark:border-border-dark text-text-muted-light dark:text-text-muted-dark hover:border-primary hover:text-primary hover:bg-primary/5 focus:ring-2 focus:ring-primary/50 transition-all duration-200">
-                                <span class="material-symbols-outlined text-2xl">flight</span>
+
+                            <!-- Linha 2 -->
+                            <button type="button" data-icon="school" class="category-icon-btn p-3 flex flex-col items-center justify-center rounded-xl border-2 border-border dark:border-border-dark text-text-muted-light dark:text-text-muted-dark hover:border-primary hover:text-primary hover:bg-primary/5 focus:ring-2 focus:ring-primary/50 transition-all duration-200" title="Educação">
+                                <span class="material-symbols-outlined text-2xl">school</span>
+                                <span class="text-xs mt-1 text-center">Educação</span>
                             </button>
-                            <button type="button" data-icon="pet" class="category-icon-btn aspect-square flex items-center justify-center rounded-xl border border-border dark:border-border-dark text-text-muted-light dark:text-text-muted-dark hover:border-primary hover:text-primary hover:bg-primary/5 focus:ring-2 focus:ring-primary/50 transition-all duration-200">
+                            <button type="button" data-icon="shopping_bag" class="category-icon-btn p-3 flex flex-col items-center justify-center rounded-xl border-2 border-border dark:border-border-dark text-text-muted-light dark:text-text-muted-dark hover:border-primary hover:text-primary hover:bg-primary/5 focus:ring-2 focus:ring-primary/50 transition-all duration-200" title="Compras">
+                                <span class="material-symbols-outlined text-2xl">shopping_bag</span>
+                                <span class="text-xs mt-1 text-center">Compras</span>
+                            </button>
+                            <button type="button" data-icon="checkroom" class="category-icon-btn p-3 flex flex-col items-center justify-center rounded-xl border-2 border-border dark:border-border-dark text-text-muted-light dark:text-text-muted-dark hover:border-primary hover:text-primary hover:bg-primary/5 focus:ring-2 focus:ring-primary/50 transition-all duration-200" title="Roupas">
+                                <span class="material-symbols-outlined text-2xl">checkroom</span>
+                                <span class="text-xs mt-1 text-center">Roupas</span>
+                            </button>
+                            <button type="button" data-icon="devices" class="category-icon-btn p-3 flex flex-col items-center justify-center rounded-xl border-2 border-border dark:border-border-dark text-text-muted-light dark:text-text-muted-dark hover:border-primary hover:text-primary hover:bg-primary/5 focus:ring-2 focus:ring-primary/50 transition-all duration-200" title="Eletrônicos">
+                                <span class="material-symbols-outlined text-2xl">devices</span>
+                                <span class="text-xs mt-1 text-center">Eletrônicos</span>
+                            </button>
+                            <button type="button" data-icon="pets" class="category-icon-btn p-3 flex flex-col items-center justify-center rounded-xl border-2 border-border dark:border-border-dark text-text-muted-light dark:text-text-muted-dark hover:border-primary hover:text-primary hover:bg-primary/5 focus:ring-2 focus:ring-primary/50 transition-all duration-200" title="Pets">
                                 <span class="material-symbols-outlined text-2xl">pets</span>
+                                <span class="text-xs mt-1 text-center">Pets</span>
+                            </button>
+
+                            <!-- Linha 3 -->
+                            <button type="button" data-icon="spa" class="category-icon-btn p-3 flex flex-col items-center justify-center rounded-xl border-2 border-border dark:border-border-dark text-text-muted-light dark:text-text-muted-dark hover:border-primary hover:text-primary hover:bg-primary/5 focus:ring-2 focus:ring-primary/50 transition-all duration-200" title="Beleza">
+                                <span class="material-symbols-outlined text-2xl">spa</span>
+                                <span class="text-xs mt-1 text-center">Beleza</span>
+                            </button>
+                            <button type="button" data-icon="flight_takeoff" class="category-icon-btn p-3 flex flex-col items-center justify-center rounded-xl border-2 border-border dark:border-border-dark text-text-muted-light dark:text-text-muted-dark hover:border-primary hover:text-primary hover:bg-primary/5 focus:ring-2 focus:ring-primary/50 transition-all duration-200" title="Viagem">
+                                <span class="material-symbols-outlined text-2xl">flight_takeoff</span>
+                                <span class="text-xs mt-1 text-center">Viagem</span>
+                            </button>
+                            <button type="button" data-icon="local_gas_station" class="category-icon-btn p-3 flex flex-col items-center justify-center rounded-xl border-2 border-border dark:border-border-dark text-text-muted-light dark:text-text-muted-dark hover:border-primary hover:text-primary hover:bg-primary/5 focus:ring-2 focus:ring-primary/50 transition-all duration-200" title="Combustível">
+                                <span class="material-symbols-outlined text-2xl">local_gas_station</span>
+                                <span class="text-xs mt-1 text-center">Combustível</span>
+                            </button>
+                            <button type="button" data-icon="dining" class="category-icon-btn p-3 flex flex-col items-center justify-center rounded-xl border-2 border-border dark:border-border-dark text-text-muted-light dark:text-text-muted-dark hover:border-primary hover:text-primary hover:bg-primary/5 focus:ring-2 focus:ring-primary/50 transition-all duration-200" title="Restaurante">
+                                <span class="material-symbols-outlined text-2xl">dining</span>
+                                <span class="text-xs mt-1 text-center">Restaurante</span>
+                            </button>
+                            <button type="button" data-icon="coffee" class="category-icon-btn p-3 flex flex-col items-center justify-center rounded-xl border-2 border-border dark:border-border-dark text-text-muted-light dark:text-text-muted-dark hover:border-primary hover:text-primary hover:bg-primary/5 focus:ring-2 focus:ring-primary/50 transition-all duration-200" title="Café">
+                                <span class="material-symbols-outlined text-2xl">coffee</span>
+                                <span class="text-xs mt-1 text-center">Café</span>
+                            </button>
+
+                            <!-- Linha 4 -->
+                            <button type="button" data-icon="local_bar" class="category-icon-btn p-3 flex flex-col items-center justify-center rounded-xl border-2 border-border dark:border-border-dark text-text-muted-light dark:text-text-muted-dark hover:border-primary hover:text-primary hover:bg-primary/5 focus:ring-2 focus:ring-primary/50 transition-all duration-200" title="Bar">
+                                <span class="material-symbols-outlined text-2xl">local_bar</span>
+                                <span class="text-xs mt-1 text-center">Bar</span>
+                            </button>
+                            <button type="button" data-icon="fitness_center" class="category-icon-btn p-3 flex flex-col items-center justify-center rounded-xl border-2 border-border dark:border-border-dark text-text-muted-light dark:text-text-muted-dark hover:border-primary hover:text-primary hover:bg-primary/5 focus:ring-2 focus:ring-primary/50 transition-all duration-200" title="Gym">
+                                <span class="material-symbols-outlined text-2xl">fitness_center</span>
+                                <span class="text-xs mt-1 text-center">Gym</span>
+                            </button>
+                            <button type="button" data-icon="local_hospital" class="category-icon-btn p-3 flex flex-col items-center justify-center rounded-xl border-2 border-border dark:border-border-dark text-text-muted-light dark:text-text-muted-dark hover:border-primary hover:text-primary hover:bg-primary/5 focus:ring-2 focus:ring-primary/50 transition-all duration-200" title="Médico">
+                                <span class="material-symbols-outlined text-2xl">local_hospital</span>
+                                <span class="text-xs mt-1 text-center">Médico</span>
+                            </button>
+                            <button type="button" data-icon="medication" class="category-icon-btn p-3 flex flex-col items-center justify-center rounded-xl border-2 border-border dark:border-border-dark text-text-muted-light dark:text-text-muted-dark hover:border-primary hover:text-primary hover:bg-primary/5 focus:ring-2 focus:ring-primary/50 transition-all duration-200" title="Farmácia">
+                                <span class="material-symbols-outlined text-2xl">medication</span>
+                                <span class="text-xs mt-1 text-center">Farmácia</span>
+                            </button>
+                            <button type="button" data-icon="theaters" class="category-icon-btn p-3 flex flex-col items-center justify-center rounded-xl border-2 border-border dark:border-border-dark text-text-muted-light dark:text-text-muted-dark hover:border-primary hover:text-primary hover:bg-primary/5 focus:ring-2 focus:ring-primary/50 transition-all duration-200" title="Cinema">
+                                <span class="material-symbols-outlined text-2xl">theaters</span>
+                                <span class="text-xs mt-1 text-center">Cinema</span>
+                            </button>
+
+                            <!-- Linha 5 -->
+                            <button type="button" data-icon="music_note" class="category-icon-btn p-3 flex flex-col items-center justify-center rounded-xl border-2 border-border dark:border-border-dark text-text-muted-light dark:text-text-muted-dark hover:border-primary hover:text-primary hover:bg-primary/5 focus:ring-2 focus:ring-primary/50 transition-all duration-200" title="Música">
+                                <span class="material-symbols-outlined text-2xl">music_note</span>
+                                <span class="text-xs mt-1 text-center">Música</span>
+                            </button>
+                            <button type="button" data-icon="library_books" class="category-icon-btn p-3 flex flex-col items-center justify-center rounded-xl border-2 border-border dark:border-border-dark text-text-muted-light dark:text-text-muted-dark hover:border-primary hover:text-primary hover:bg-primary/5 focus:ring-2 focus:ring-primary/50 transition-all duration-200" title="Livros">
+                                <span class="material-symbols-outlined text-2xl">library_books</span>
+                                <span class="text-xs mt-1 text-center">Livros</span>
+                            </button>
+                            <button type="button" data-icon="sports_esports" class="category-icon-btn p-3 flex flex-col items-center justify-center rounded-xl border-2 border-border dark:border-border-dark text-text-muted-light dark:text-text-muted-dark hover:border-primary hover:text-primary hover:bg-primary/5 focus:ring-2 focus:ring-primary/50 transition-all duration-200" title="Joguinhos">
+                                <span class="material-symbols-outlined text-2xl">sports_esports</span>
+                                <span class="text-xs mt-1 text-center">Joguinhos</span>
+                            </button>
+                            <button type="button" data-icon="router" class="category-icon-btn p-3 flex flex-col items-center justify-center rounded-xl border-2 border-border dark:border-border-dark text-text-muted-light dark:text-text-muted-dark hover:border-primary hover:text-primary hover:bg-primary/5 focus:ring-2 focus:ring-primary/50 transition-all duration-200" title="Internet">
+                                <span class="material-symbols-outlined text-2xl">router</span>
+                                <span class="text-xs mt-1 text-center">Internet</span>
+                            </button>
+                            <button type="button" data-icon="phone" class="category-icon-btn p-3 flex flex-col items-center justify-center rounded-xl border-2 border-border dark:border-border-dark text-text-muted-light dark:text-text-muted-dark hover:border-primary hover:text-primary hover:bg-primary/5 focus:ring-2 focus:ring-primary/50 transition-all duration-200" title="Telefone">
+                                <span class="material-symbols-outlined text-2xl">phone</span>
+                                <span class="text-xs mt-1 text-center">Telefone</span>
+                            </button>
+
+                            <!-- Linha 6 -->
+                            <button type="button" data-icon="electric_bolt" class="category-icon-btn p-3 flex flex-col items-center justify-center rounded-xl border-2 border-border dark:border-border-dark text-text-muted-light dark:text-text-muted-dark hover:border-primary hover:text-primary hover:bg-primary/5 focus:ring-2 focus:ring-primary/50 transition-all duration-200" title="Energia">
+                                <span class="material-symbols-outlined text-2xl">electric_bolt</span>
+                                <span class="text-xs mt-1 text-center">Energia</span>
+                            </button>
+                            <button type="button" data-icon="water_drop" class="category-icon-btn p-3 flex flex-col items-center justify-center rounded-xl border-2 border-border dark:border-border-dark text-text-muted-light dark:text-text-muted-dark hover:border-primary hover:text-primary hover:bg-primary/5 focus:ring-2 focus:ring-primary/50 transition-all duration-200" title="Água">
+                                <span class="material-symbols-outlined text-2xl">water_drop</span>
+                                <span class="text-xs mt-1 text-center">Água</span>
+                            </button>
+                            <button type="button" data-icon="local_fire_department" class="category-icon-btn p-3 flex flex-col items-center justify-center rounded-xl border-2 border-border dark:border-border-dark text-text-muted-light dark:text-text-muted-dark hover:border-primary hover:text-primary hover:bg-primary/5 focus:ring-2 focus:ring-primary/50 transition-all duration-200" title="Gás">
+                                <span class="material-symbols-outlined text-2xl">local_fire_department</span>
+                                <span class="text-xs mt-1 text-center">Gás</span>
+                            </button>
+                            <button type="button" data-icon="security" class="category-icon-btn p-3 flex flex-col items-center justify-center rounded-xl border-2 border-border dark:border-border-dark text-text-muted-light dark:text-text-muted-dark hover:border-primary hover:text-primary hover:bg-primary/5 focus:ring-2 focus:ring-primary/50 transition-all duration-200" title="Seguro">
+                                <span class="material-symbols-outlined text-2xl">security</span>
+                                <span class="text-xs mt-1 text-center">Seguro</span>
+                            </button>
+                            <button type="button" data-icon="account_balance" class="category-icon-btn p-3 flex flex-col items-center justify-center rounded-xl border-2 border-border dark:border-border-dark text-text-muted-light dark:text-text-muted-dark hover:border-primary hover:text-primary hover:bg-primary/5 focus:ring-2 focus:ring-primary/50 transition-all duration-200" title="Impostos">
+                                <span class="material-symbols-outlined text-2xl">account_balance</span>
+                                <span class="text-xs mt-1 text-center">Impostos</span>
+                            </button>
+
+                            <!-- Linha 7 -->
+                            <button type="button" data-icon="trending_down" class="category-icon-btn p-3 flex flex-col items-center justify-center rounded-xl border-2 border-border dark:border-border-dark text-text-muted-light dark:text-text-muted-dark hover:border-primary hover:text-primary hover:bg-primary/5 focus:ring-2 focus:ring-primary/50 transition-all duration-200" title="Empréstimo">
+                                <span class="material-symbols-outlined text-2xl">trending_down</span>
+                                <span class="text-xs mt-1 text-center">Empréstimo</span>
+                            </button>
+                            <button type="button" data-icon="trending_up" class="category-icon-btn p-3 flex flex-col items-center justify-center rounded-xl border-2 border-border dark:border-border-dark text-text-muted-light dark:text-text-muted-dark hover:border-primary hover:text-primary hover:bg-primary/5 focus:ring-2 focus:ring-primary/50 transition-all duration-200" title="Investimento">
+                                <span class="material-symbols-outlined text-2xl">trending_up</span>
+                                <span class="text-xs mt-1 text-center">Investimento</span>
+                            </button>
+                            <button type="button" data-icon="savings" class="category-icon-btn p-3 flex flex-col items-center justify-center rounded-xl border-2 border-border dark:border-border-dark text-text-muted-light dark:text-text-muted-dark hover:border-primary hover:text-primary hover:bg-primary/5 focus:ring-2 focus:ring-primary/50 transition-all duration-200" title="Poupança">
+                                <span class="material-symbols-outlined text-2xl">savings</span>
+                                <span class="text-xs mt-1 text-center">Poupança</span>
+                            </button>
+                            <button type="button" data-icon="child_care" class="category-icon-btn p-3 flex flex-col items-center justify-center rounded-xl border-2 border-border dark:border-border-dark text-text-muted-light dark:text-text-muted-dark hover:border-primary hover:text-primary hover:bg-primary/5 focus:ring-2 focus:ring-primary/50 transition-all duration-200" title="Criança">
+                                <span class="material-symbols-outlined text-2xl">child_care</span>
+                                <span class="text-xs mt-1 text-center">Criança</span>
+                            </button>
+                            <button type="button" data-icon="work" class="category-icon-btn p-3 flex flex-col items-center justify-center rounded-xl border-2 border-border dark:border-border-dark text-text-muted-light dark:text-text-muted-dark hover:border-primary hover:text-primary hover:bg-primary/5 focus:ring-2 focus:ring-primary/50 transition-all duration-200" title="Trabalho">
+                                <span class="material-symbols-outlined text-2xl">work</span>
+                                <span class="text-xs mt-1 text-center">Trabalho</span>
+                            </button>
+
+                            <!-- Linha 8 -->
+                            <button type="button" data-icon="card_giftcard" class="category-icon-btn p-3 flex flex-col items-center justify-center rounded-xl border-2 border-border dark:border-border-dark text-text-muted-light dark:text-text-muted-dark hover:border-primary hover:text-primary hover:bg-primary/5 focus:ring-2 focus:ring-primary/50 transition-all duration-200" title="Presente">
+                                <span class="material-symbols-outlined text-2xl">card_giftcard</span>
+                                <span class="text-xs mt-1 text-center">Presente</span>
+                            </button>
+                            <button type="button" data-icon="volunteer_activism" class="category-icon-btn p-3 flex flex-col items-center justify-center rounded-xl border-2 border-border dark:border-border-dark text-text-muted-light dark:text-text-muted-dark hover:border-primary hover:text-primary hover:bg-primary/5 focus:ring-2 focus:ring-primary/50 transition-all duration-200" title="Doação">
+                                <span class="material-symbols-outlined text-2xl">volunteer_activism</span>
+                                <span class="text-xs mt-1 text-center">Doação</span>
+                            </button>
+                            <button type="button" data-icon="home_repair_service" class="category-icon-btn p-3 flex flex-col items-center justify-center rounded-xl border-2 border-border dark:border-border-dark text-text-muted-light dark:text-text-muted-dark hover:border-primary hover:text-primary hover:bg-primary/5 focus:ring-2 focus:ring-primary/50 transition-all duration-200" title="Casa">
+                                <span class="material-symbols-outlined text-2xl">home_repair_service</span>
+                                <span class="text-xs mt-1 text-center">Casa</span>
+                            </button>
+                            <button type="button" data-icon="eco" class="category-icon-btn p-3 flex flex-col items-center justify-center rounded-xl border-2 border-border dark:border-border-dark text-text-muted-light dark:text-text-muted-dark hover:border-primary hover:text-primary hover:bg-primary/5 focus:ring-2 focus:ring-primary/50 transition-all duration-200" title="Jardinagem">
+                                <span class="material-symbols-outlined text-2xl">eco</span>
+                                <span class="text-xs mt-1 text-center">Jardinagem</span>
+                            </button>
+                            <button type="button" data-icon="cleaning_services" class="category-icon-btn p-3 flex flex-col items-center justify-center rounded-xl border-2 border-border dark:border-border-dark text-text-muted-light dark:text-text-muted-dark hover:border-primary hover:text-primary hover:bg-primary/5 focus:ring-2 focus:ring-primary/50 transition-all duration-200" title="Limpeza">
+                                <span class="material-symbols-outlined text-2xl">cleaning_services</span>
+                                <span class="text-xs mt-1 text-center">Limpeza</span>
+                            </button>
+
+                            <!-- Linha 9 -->
+                            <button type="button" data-icon="two_wheeler" class="category-icon-btn p-3 flex flex-col items-center justify-center rounded-xl border-2 border-border dark:border-border-dark text-text-muted-light dark:text-text-muted-dark hover:border-primary hover:text-primary hover:bg-primary/5 focus:ring-2 focus:ring-primary/50 transition-all duration-200" title="Carro">
+                                <span class="material-symbols-outlined text-2xl">two_wheeler</span>
+                                <span class="text-xs mt-1 text-center">Carro</span>
+                            </button>
+                            <button type="button" data-icon="build" class="category-icon-btn p-3 flex flex-col items-center justify-center rounded-xl border-2 border-border dark:border-border-dark text-text-muted-light dark:text-text-muted-dark hover:border-primary hover:text-primary hover:bg-primary/5 focus:ring-2 focus:ring-primary/50 transition-all duration-200" title="Manutenção">
+                                <span class="material-symbols-outlined text-2xl">build</span>
+                                <span class="text-xs mt-1 text-center">Manutenção</span>
+                            </button>
+                            <button type="button" data-icon="gavel" class="category-icon-btn p-3 flex flex-col items-center justify-center rounded-xl border-2 border-border dark:border-border-dark text-text-muted-light dark:text-text-muted-dark hover:border-primary hover:text-primary hover:bg-primary/5 focus:ring-2 focus:ring-primary/50 transition-all duration-200" title="Multa">
+                                <span class="material-symbols-outlined text-2xl">gavel</span>
+                                <span class="text-xs mt-1 text-center">Multa</span>
+                            </button>
+                            <button type="button" data-icon="palette" class="category-icon-btn p-3 flex flex-col items-center justify-center rounded-xl border-2 border-border dark:border-border-dark text-text-muted-light dark:text-text-muted-dark hover:border-primary hover:text-primary hover:bg-primary/5 focus:ring-2 focus:ring-primary/50 transition-all duration-200" title="Hobby">
+                                <span class="material-symbols-outlined text-2xl">palette</span>
+                                <span class="text-xs mt-1 text-center">Hobby</span>
+                            </button>
+                            <button type="button" data-icon="sports_basketball" class="category-icon-btn p-3 flex flex-col items-center justify-center rounded-xl border-2 border-border dark:border-border-dark text-text-muted-light dark:text-text-muted-dark hover:border-primary hover:text-primary hover:bg-primary/5 focus:ring-2 focus:ring-primary/50 transition-all duration-200" title="Esporte">
+                                <span class="material-symbols-outlined text-2xl">sports_basketball</span>
+                                <span class="text-xs mt-1 text-center">Esporte</span>
+                            </button>
+
+                            <!-- Linha 10 -->
+                            <button type="button" data-icon="ondemand_video" class="category-icon-btn p-3 flex flex-col items-center justify-center rounded-xl border-2 border-border dark:border-border-dark text-text-muted-light dark:text-text-muted-dark hover:border-primary hover:text-primary hover:bg-primary/5 focus:ring-2 focus:ring-primary/50 transition-all duration-200" title="Streaming">
+                                <span class="material-symbols-outlined text-2xl">ondemand_video</span>
+                                <span class="text-xs mt-1 text-center">Streaming</span>
+                            </button>
+                            <button type="button" data-icon="videogame_asset" class="category-icon-btn p-3 flex flex-col items-center justify-center rounded-xl border-2 border-border dark:border-border-dark text-text-muted-light dark:text-text-muted-dark hover:border-primary hover:text-primary hover:bg-primary/5 focus:ring-2 focus:ring-primary/50 transition-all duration-200" title="Vídeo Game">
+                                <span class="material-symbols-outlined text-2xl">videogame_asset</span>
+                                <span class="text-xs mt-1 text-center">Vídeo Game</span>
+                            </button>
+                            <button type="button" data-icon="computer" class="category-icon-btn p-3 flex flex-col items-center justify-center rounded-xl border-2 border-border dark:border-border-dark text-text-muted-light dark:text-text-muted-dark hover:border-primary hover:text-primary hover:bg-primary/5 focus:ring-2 focus:ring-primary/50 transition-all duration-200" title="Software">
+                                <span class="material-symbols-outlined text-2xl">computer</span>
+                                <span class="text-xs mt-1 text-center">Software</span>
+                            </button>
+                            <button type="button" data-icon="category" class="category-icon-btn p-3 flex flex-col items-center justify-center rounded-xl border-2 border-border dark:border-border-dark text-text-muted-light dark:text-text-muted-dark hover:border-primary hover:text-primary hover:bg-primary/5 focus:ring-2 focus:ring-primary/50 transition-all duration-200" title="Categoria">
+                                <span class="material-symbols-outlined text-2xl">category</span>
+                                <span class="text-xs mt-1 text-center">Categoria</span>
+                            </button>
+                            <button type="button" data-icon="more_horiz" class="category-icon-btn p-3 flex flex-col items-center justify-center rounded-xl border-2 border-border dark:border-border-dark text-text-muted-light dark:text-text-muted-dark hover:border-primary hover:text-primary hover:bg-primary/5 focus:ring-2 focus:ring-primary/50 transition-all duration-200" title="Outros">
+                                <span class="material-symbols-outlined text-2xl">more_horiz</span>
+                                <span class="text-xs mt-1 text-center">Outros</span>
                             </button>
                         </div>
                     </div>
