@@ -322,8 +322,9 @@ async function syncExpenseMetas(forceIncludeId = null) {
                 const vAlvo = Number(meta.valorAlvo) || Number(meta.valor_alvo) || 0;
                 const vAtual = Number(meta.valorAtual) || Number(meta.valor_atual) || 0;
 
-                // Mostra se: Não concluída OU se é a meta que já está vinculada (mesmo se concluída)
-                if (vAtual < vAlvo || (forceIncludeId && String(forceIncludeId) === metaId)) {
+                // Mostra TODAS as metas para garantir que o usuário possa vincular/desvincular livremente
+                // if (vAtual < vAlvo || (forceIncludeId && String(forceIncludeId) === metaId)) {
+                if (true) {
                     const opt = document.createElement('option');
                     opt.value = metaId;
                     opt.textContent = meta.nome;
