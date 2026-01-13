@@ -1,6 +1,6 @@
 const db = require('../../../config/db');
 
-const ALLOWED_FIELDS = ['nome', 'valor', 'data_gasto', 'categoria_id', 'user_id', 'tipo'];
+const ALLOWED_FIELDS = ['nome', 'valor', 'data_gasto', 'categoria_id', 'user_id', 'tipo', 'meta_id'];
 
 function filterAllowedFields(data) {
   const filtered = {};
@@ -121,7 +121,7 @@ module.exports = {
     const fields = Object.keys(filteredData);
     const values = Object.values(filteredData);
     values.push(id);
-values.push(userId);
+    values.push(userId);
 
     const setClause = fields.map((f) => `${f} = ?`).join(', ');
     const query = `UPDATE gastos_variaveis SET ${setClause} WHERE id = ? AND user_id = ?`;

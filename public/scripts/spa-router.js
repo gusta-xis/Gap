@@ -1,7 +1,7 @@
 // Garante que dashboardData sempre existe no escopo global
 window.dashboardData = window.dashboardData || {};
 
-window.voltarParaSubtemas = function() {
+window.voltarParaSubtemas = function () {
     console.log('🔙 Voltando para subtemas...');
     window.location.href = '/subsistemas';
 };
@@ -49,7 +49,7 @@ const SPARouter = {
     checkAuth() {
         const token = sessionStorage.getItem('accessToken') || localStorage.getItem('token');
         const user = sessionStorage.getItem('user') || localStorage.getItem('user');
-        
+
         if (!token || !user) {
             console.warn('⚠️ Usuário não autenticado');
             sessionStorage.clear();
@@ -57,7 +57,7 @@ const SPARouter = {
             window.location.replace('/');
             return false;
         }
-        
+
         return true;
     },
 
@@ -65,17 +65,17 @@ const SPARouter = {
         try {
             const userDataString = sessionStorage.getItem('user') || localStorage.getItem('user');
             if (!userDataString) return;
-            
+
             const userData = JSON.parse(userDataString);
             const userName = userData.nome || userData.name || 'Usuário';
-            
+
             const headerUserNameEl = document.getElementById('headerUserName');
             const headerAvatarEl = document.getElementById('headerAvatar');
-            
+
             if (headerUserNameEl && headerUserNameEl.textContent !== userName) {
                 headerUserNameEl.textContent = userName;
             }
-            
+
             const userInitial = userName.charAt(0).toUpperCase();
             if (headerAvatarEl && headerAvatarEl.textContent !== userInitial) {
                 headerAvatarEl.textContent = userInitial;
@@ -117,15 +117,15 @@ const SPARouter = {
         if (!this.pages[pageName]) {
             pageName = 'dashboard';
         }
-        
+
         const page = this.pages[pageName];
         const contentDiv = document.getElementById('app-content');
-        
+
         if (!contentDiv) {
             console.error('❌ Elemento app-content não encontrado');
             return;
         }
-        
+
         try {
             contentDiv.classList.add('loading');
 
@@ -138,7 +138,7 @@ const SPARouter = {
             if (!response.ok) {
                 throw new Error(`Erro ao carregar ${page.contentUrl}`);
             }
-            
+
             const html = await response.text();
             contentDiv.innerHTML = html;
 
@@ -155,7 +155,7 @@ const SPARouter = {
             contentDiv.classList.remove('loading');
 
             this.initPage(pageName);
-            
+
             // Atualiza o botão de salário após inserir o HTML do dashboard
             if (pageName === 'dashboard' && window.updateSalaryButton) {
                 window.updateSalaryButton();
@@ -163,7 +163,7 @@ const SPARouter = {
 
             this.currentPage = pageName;
             console.log(`✅ Página "${pageName}" carregada com sucesso`);
-            
+
         } catch (error) {
             console.error(`❌ Erro ao carregar página "${pageName}":`, error);
             contentDiv.innerHTML = `
@@ -178,7 +178,7 @@ const SPARouter = {
             contentDiv.classList.remove('loading');
         }
     },
-    
+
     loadScript(scriptUrl) {
         return new Promise((resolve, reject) => {
             const script = document.createElement('script');
@@ -204,7 +204,7 @@ const SPARouter = {
         }
 
         const globalVarsToClean = [
-            'dashboardData', 'allTransactions', 'filteredTransactions', 
+            'dashboardData', 'allTransactions', 'filteredTransactions',
             'customCategories', 'selectedExpenseType', 'selectedCategoryIcon',
             'gastosFixosData',
             'initializeDashboard', 'initTransacoesPage', 'initializeGastosFixos',
@@ -213,16 +213,16 @@ const SPARouter = {
             'normalizeTransactions', 'applyFilters', 'renderTransactions',
             'updateStatistics', 'loadCustomCategories', 'saveNewCategory',
             // ADICIONADO: Limpeza de variáveis de salário se necessário (opcional)
-            'initializeSalaryModal', 'metasData', 'initializeMetaModal', 'loadMetas', 'submitMeta'
+            'initializeSalaryModal', 'metasData', 'initializeMetasModule', 'loadMetas', 'submitMeta'
         ];
-        
+
         globalVarsToClean.forEach(varName => {
             if (window[varName] !== undefined) {
                 try {
                     // Não deletamos as inicializações globais de modais se elas forem carregadas no HTML principal
                     // mas limpamos dados de página
-                    if (!varName.includes('Modal')) { 
-                         delete window[varName];
+                    if (!varName.includes('Modal')) {
+                        delete window[varName];
                     }
                 } catch (e) {
                     window[varName] = undefined;
@@ -233,9 +233,9 @@ const SPARouter = {
 
     initPage(pageName) {
         console.log(`🔄 Tentando inicializar página: ${pageName}`);
-        
+
         // --- INICIALIZAÇÃO DOS MODAIS GLOBAIS ---
-        
+
         // 1. Inicializa Modal de Despesa
         if (typeof window.initializeExpenseModal === 'function') {
             window.initializeExpenseModal();
@@ -270,11 +270,11 @@ const SPARouter = {
                 console.warn('⚠️ initializeGastosFixos não está disponível');
             }
         } else if (pageName === 'metas') {
-            if (typeof window.initializeMetaModal === 'function') {
-                console.log('✅ Chamando initializeMetaModal...');
-                window.initializeMetaModal();
+            if (typeof window.initializeMetasModule === 'function') {
+                console.log('✅ Chamando initializeMetasModule...');
+                window.initializeMetasModule();
             } else {
-                console.warn('⚠️ initializeMetaModal não está disponível');
+                console.warn('⚠️ initializeMetasModule não está disponível');
             }
         }
 
@@ -285,7 +285,7 @@ const SPARouter = {
     updateActiveNav(pageName) {
         document.querySelectorAll('.nav-link').forEach(link => {
             const linkPage = link.getAttribute('data-page');
-            
+
             if (linkPage === pageName) {
                 link.classList.remove('text-slate-700', 'dark:text-slate-300', 'hover:bg-secondary', 'dark:hover:bg-slate-800');
                 link.classList.add('bg-secondary', 'dark:bg-slate-800', 'text-primary', 'dark:text-white');
@@ -303,7 +303,7 @@ const SPARouter = {
 
 window.SPARouter = SPARouter;
 
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function () {
     SPARouter.init();
 });
 console.log('✅ SPA Router carregado (Atualizado)');

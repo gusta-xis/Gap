@@ -1,4 +1,5 @@
 const express = require('express');
+// Force Restart
 const cors = require('cors');
 const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
@@ -103,15 +104,15 @@ const loginLimiter = rateLimit({
   legacyHeaders: false,
   handler: (req, res) => {
     console.warn(`⚠️ Rate limit atingido para IP: ${req.ip}`);
-    res.status(429).json({ 
-      error: 'Muitas tentativas. Tente novamente mais tarde.' 
+    res.status(429).json({
+      error: 'Muitas tentativas. Tente novamente mais tarde.'
     });
   }
 });
 
 const apiLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: 100,                   // 100 requisições por 15 minutos
+  max: 1000,                   // Aumentado para 1000 para evitar bloqueios durante testes
   standardHeaders: true,
   legacyHeaders: false,
 });
@@ -172,12 +173,12 @@ const { authPageMiddleware, authResetPasswordMiddleware } = require('./src/middl
 
 // Rota Raiz -> Carrega o Login (login.html)
 app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'login.html'));
+  res.sendFile(path.join(__dirname, 'public', 'login.html'));
 });
 
 // Rota Explícita de Login
 app.get('/login', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'login.html'));
+  res.sendFile(path.join(__dirname, 'public', 'login.html'));
 });
 
 // Redirecionamento de segurança (acesso direto ao arquivo)
@@ -185,22 +186,22 @@ app.get('/login.html', (req, res) => res.redirect(301, '/'));
 
 // Rota Dashboard (A autenticação é feita no client-side via JavaScript)
 app.get('/subsistemas', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'subtemas.html'));
+  res.sendFile(path.join(__dirname, 'public', 'subtemas.html'));
 });
 
 // Rota Financeiro (A autenticação é feita no client-side via JavaScript)
 app.get('/financeiro', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'finance.html'));
+  res.sendFile(path.join(__dirname, 'public', 'finance.html'));
 });
 
 // Rota Financeiro Dashboard (SPA - A autenticação é feita no client-side via JavaScript)
 app.get('/financeiro/dashboard', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'app.html'));
+  res.sendFile(path.join(__dirname, 'public', 'app.html'));
 });
 
 // Rota Reset Password (Protegida - Requer token válido na query string)
 app.get('/reset-password', authResetPasswordMiddleware, (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'reset-password.html'));
+  res.sendFile(path.join(__dirname, 'public', 'reset-password.html'));
 });
 
 // =======================================================
@@ -219,12 +220,12 @@ app.use(['/subsistemas', '/financeiro', '/financeiro/dashboard'], noCache);
 
 app.use((err, req, res, next) => {
   console.error('Erro não tratado:', err.message);
-  
+
   // Não expõe detalhes do erro em produção
-  const message = process.env.NODE_ENV === 'production' 
+  const message = process.env.NODE_ENV === 'production'
     ? 'Erro interno do servidor'
     : err.message;
-  
+
   res.status(err.status || 500).json({ error: message });
 });
 
@@ -236,15 +237,54 @@ app.use((req, res) => {
 // =======================================================
 // INICIALIZAÇÃO
 // =======================================================
+
+// --- CORREÇÃO DE BANCO DE DADOS (FORÇADA) ---
+const db = require('./src/config/db');
+console.log('🔧 Verificando esquema do banco de dados...');
+
+// 1. Adicionar Coluna (Syntax Compatível)
+db.query("ALTER TABLE gastos_variaveis ADD COLUMN meta_id INT DEFAULT NULL", (err) => {
+  if (err) {
+    // Se o erro for "Duplicate column name" (Code 1060 ou ER_DUP_FIELDNAME), ignoramos
+    if (err.code === 'ER_DUP_FIELDNAME' || err.errno === 1060) {
+      console.log('✅ Coluna meta_id já existe.');
+    } else {
+      console.error('❌ Erro ao adicionar coluna meta_id:', err.message);
+    }
+  } else {
+    console.log('✅ Coluna meta_id criada com sucesso.');
+  }
+
+  // 2. Adicionar Foreign Key
+  db.query(`
+        ALTER TABLE gastos_variaveis
+        ADD CONSTRAINT fk_gastos_metas 
+        FOREIGN KEY (meta_id) REFERENCES metas(id) 
+        ON DELETE SET NULL
+    `, (errFK) => {
+    if (errFK) {
+      // Ignora se já existe
+      if (errFK.code === 'ER_DUP_KEYNAME' || errFK.code === 'ER_CANT_CREATE_TABLE') {
+        console.log('✅ FK fk_gastos_metas já configurada.');
+      } else {
+        console.error('⚠️ Erro ao adicionar FK (pode ser ignorado se já existir):', errFK.message);
+      }
+    } else {
+      console.log('✅ FK fk_gastos_metas criada com sucesso.');
+    }
+  });
+});
+// -------------------------------------------
+
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-    console.log(`--------------------------------------------------`);
-    console.log(`🚀 Servidor rodando em: http://localhost:${PORT}`);
-    console.log(`📂 Rotas Disponíveis:`);
-    console.log(`   - Login:      /`);
-    console.log(`   - Dashboard:  /subsistemas`);
-    console.log(`   - Financeiro: /financeiro`);
-    console.log(`📊 Ambiente: ${process.env.NODE_ENV || 'development'}`);
-    console.log(`🔒 Segurança: Ativa`);
-    console.log(`--------------------------------------------------`);
+  console.log(`--------------------------------------------------`);
+  console.log(`🚀 Servidor rodando em: http://localhost:${PORT}`);
+  console.log(`📂 Rotas Disponíveis:`);
+  console.log(`   - Login:      /`);
+  console.log(`   - Dashboard:  /subsistemas`);
+  console.log(`   - Financeiro: /financeiro`);
+  console.log(`📊 Ambiente: ${process.env.NODE_ENV || 'development'}`);
+  console.log(`🔒 Segurança: Ativa`);
+  console.log(`--------------------------------------------------`);
 });

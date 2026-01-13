@@ -1,4 +1,4 @@
-console.log('🔵 expense-modal.js carregado (Versão Correção Erro 500)');
+console.log('🔵 expense-modal.js carregado (Com Link de Metas)');
 
 // ========================================
 // UTILITÁRIOS DE FORMATAÇÃO E DATA
@@ -6,17 +6,17 @@ console.log('🔵 expense-modal.js carregado (Versão Correção Erro 500)');
 
 function formatCurrencyInput(input) {
     if (!input) return;
-    
+
     let value = input.value.replace(/\D/g, '');
     if (value.length === 0) {
         input.value = '';
         return;
     }
-    
+
     if (value.length > 10) {
         value = value.substring(0, 10);
     }
-    
+
     const numericValue = parseInt(value, 10) / 100;
     input.value = numericValue.toLocaleString('pt-BR', {
         minimumFractionDigits: 2,
@@ -156,21 +156,19 @@ function syncExpenseCategories() {
         const nomeNormalizado = cat.nome.trim().toLowerCase();
         if (!addedNames.has(nomeNormalizado)) {
             finalCategories.push({
-                id: cat.id, // ID numérico do banco (ex: 15)
+                id: cat.id,
                 nome: cat.nome
             });
             addedNames.add(nomeNormalizado);
         }
     });
 
-    // 2. Adiciona as categorias padrão APENAS se não existirem ainda
-    // Se a categoria padrão for adicionada aqui, ela NÃO tem ID do banco.
-    // Isso é perigoso para o backend, então usaremos um ID temporário e trataremos no submit.
+    // 2. Adiciona as categorias padrão
     defaultCategories.forEach(def => {
         const nomeNormalizado = def.nome.trim().toLowerCase();
         if (!addedNames.has(nomeNormalizado)) {
             finalCategories.push({
-                id: `temp_${nomeNormalizado.replace(/\s+/g, '_')}`, // ID de texto temporário
+                id: `temp_${nomeNormalizado.replace(/\s+/g, '_')}`,
                 nome: def.nome
             });
             addedNames.add(nomeNormalizado);
@@ -216,24 +214,24 @@ async function fetchAndSyncCustomCategories(retryCount = 0) {
         const response = await fetch('/api/v1/categorias', {
             headers: { 'Authorization': `Bearer ${token}` }
         });
-        
+
         if (!response.ok) {
             if (response.status === 401) throw new Error('Sessão expirada');
             throw new Error(`Erro ${response.status}`);
         }
-        
+
         const categoriasBackendRaw = await response.json();
 
         // Normaliza
         const categoriasBackend = (Array.isArray(categoriasBackendRaw) ? categoriasBackendRaw : []).map(c => ({
-            id: c.id ?? c.categoria_id, // Garante pegar o ID numérico
+            id: c.id ?? c.categoria_id,
             nome: c.nome || c.label || 'Sem nome',
             icon: c.icon || 'category'
         }));
 
         saveCustomCategoriesToStorage(categoriasBackend);
-        syncExpenseCategories(); // Atualiza o select mesclando corretamente
-        
+        syncExpenseCategories();
+
         console.log('✅ Categorias sincronizadas');
     } catch (e) {
         console.error('❌ Erro ao buscar categorias:', e);
@@ -255,7 +253,7 @@ let editingExpenseId = null;
 function setExpenseType(type) {
     selectedExpenseType = type || 'saida';
     const buttons = document.querySelectorAll('[data-expense-type]');
-    
+
     buttons.forEach((btn) => {
         const isActive = btn.dataset.expenseType === selectedExpenseType;
         const isEntrada = btn.dataset.expenseType === 'entrada';
@@ -295,20 +293,68 @@ function handleExpenseTypeClick(e) {
 }
 
 // ========================================
+// GESTÃO DE METAS (Link com Despesas)
+// ========================================
+
+async function syncExpenseMetas(forceIncludeId = null) {
+    const select = document.getElementById('expenseMeta');
+    if (!select) return;
+
+    try {
+        const token = sessionStorage.getItem('accessToken') || localStorage.getItem('token');
+        if (!token) return;
+
+        const response = await fetch('/api/v1/metas', {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+
+        if (!response.ok) return;
+
+        const metas = await response.json();
+
+        // Mantém a opção "Nenhuma"
+        const currentVal = select.value || forceIncludeId; // Prioritize forceIncludeId if set
+        select.innerHTML = '<option value="">Nenhuma</option>';
+
+        if (Array.isArray(metas)) {
+            metas.forEach(meta => {
+                const metaId = String(meta.id || meta._id);
+                const vAlvo = Number(meta.valorAlvo) || Number(meta.valor_alvo) || 0;
+                const vAtual = Number(meta.valorAtual) || Number(meta.valor_atual) || 0;
+
+                // Mostra se: Não concluída OU se é a meta que já está vinculada (mesmo se concluída)
+                if (vAtual < vAlvo || (forceIncludeId && String(forceIncludeId) === metaId)) {
+                    const opt = document.createElement('option');
+                    opt.value = metaId;
+                    opt.textContent = meta.nome;
+                    select.appendChild(opt);
+                }
+            });
+        }
+
+        if (currentVal) select.value = currentVal;
+
+    } catch (e) {
+        console.error('Erro ao buscar metas para o select:', e);
+    }
+}
+
+
+// ========================================
 // CONTROLE DO MODAL
 // ========================================
 
 function openExpenseModal(event) {
-    if (event) { 
-        event.preventDefault(); 
-        event.stopPropagation(); 
+    if (event) {
+        event.preventDefault();
+        event.stopPropagation();
     }
-    
+
     console.log('📝 Abrindo modal para NOVA despesa');
-    
+
     const modal = document.getElementById('addExpenseModal');
     if (!modal) return;
-    
+
     const titleEl = modal.querySelector('h2');
     if (titleEl) titleEl.textContent = 'Nova Despesa';
 
@@ -316,48 +362,51 @@ function openExpenseModal(event) {
     const amountField = document.getElementById('expenseAmount');
     const categoryField = document.getElementById('expenseCategory');
     const dateField = document.getElementById('expenseDate');
-    
+    const metaField = document.getElementById('expenseMeta');
+
     if (descField) descField.value = '';
     if (amountField) amountField.value = '';
     if (categoryField) categoryField.value = '';
     if (dateField) dateField.value = getLocalDateString();
-    
+    if (metaField) metaField.value = '';
+
     editingExpenseId = null;
-    
+
     const submitBtn = document.querySelector('[data-action="submit-expense"]');
     if (submitBtn) {
         submitBtn.textContent = 'Adicionar';
         submitBtn.disabled = false;
     }
-    
+
     const errorDiv = document.getElementById('errorMessage');
     const successDiv = document.getElementById('successMessage');
     if (errorDiv) errorDiv.classList.add('hidden');
     if (successDiv) successDiv.classList.add('hidden');
 
     setExpenseType('saida');
-    fetchAndSyncCustomCategories(); // Garante lista atualizada
+    fetchAndSyncCustomCategories();
+    if (typeof syncExpenseMetas === 'function') syncExpenseMetas();
 
     modal.classList.remove('hidden');
     modal.classList.add('flex');
-    
+
     setTimeout(() => { if (descField) descField.focus(); }, 100);
 }
 
 function closeExpenseModal(event) {
-    if (event) { 
-        event.preventDefault(); 
-        event.stopPropagation(); 
+    if (event) {
+        event.preventDefault();
+        event.stopPropagation();
     }
-    
+
     const modal = document.getElementById('addExpenseModal');
     if (modal) {
         modal.classList.add('hidden');
         modal.classList.remove('flex');
     }
-    
+
     editingExpenseId = null;
-    
+
     const errorDiv = document.getElementById('errorMessage');
     const successDiv = document.getElementById('successMessage');
     if (errorDiv) errorDiv.classList.add('hidden');
@@ -366,14 +415,18 @@ function closeExpenseModal(event) {
 
 function openExpenseModalForEdit(expense) {
     if (!expense || !expense.id) return;
-    
+
     const modal = document.getElementById('addExpenseModal');
     if (!modal) return;
 
     const titleEl = modal.querySelector('h2');
     if (titleEl) titleEl.textContent = 'Editar Despesa';
 
-    fetchAndSyncCustomCategories().then(() => {
+    // Carrega categorias e Metas em paralelo para garantir que os selects estejam populados
+    Promise.all([
+        fetchAndSyncCustomCategories(),
+        typeof syncExpenseMetas === 'function' ? syncExpenseMetas(expense.meta_id) : Promise.resolve()
+    ]).then(() => {
         const descField = document.getElementById('expenseDescription');
         if (descField) descField.value = expense.nome || expense.descricao || '';
 
@@ -386,7 +439,7 @@ function openExpenseModalForEdit(expense) {
         const categoryField = document.getElementById('expenseCategory');
         if (categoryField) {
             const catId = expense.categoria?.id != null ? String(expense.categoria.id) : (expense.categoria_id != null ? String(expense.categoria_id) : '');
-            
+
             // Tenta setar pelo ID
             let selected = false;
             if (catId) {
@@ -396,14 +449,23 @@ function openExpenseModalForEdit(expense) {
                     selected = true;
                 }
             }
-            
+
             // Fallback pelo nome se não achou ID
             if (!selected) {
-                 const catNome = (expense.categoria_nome || expense.categoria || '').toString().trim().toLowerCase();
-                 if (catNome) {
-                     const match = Array.from(categoryField.options).find(o => o.textContent.trim().toLowerCase() === catNome);
-                     if (match) categoryField.value = match.value;
-                 }
+                const catNome = (expense.categoria_nome || expense.categoria || '').toString().trim().toLowerCase();
+                if (catNome) {
+                    const match = Array.from(categoryField.options).find(o => o.textContent.trim().toLowerCase() === catNome);
+                    if (match) categoryField.value = match.value;
+                }
+            }
+        }
+
+        const metaField = document.getElementById('expenseMeta');
+        if (metaField) {
+            if (expense.meta_id) {
+                metaField.value = expense.meta_id;
+            } else {
+                metaField.value = '';
             }
         }
 
@@ -428,6 +490,8 @@ function openExpenseModalForEdit(expense) {
 
         const errorDiv = document.getElementById('errorMessage');
         if (errorDiv) errorDiv.classList.add('hidden');
+
+        if (typeof syncExpenseMetas === 'function') syncExpenseMetas();
     });
 
     modal.classList.remove('hidden');
@@ -440,12 +504,12 @@ function openExpenseModalForEdit(expense) {
 
 async function submitExpense(event) {
     if (event) event.preventDefault();
-    
+
     console.log('💾 Iniciando submissão...');
-    
+
     const submitBtn = document.querySelector('[data-action="submit-expense"]');
     if (!submitBtn) return;
-    
+
     const originalText = submitBtn.textContent;
     submitBtn.textContent = 'Salvando...';
     submitBtn.disabled = true;
@@ -454,14 +518,16 @@ async function submitExpense(event) {
     const amountField = document.getElementById('expenseAmount');
     const categoryField = document.getElementById('expenseCategory');
     const dateField = document.getElementById('expenseDate');
-    
+    const metaField = document.getElementById('expenseMeta');
+
     const description = descField ? descField.value.trim() : '';
     const amount = parseCurrency(amountField ? amountField.value : '');
     const date = dateField ? dateField.value : '';
     const type = selectedExpenseType;
-    
+
     const rawCategoryValue = categoryField ? categoryField.value : '';
-    
+    const metaId = metaField ? metaField.value : '';
+
     const errorDiv = document.getElementById('errorMessage');
     const successDiv = document.getElementById('successMessage');
 
@@ -478,7 +544,7 @@ async function submitExpense(event) {
     try {
         const token = sessionStorage.getItem('accessToken') || localStorage.getItem('token');
         const userId = getUserIdFromStorage();
-        
+
         if (!token) throw new Error('Sessão expirada. Faça login novamente.');
         if (!userId) throw new Error('Erro de usuário. Faça login novamente.');
 
@@ -490,29 +556,28 @@ async function submitExpense(event) {
             tipo: type,
             user_id: userId
         };
-        
-        // TRATAMENTO CRÍTICO DE CATEGORIA:
-        // Se o valor for numérico (ID do banco), envia.
-        // Se for string começando com "temp_" (categoria padrão sem ID), NÃO ENVIA o campo categoria_id.
-        // Muitos backends explodem com 'temp_xxx' ou com 'null'. 
-        // Se não enviarmos a chave, o banco assume NULL ou DEFAULT, o que evita o erro 500.
-        
+
         if (rawCategoryValue && !rawCategoryValue.startsWith('temp_')) {
             const numId = Number(rawCategoryValue);
             if (!isNaN(numId) && numId > 0) {
                 payload.categoria_id = numId;
             }
         } else {
-            console.log('⚠️ Categoria sem ID de banco selecionada. Enviando sem categoria_id para evitar erro 500.');
-            // Opcional: Se seu backend aceitar nome da categoria, descomente abaixo:
-            // payload.categoria_nome = categoryField.options[categoryField.selectedIndex].text;
+            console.log('⚠️ Categoria sem ID de banco selecionada.');
+        }
+
+        if (metaId) {
+            const mId = Number(metaId);
+            if (!isNaN(mId) && mId > 0) {
+                payload.meta_id = mId;
+            }
         }
 
         console.log('📤 Payload:', payload);
 
         const isEdit = !!editingExpenseId;
-        const url = isEdit 
-            ? `/api/v1/gastos-variaveis/${editingExpenseId}` 
+        const url = isEdit
+            ? `/api/v1/gastos-variaveis/${editingExpenseId}`
             : '/api/v1/gastos-variaveis';
         const method = isEdit ? 'PUT' : 'POST';
 
@@ -526,7 +591,6 @@ async function submitExpense(event) {
         });
 
         if (!response.ok) {
-            // Tenta ler o erro do backend mesmo se for 500
             const errText = await response.text();
             let errMsg = `Erro ${response.status}`;
             try {
@@ -552,6 +616,7 @@ async function submitExpense(event) {
             if (window.loadAllTransactions) window.loadAllTransactions();
             if (window.loadDashboardData) window.loadDashboardData();
             if (window.initTransacoesPage) window.initTransacoesPage();
+            if (window.loadMetas) window.loadMetas();
         }, 1000);
 
     } catch (error) {
@@ -575,19 +640,19 @@ let customCategoryIcon = null;
 function openAddCategoryModal() {
     const modal = document.getElementById('addCategoryModal');
     if (!modal) return;
-    
+
     modal.classList.remove('hidden');
     modal.classList.add('flex');
-    
+
     const nameField = document.getElementById('newCategoryName');
     if (nameField) nameField.value = '';
-    
+
     customCategoryIcon = null;
-    
-    document.querySelectorAll('.category-icon-btn').forEach(btn => 
+
+    document.querySelectorAll('.category-icon-btn').forEach(btn =>
         btn.classList.remove('border-primary', 'bg-primary/10')
     );
-    
+
     const errorMsg = document.getElementById('categoryErrorMessage');
     const successMsg = document.getElementById('categorySuccessMessage');
     if (errorMsg) errorMsg.classList.add('hidden');
@@ -618,7 +683,7 @@ async function saveNewCategory() {
     const nameInput = document.getElementById('newCategoryName');
     const errorMsg = document.getElementById('categoryErrorMessage');
     const successMsg = document.getElementById('categorySuccessMessage');
-    
+
     const nome = nameInput ? nameInput.value.trim() : '';
     if (!nome) {
         if (errorMsg) {
@@ -631,7 +696,7 @@ async function saveNewCategory() {
     try {
         const token = sessionStorage.getItem('accessToken') || localStorage.getItem('token');
         if (!token) throw new Error('Token não encontrado');
-        
+
         const response = await fetch('/api/v1/categorias', {
             method: 'POST',
             headers: {
@@ -649,20 +714,20 @@ async function saveNewCategory() {
         }
 
         const newCatRaw = await response.json();
-        
+
         // Formata para salvar no storage
         const newCat = {
             id: newCatRaw.id ?? newCatRaw.categoria_id,
             nome: newCatRaw.nome || 'Sem nome',
             icon: newCatRaw.icon || 'category'
         };
-        
+
         let currentCats = loadCustomCategoriesFromStorage();
         currentCats.push(newCat);
         saveCustomCategoriesToStorage(currentCats);
-        
+
         syncExpenseCategories(); // Atualiza a lista
-        
+
         if (typeof window.syncGastoFixoCategories === 'function') {
             window.syncGastoFixoCategories();
         }
@@ -672,7 +737,7 @@ async function saveNewCategory() {
             successMsg.classList.remove('hidden');
         }
         if (errorMsg) errorMsg.classList.add('hidden');
-        
+
         setTimeout(() => {
             closeAddCategoryModal();
             const select = document.getElementById('expenseCategory');
@@ -693,7 +758,7 @@ async function saveNewCategory() {
 
 function initializeExpenseModal() {
     console.log('🚀 Inicializando Expense Modal...');
-    
+
     const addBtn = document.querySelector('[data-action="add-expense"]');
     if (addBtn) addBtn.addEventListener('click', openExpenseModal);
 
@@ -712,6 +777,9 @@ function initializeExpenseModal() {
     setupExpenseTypeToggle();
     fetchAndSyncCustomCategories();
     setupCategoryIconGrid();
+
+    // Inicializa metas também
+    syncExpenseMetas();
 }
 
 function handleAmountInput() { formatCurrencyInput(this); }
@@ -731,14 +799,16 @@ window.showAddCategoryFromExpense = openAddCategoryModal;
 window.showAddCategoryFromGastoFixo = openAddCategoryModal;
 window.closeAddCategoryAndReturnToExpense = closeAddCategoryModal;
 
-window.refreshGastoFixoCategories = async function() {
+window.syncExpenseMetas = syncExpenseMetas;
+
+window.refreshGastoFixoCategories = async function () {
     await fetchAndSyncCustomCategories();
     if (typeof window.syncGastoFixoCategories === 'function') window.syncGastoFixoCategories();
 };
 
 window.expenseModal = {
     openExpenseModalForEdit,
-    deleteExpense: async function(id) {
+    deleteExpense: async function (id) {
         if (!confirm('Deseja realmente excluir esta despesa?')) return;
         try {
             const token = sessionStorage.getItem('accessToken') || localStorage.getItem('token');

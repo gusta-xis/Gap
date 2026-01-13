@@ -1,383 +1,384 @@
-(function() {
+(function () {
     'use strict';
 
-window.voltarParaSubtemas = function() {
-    console.log('🔙 Voltando para subtemas...');
-    window.location.href = '/subsistemas';
-};
-
-window.addEventListener('error', function(e) {
-    console.error('Erro global capturado:', e.error);
-    return true;
-});
-
-window.addEventListener('beforeunload', function(e) {
-    console.log('Página está sendo recarregada!');
-});
-
-window.addEventListener('storage', function(e) {
-    console.log('Storage mudou:', e.key, e.oldValue, e.newValue);
-});
-
-let dashboardData = {
-    salario: 0,
-    gastosFixos: [],
-    gastosVariaveis: [],
-    totalReceitas: 0,
-    totalDespesas: 0,
-    saldoAtual: 0,
-    historicoMensal: []
-};
-
-// ... (Funções auxiliares como recordBelongsToUser, initDashboard, etc. mantidas iguais) ...
-
-function recordBelongsToUser(item, userId) {
-    if (!userId || !item) return false;
-    const candidates = [item.user_id, item.userId, item.usuario_id, item.usuarioId, item.user];
-    return candidates.some(val => Number(val) === Number(userId));
-}
-
-function initDashboard() {
-    try {
-        console.log('Iniciando dashboard...');
-        const isAuthenticated = checkAuthentication();
-        if (!isAuthenticated) return;
-        initializeDashboard();
-    } catch (error) {
-        console.error('Erro na inicialização:', error);
-    }
-}
-
-window.initializeDashboard = initDashboard;
-
-function checkAuthentication() {
-    const token = sessionStorage.getItem('accessToken') || localStorage.getItem('token');
-    const user = sessionStorage.getItem('user') || localStorage.getItem('user');
-    const redirectToLogin = () => {
-        try {
-            sessionStorage.removeItem('accessToken');
-            sessionStorage.removeItem('refreshToken');
-            sessionStorage.removeItem('user');
-            sessionStorage.removeItem('userName');
-            localStorage.removeItem('token');
-            localStorage.removeItem('user');
-            localStorage.removeItem('userName');
-        } catch (e) { }
-        window.location.replace('/');
+    window.voltarParaSubtemas = function () {
+        console.log('🔙 Voltando para subtemas...');
+        window.location.href = '/subsistemas';
     };
-    
-    if (!token || !user) {
-        console.warn('Usuário não autenticado. Redirecionando para login.');
-        redirectToLogin();
-        return false;
-    }
 
-    try {
-        JSON.parse(user);
-    } catch (e) {
-        console.warn('Dados de usuário corrompidos. Limpando sessão.');
-        redirectToLogin();
-        return false;
-    }
-    
-    return true;
-}
-
-const user = JSON.parse(localStorage.getItem('user'));
-
-if (user && !user.introducao_vista) {
-  mostrarIntroducao();
-}
-
-function mostrarIntroducao() {
-  alert('Bem-vindo! Esta é a introdução do sistema.');
-  fetch(`/api/v1/users/${user.id}/introducao-vista`, { method: 'PUT' })
-    .then(() => {
-      user.introducao_vista = 1;
-      localStorage.setItem('user', JSON.stringify(user));
+    window.addEventListener('error', function (e) {
+        console.error('Erro global capturado:', e.error);
+        return true;
     });
-}
 
-async function initializeDashboard() {
-    setupMobileMenu();
-    setupButtons();
-    updateUserName();
-    await loadDashboardData();
-}
+    window.addEventListener('beforeunload', function (e) {
+        console.log('Página está sendo recarregada!');
+    });
 
-function updateUserName() {
-    // ... (Mantido igual) ...
-    try {
-        const userDataString = sessionStorage.getItem('user') || localStorage.getItem('user');
-        
-        if (!userDataString) return;
-        
-        const userData = JSON.parse(userDataString);
-        
-        if (userData && userData.nome) {
-            const primeiroNome = userData.nome.split(' ')[0];
-            const userName = userData.nome;
-            
-            const greetingElement = document.querySelector('[data-user-greeting]');
-            const expectedGreeting = `Olá, ${primeiroNome}!`;
-            if (greetingElement) greetingElement.textContent = expectedGreeting;
-            
-            const headerUserName = document.getElementById('headerUserName');
-            if (headerUserName) headerUserName.textContent = userName;
-            
-            const headerAvatar = document.getElementById('headerAvatar');
-            const inicial = userName.charAt(0).toUpperCase();
-            if (headerAvatar) headerAvatar.textContent = inicial;
-        }
-    } catch (error) {
-        console.error('Erro ao atualizar nome do usuário:', error);
+    window.addEventListener('storage', function (e) {
+        console.log('Storage mudou:', e.key, e.oldValue, e.newValue);
+    });
+
+    let dashboardData = {
+        salario: 0,
+        gastosFixos: [],
+        gastosVariaveis: [],
+        totalReceitas: 0,
+        totalDespesas: 0,
+        saldoAtual: 0,
+        historicoMensal: []
+    };
+
+    // ... (Funções auxiliares como recordBelongsToUser, initDashboard, etc. mantidas iguais) ...
+
+    function recordBelongsToUser(item, userId) {
+        if (!userId || !item) return false;
+        const candidates = [item.user_id, item.userId, item.usuario_id, item.usuarioId, item.user];
+        return candidates.some(val => Number(val) === Number(userId));
     }
-}
 
-async function loadDashboardData() {
-    try {
-        showLoading(true);
+    function initDashboard() {
+        try {
+            console.log('Iniciando dashboard...');
+            const isAuthenticated = checkAuthentication();
+            if (!isAuthenticated) return;
+            initializeDashboard();
+        } catch (error) {
+            console.error('Erro na inicialização:', error);
+        }
+    }
+
+    window.initializeDashboard = initDashboard;
+
+    function checkAuthentication() {
         const token = sessionStorage.getItem('accessToken') || localStorage.getItem('token');
-        if (!token) {
+        const user = sessionStorage.getItem('user') || localStorage.getItem('user');
+        const redirectToLogin = () => {
+            try {
+                sessionStorage.removeItem('accessToken');
+                sessionStorage.removeItem('refreshToken');
+                sessionStorage.removeItem('user');
+                sessionStorage.removeItem('userName');
+                localStorage.removeItem('token');
+                localStorage.removeItem('user');
+                localStorage.removeItem('userName');
+            } catch (e) { }
             window.location.replace('/');
-            return;
-        }
-        
-        let gastosFixos = [];
-        let gastosVariaveis = [];
-        const userDataRaw = sessionStorage.getItem('user') || localStorage.getItem('user');
-        const userData = userDataRaw ? JSON.parse(userDataRaw) : null;
-        const currentUserId = userData && userData.id ? Number(userData.id) : null;
-        
-        try {
-            [gastosFixos, gastosVariaveis] = await Promise.all([
-                apiService.getGastosFixos(),
-                apiService.getGastosVariaveis()
-            ]);
-            if (currentUserId) {
-                gastosFixos = (gastosFixos || []).filter(g => recordBelongsToUser(g, currentUserId));
-                gastosVariaveis = (gastosVariaveis || []).filter(g => recordBelongsToUser(g, currentUserId));
-            }
-        } catch (error) {
-            gastosFixos = [];
-            gastosVariaveis = [];
+        };
+
+        if (!token || !user) {
+            console.warn('Usuário não autenticado. Redirecionando para login.');
+            redirectToLogin();
+            return false;
         }
 
-        let salario = 0;
         try {
-            if (userData && userData.id) {
-                const salarioList = await apiService.getSalarios();
-                if (Array.isArray(salarioList) && salarioList.length > 0) {
-                    salario = salarioList[0].valor || 0;
-                }
-            }
-        } catch (error) {
-            salario = 0;
+            JSON.parse(user);
+        } catch (e) {
+            console.warn('Dados de usuário corrompidos. Limpando sessão.');
+            redirectToLogin();
+            return false;
         }
 
-        dashboardData.salario = salario;
-        dashboardData.gastosFixos = gastosFixos || [];
-        dashboardData.gastosVariaveis = gastosVariaveis || [];
-        
-        calculateTotals();
-        calculateMonthlyHistory();
-        updateUI();
-        updateBarChart();
-        showLoading(false);
-    } catch (error) {
-        showLoading(false);
-        dashboardData = { salario: 0, gastosFixos: [], gastosVariaveis: [], totalReceitas: 0, totalDespesas: 0, saldoAtual: 0, historicoMensal: [] };
-        updateUI();
+        return true;
     }
-}
 
-function calculateTotals() {
-    const mesAtual = new Date().getMonth() + 1;
-    const anoAtual = new Date().getFullYear();
+    const user = JSON.parse(localStorage.getItem('user'));
 
-    const totalEntradasVariaveis = dashboardData.gastosVariaveis
-        .filter(gasto => {
-            const dataStr = gasto.data_gasto || gasto.data;
-            const dataGasto = new Date(dataStr);
-            return (gasto.tipo === 'entrada') &&
-                   (dataGasto.getMonth() + 1 === mesAtual) &&
-                   (dataGasto.getFullYear() === anoAtual);
-        })
-        .reduce((sum, gasto) => sum + parseFloat(gasto.valor || 0), 0);
+    if (user && !user.introducao_vista) {
+        mostrarIntroducao();
+    }
 
-    dashboardData.totalReceitas = dashboardData.salario + totalEntradasVariaveis;
-    
-    const totalFixos = dashboardData.gastosFixos.reduce((sum, gasto) => sum + parseFloat(gasto.valor || 0), 0);
-    
-    const totalVariaveis = dashboardData.gastosVariaveis
-        .filter(gasto => {
-            const dataStr = gasto.data_gasto || gasto.data;
-            const dataGasto = new Date(dataStr);
-            return (gasto.tipo !== 'entrada') &&
-                   (dataGasto.getMonth() + 1 === mesAtual) && 
-                   (dataGasto.getFullYear() === anoAtual);
-        })
-        .reduce((sum, gasto) => sum + parseFloat(gasto.valor || 0), 0);
-    
-    dashboardData.totalDespesas = totalFixos + totalVariaveis;
-    dashboardData.saldoAtual = dashboardData.totalReceitas - dashboardData.totalDespesas;
-}
+    function mostrarIntroducao() {
+        alert('Bem-vindo! Esta é a introdução do sistema.');
+        fetch(`/api/v1/users/${user.id}/introducao-vista`, { method: 'PUT' })
+            .then(() => {
+                user.introducao_vista = 1;
+                localStorage.setItem('user', JSON.stringify(user));
+            });
+    }
 
-function calculateMonthlyHistory() {
-    const hoje = new Date();
-    const historicoMensal = [];
-    
-    for (let i = 5; i >= 0; i--) {
-        const mes = new Date(hoje.getFullYear(), hoje.getMonth() - i, 1);
-        const mesNumero = mes.getMonth() + 1;
-        const ano = mes.getFullYear();
-        const nomeMes = mes.toLocaleDateString('pt-BR', { month: 'short' }).replace('.', '');
-        
-        const receitasVariaveis = dashboardData.gastosVariaveis
+    async function initializeDashboard() {
+        setupMobileMenu();
+        setupButtons();
+        updateUserName();
+        await loadDashboardData();
+    }
+
+    function updateUserName() {
+        // ... (Mantido igual) ...
+        try {
+            const userDataString = sessionStorage.getItem('user') || localStorage.getItem('user');
+
+            if (!userDataString) return;
+
+            const userData = JSON.parse(userDataString);
+
+            if (userData && userData.nome) {
+                const primeiroNome = userData.nome.split(' ')[0];
+                const userName = userData.nome;
+
+                const greetingElement = document.querySelector('[data-user-greeting]');
+                const expectedGreeting = `Olá, ${primeiroNome}!`;
+                if (greetingElement) greetingElement.textContent = expectedGreeting;
+
+                const headerUserName = document.getElementById('headerUserName');
+                if (headerUserName) headerUserName.textContent = userName;
+
+                const headerAvatar = document.getElementById('headerAvatar');
+                const inicial = userName.charAt(0).toUpperCase();
+                if (headerAvatar) headerAvatar.textContent = inicial;
+            }
+        } catch (error) {
+            console.error('Erro ao atualizar nome do usuário:', error);
+        }
+    }
+
+    async function loadDashboardData() {
+        try {
+            showLoading(true);
+            const token = sessionStorage.getItem('accessToken') || localStorage.getItem('token');
+            if (!token) {
+                window.location.replace('/');
+                return;
+            }
+
+            let gastosFixos = [];
+            let gastosVariaveis = [];
+            const userDataRaw = sessionStorage.getItem('user') || localStorage.getItem('user');
+            const userData = userDataRaw ? JSON.parse(userDataRaw) : null;
+            const currentUserId = userData && userData.id ? Number(userData.id) : null;
+
+            try {
+                [gastosFixos, gastosVariaveis] = await Promise.all([
+                    apiService.getGastosFixos(),
+                    apiService.getGastosVariaveis()
+                ]);
+                if (currentUserId) {
+                    gastosFixos = (gastosFixos || []).filter(g => recordBelongsToUser(g, currentUserId));
+                    gastosVariaveis = (gastosVariaveis || []).filter(g => recordBelongsToUser(g, currentUserId));
+                }
+            } catch (error) {
+                gastosFixos = [];
+                gastosVariaveis = [];
+            }
+
+            let salario = 0;
+            try {
+                if (userData && userData.id) {
+                    const salarioList = await apiService.getSalarios();
+                    if (Array.isArray(salarioList) && salarioList.length > 0) {
+                        salario = salarioList[0].valor || 0;
+                    }
+                }
+            } catch (error) {
+                salario = 0;
+            }
+
+            dashboardData.salario = salario;
+            dashboardData.gastosFixos = gastosFixos || [];
+            dashboardData.gastosVariaveis = gastosVariaveis || [];
+
+            calculateTotals();
+            calculateMonthlyHistory();
+            updateUI();
+            updateBarChart();
+            showLoading(false);
+        } catch (error) {
+            showLoading(false);
+            dashboardData = { salario: 0, gastosFixos: [], gastosVariaveis: [], totalReceitas: 0, totalDespesas: 0, saldoAtual: 0, historicoMensal: [] };
+            updateUI();
+        }
+    }
+
+    function calculateTotals() {
+        const mesAtual = new Date().getMonth() + 1;
+        const anoAtual = new Date().getFullYear();
+
+        const totalEntradasVariaveis = dashboardData.gastosVariaveis
             .filter(gasto => {
                 const dataStr = gasto.data_gasto || gasto.data;
                 const dataGasto = new Date(dataStr);
                 return (gasto.tipo === 'entrada') &&
-                       (dataGasto.getMonth() + 1 === mesNumero) &&
-                       (dataGasto.getFullYear() === ano);
+                    (dataGasto.getMonth() + 1 === mesAtual) &&
+                    (dataGasto.getFullYear() === anoAtual);
             })
             .reduce((sum, gasto) => sum + parseFloat(gasto.valor || 0), 0);
 
-        const receitas = dashboardData.salario + receitasVariaveis;
-        
-        const despesasFixas = dashboardData.gastosFixos.reduce((sum, gasto) => sum + parseFloat(gasto.valor || 0), 0);
+        dashboardData.totalReceitas = dashboardData.salario + totalEntradasVariaveis;
 
-        const despesasVariaveis = dashboardData.gastosVariaveis
+        const totalFixos = dashboardData.gastosFixos.reduce((sum, gasto) => sum + parseFloat(gasto.valor || 0), 0);
+
+        const totalVariaveis = dashboardData.gastosVariaveis
             .filter(gasto => {
                 const dataStr = gasto.data_gasto || gasto.data;
                 const dataGasto = new Date(dataStr);
                 return (gasto.tipo !== 'entrada') &&
-                       (dataGasto.getMonth() + 1 === mesNumero) && 
-                       (dataGasto.getFullYear() === ano);
+                    (dataGasto.getMonth() + 1 === mesAtual) &&
+                    (dataGasto.getFullYear() === anoAtual);
             })
             .reduce((sum, gasto) => sum + parseFloat(gasto.valor || 0), 0);
-        
-        const totalDespesas = despesasFixas + despesasVariaveis;
-        const saldo = receitas - totalDespesas;
-        
-        historicoMensal.push({
-            mes: nomeMes,
-            mesNumero,
-            ano,
-            receitas,
-            despesas: totalDespesas,
-            saldo
-        });
+
+        dashboardData.totalDespesas = totalFixos + totalVariaveis;
+        dashboardData.saldoAtual = dashboardData.totalReceitas - dashboardData.totalDespesas;
     }
-    dashboardData.historicoMensal = historicoMensal;
-}
 
-function updateBarChart() {
-    if (!dashboardData.historicoMensal || dashboardData.historicoMensal.length === 0) return;
+    function calculateMonthlyHistory() {
+        const hoje = new Date();
+        const historicoMensal = [];
 
-    const incomeBars = document.querySelectorAll('[data-chart-income]');
-    const expenseBars = document.querySelectorAll('[data-chart-expense]');
-    const labels = document.querySelectorAll('[data-chart-label]');
-    const incomeValues = document.querySelectorAll('[data-chart-income-value]');
-    const expenseValues = document.querySelectorAll('[data-chart-expense-value]');
+        for (let i = 5; i >= 0; i--) {
+            const mes = new Date(hoje.getFullYear(), hoje.getMonth() - i, 1);
+            const mesNumero = mes.getMonth() + 1;
+            const ano = mes.getFullYear();
+            const nomeMes = mes.toLocaleDateString('pt-BR', { month: 'short' }).replace('.', '');
 
-    if (incomeBars.length === 0) return;
+            const receitasVariaveis = dashboardData.gastosVariaveis
+                .filter(gasto => {
+                    const dataStr = gasto.data_gasto || gasto.data;
+                    const dataGasto = new Date(dataStr);
+                    return (gasto.tipo === 'entrada') &&
+                        (dataGasto.getMonth() + 1 === mesNumero) &&
+                        (dataGasto.getFullYear() === ano);
+                })
+                .reduce((sum, gasto) => sum + parseFloat(gasto.valor || 0), 0);
 
-    const maxValor = Math.max(
-        ...dashboardData.historicoMensal.map(m => Math.max(m.receitas, m.despesas))
-    );
+            const receitas = dashboardData.salario + receitasVariaveis;
 
-    dashboardData.historicoMensal.forEach((mes, index) => {
-        const alturaReceita = maxValor > 0 ? Math.round((mes.receitas / maxValor) * 160) : 0;
-        const alturaDespesa = maxValor > 0 ? Math.round((mes.despesas / maxValor) * 160) : 0;
+            const despesasFixas = dashboardData.gastosFixos.reduce((sum, gasto) => sum + parseFloat(gasto.valor || 0), 0);
 
-        if (incomeBars[index]) incomeBars[index].style.height = `${alturaReceita}px`;
-        if (expenseBars[index]) expenseBars[index].style.height = `${alturaDespesa}px`;
-        if (labels[index]) labels[index].textContent = mes.mes || mes.nomeMes || '';
-        if (incomeValues[index]) incomeValues[index].textContent = formatCurrency(mes.receitas || 0);
-        if (expenseValues[index]) {
-            const valorAbsoluto = formatCurrency(Math.abs(mes.despesas || 0));
-            expenseValues[index].innerHTML = `<span class="mr-1">-</span>${valorAbsoluto}`;
+            const despesasVariaveis = dashboardData.gastosVariaveis
+                .filter(gasto => {
+                    const dataStr = gasto.data_gasto || gasto.data;
+                    const dataGasto = new Date(dataStr);
+                    return (gasto.tipo !== 'entrada') &&
+                        (dataGasto.getMonth() + 1 === mesNumero) &&
+                        (dataGasto.getFullYear() === ano);
+                })
+                .reduce((sum, gasto) => sum + parseFloat(gasto.valor || 0), 0);
+
+            const totalDespesas = despesasFixas + despesasVariaveis;
+            const saldo = receitas - totalDespesas;
+
+            historicoMensal.push({
+                mes: nomeMes,
+                mesNumero,
+                ano,
+                receitas,
+                despesas: totalDespesas,
+                saldo
+            });
         }
-    });
-}
+        dashboardData.historicoMensal = historicoMensal;
+    }
 
-function updateUI() {
-    updateDashboardData({
-        balance: dashboardData.saldoAtual,
-        income: dashboardData.totalReceitas,
-        expense: dashboardData.totalDespesas
-    });
-    updateRecentActivities();
-}
+    function updateBarChart() {
+        if (!dashboardData.historicoMensal || dashboardData.historicoMensal.length === 0) return;
 
-function setupMobileMenu() {
-    const menuButton = document.querySelector('.lg\\:hidden button');
-    const sidebar = document.querySelector('aside');
-    if (menuButton && sidebar) {
-        menuButton.addEventListener('click', function() {
-            sidebar.classList.toggle('flex');
-            sidebar.classList.toggle('hidden');
+        const incomeBars = document.querySelectorAll('[data-chart-income]');
+        const expenseBars = document.querySelectorAll('[data-chart-expense]');
+        const labels = document.querySelectorAll('[data-chart-label]');
+        const incomeValues = document.querySelectorAll('[data-chart-income-value]');
+        const expenseValues = document.querySelectorAll('[data-chart-expense-value]');
+
+        if (incomeBars.length === 0) return;
+
+        const maxValor = Math.max(
+            ...dashboardData.historicoMensal.map(m => Math.max(m.receitas, m.despesas))
+        );
+
+        dashboardData.historicoMensal.forEach((mes, index) => {
+            const alturaReceita = maxValor > 0 ? Math.round((mes.receitas / maxValor) * 160) : 0;
+            const alturaDespesa = maxValor > 0 ? Math.round((mes.despesas / maxValor) * 160) : 0;
+
+            if (incomeBars[index]) incomeBars[index].style.height = `${alturaReceita}px`;
+            if (expenseBars[index]) expenseBars[index].style.height = `${alturaDespesa}px`;
+            if (labels[index]) labels[index].textContent = mes.mes || mes.nomeMes || '';
+            if (incomeValues[index]) incomeValues[index].textContent = formatCurrency(mes.receitas || 0);
+            if (expenseValues[index]) {
+                const valorAbsoluto = formatCurrency(Math.abs(mes.despesas || 0));
+                expenseValues[index].innerHTML = `<span class="mr-1">-</span>${valorAbsoluto}`;
+            }
         });
     }
-}
 
-function setupButtons() {
-    const addExpenseBtn = document.querySelector('button[data-action="add-expense"]');
-    if (addExpenseBtn) addExpenseBtn.addEventListener('click', handleAddExpense);
-    
-    const viewStatementBtn = document.querySelector('button[data-action="view-statement"]');
-    if (viewStatementBtn) viewStatementBtn.addEventListener('click', handleViewStatement);
-}
-
-function updateRecentActivities() {
-    console.log('Atualizando atividades recentes...');
-    const activityContainer = document.getElementById('recent-activities-container');
-    if (!activityContainer) return;
-    
-    const allTransactions = [
-        ...dashboardData.gastosFixos.map(g => ({
-            tipo: 'despesa',
-            descricao: g.nome || g.descricao || 'Gasto Fixo',
-            valor: parseFloat(g.valor || 0),
-            data: g.data || new Date(),
-            categoria: g.categoria || 'Geral',
-            id: g.id,
-            origem: 'fixo'
-        })),
-        ...dashboardData.gastosVariaveis.map(g => ({
-            tipo: g.tipo,
-            descricao: g.nome || g.descricao || (g.tipo === 'entrada' ? 'Entrada' : 'Gasto Variável'),
-            valor: parseFloat(g.valor || 0),
-            data: g.data_gasto || g.data || new Date(),
-            categoria: normalizeCategorySlug(g.categoria_slug || g.categoria || '') || g.categoria || 'Geral',
-            id: g.id,
-            origem: 'variavel',
-            categoria_slug: normalizeCategorySlug(g.categoria_slug || g.categoria || ''),
-            tipoOriginal: g.tipo || 'saida',
-            categoria_id: g.categoria_id ?? null
-        }))
-    ];
-    
-    if (dashboardData.salario > 0) {
-        const ultimoDiaMes = new Date();
-        ultimoDiaMes.setDate(25);
-        allTransactions.push({
-            tipo: 'receita',
-            descricao: 'Pagamento Salário',
-            valor: dashboardData.salario,
-            data: ultimoDiaMes,
-            categoria: 'Salário'
+    function updateUI() {
+        updateDashboardData({
+            balance: dashboardData.saldoAtual,
+            income: dashboardData.totalReceitas,
+            expense: dashboardData.totalDespesas
         });
+        updateRecentActivities();
     }
-    
-    allTransactions.sort((a, b) => new Date(b.data) - new Date(a.data));
-    const recentTransactions = allTransactions.slice(0, 6);
-    
-    activityContainer.innerHTML = '';
-    
-    if (recentTransactions.length === 0) {
-        activityContainer.innerHTML = `
+
+    function setupMobileMenu() {
+        const menuButton = document.querySelector('.lg\\:hidden button');
+        const sidebar = document.querySelector('aside');
+        if (menuButton && sidebar) {
+            menuButton.addEventListener('click', function () {
+                sidebar.classList.toggle('flex');
+                sidebar.classList.toggle('hidden');
+            });
+        }
+    }
+
+    function setupButtons() {
+        const addExpenseBtn = document.querySelector('button[data-action="add-expense"]');
+        if (addExpenseBtn) addExpenseBtn.addEventListener('click', handleAddExpense);
+
+        const viewStatementBtn = document.querySelector('button[data-action="view-statement"]');
+        if (viewStatementBtn) viewStatementBtn.addEventListener('click', handleViewStatement);
+    }
+
+    function updateRecentActivities() {
+        console.log('Atualizando atividades recentes...');
+        const activityContainer = document.getElementById('recent-activities-container');
+        if (!activityContainer) return;
+
+        const allTransactions = [
+            ...dashboardData.gastosFixos.map(g => ({
+                tipo: 'despesa',
+                descricao: g.nome || g.descricao || 'Gasto Fixo',
+                valor: parseFloat(g.valor || 0),
+                data: g.data || new Date(),
+                categoria: g.categoria || 'Geral',
+                id: g.id,
+                origem: 'fixo'
+            })),
+            ...dashboardData.gastosVariaveis.map(g => ({
+                tipo: g.tipo,
+                descricao: g.nome || g.descricao || (g.tipo === 'entrada' ? 'Entrada' : 'Gasto Variável'),
+                valor: parseFloat(g.valor || 0),
+                data: g.data_gasto || g.data || new Date(),
+                categoria: normalizeCategorySlug(g.categoria_slug || g.categoria || '') || g.categoria || 'Geral',
+                id: g.id,
+                origem: 'variavel',
+                categoria_slug: normalizeCategorySlug(g.categoria_slug || g.categoria || ''),
+                tipoOriginal: g.tipo || 'saida',
+                categoria_id: g.categoria_id ?? null,
+                meta_id: g.meta_id ?? null
+            }))
+        ];
+
+        if (dashboardData.salario > 0) {
+            const ultimoDiaMes = new Date();
+            ultimoDiaMes.setDate(25);
+            allTransactions.push({
+                tipo: 'receita',
+                descricao: 'Pagamento Salário',
+                valor: dashboardData.salario,
+                data: ultimoDiaMes,
+                categoria: 'Salário'
+            });
+        }
+
+        allTransactions.sort((a, b) => new Date(b.data) - new Date(a.data));
+        const recentTransactions = allTransactions.slice(0, 6);
+
+        activityContainer.innerHTML = '';
+
+        if (recentTransactions.length === 0) {
+            activityContainer.innerHTML = `
             <div class="text-center py-8">
                 <div class="text-slate-400 dark:text-slate-500 mb-2">
                     <span class="material-symbols-outlined text-5xl">receipt_long</span>
@@ -386,31 +387,31 @@ function updateRecentActivities() {
                 <p class="text-slate-400 dark:text-slate-500 text-xs mt-1">Adicione despesas para visualizar suas atividades</p>
             </div>
         `;
-        return;
-    }
-    
-    recentTransactions.forEach((transaction, index) => {
-        const isLast = index === recentTransactions.length - 1;
-        const borderClass = isLast ? '' : 'border-b border-black/10 dark:border-white/10';
-        const icon = getTransactionIcon(transaction);
-        const isReceita = transaction.tipo === 'receita';
-        const valorAbsoluto = formatCurrency(Math.abs(transaction.valor));
-        const valorFormatado = isReceita 
-            ? `<span class="mr-1">+</span>${valorAbsoluto}`
-            : `<span class="mr-1">-</span>${valorAbsoluto}`;
-        const valorClass = isReceita
-            ? 'text-green-600 dark:text-green-400'
-            : 'text-red-600 dark:text-red-300';
-        const dataFormatada = new Date(transaction.data).toLocaleDateString('pt-BR', {
-            day: 'numeric',
-            month: 'long',
-            year: 'numeric'
-        });
+            return;
+        }
 
-        const serialized = transaction.origem === 'variavel' ? encodeURIComponent(JSON.stringify(transaction)) : '';
-        let actionButtons = '';
-        if (transaction.origem === 'variavel') {
-            actionButtons = `
+        recentTransactions.forEach((transaction, index) => {
+            const isLast = index === recentTransactions.length - 1;
+            const borderClass = isLast ? '' : 'border-b border-black/10 dark:border-white/10';
+            const icon = getTransactionIcon(transaction);
+            const isReceita = transaction.tipo === 'receita';
+            const valorAbsoluto = formatCurrency(Math.abs(transaction.valor));
+            const valorFormatado = isReceita
+                ? `<span class="mr-1">+</span>${valorAbsoluto}`
+                : `<span class="mr-1">-</span>${valorAbsoluto}`;
+            const valorClass = isReceita
+                ? 'text-green-600 dark:text-green-400'
+                : 'text-red-600 dark:text-red-300';
+            const dataFormatada = new Date(transaction.data).toLocaleDateString('pt-BR', {
+                day: 'numeric',
+                month: 'long',
+                year: 'numeric'
+            });
+
+            const serialized = transaction.origem === 'variavel' ? encodeURIComponent(JSON.stringify(transaction)) : '';
+            let actionButtons = '';
+            if (transaction.origem === 'variavel') {
+                actionButtons = `
                 <div class="flex gap-2">
                     <button class="btn-positive text-slate-500 hover:text-primary rounded-lg transition-colors" aria-label="Editar" onclick="window.expenseModal && window.expenseModal.openExpenseModalForEdit(JSON.parse(decodeURIComponent('${serialized}')))">
                         <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
@@ -429,8 +430,8 @@ function updateRecentActivities() {
                     </button>
                 </div>
             `;
-        } else if (transaction.origem === 'fixo') {
-            actionButtons = `
+            } else if (transaction.origem === 'fixo') {
+                actionButtons = `
                 <div class="flex gap-2">
                     <button class="btn-positive text-slate-500 hover:text-primary rounded-lg transition-colors" aria-label="Editar" onclick="window.openGastoFixoModal && window.openGastoFixoModal(${transaction.id})">
                         <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
@@ -449,15 +450,15 @@ function updateRecentActivities() {
                     </button>
                 </div>
             `;
-        }
-        const tipoLabel = isReceita ? 'Receita' : 'Despesa';
-        const tipoClass = isReceita 
-            ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300'
-            : 'bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300';
-        
-        // ALTERAÇÃO DE RESPONSIVIDADE AQUI:
-        // Adicionado min-w-[800px] e padding ajustado
-        const html = `
+            }
+            const tipoLabel = isReceita ? 'Receita' : 'Despesa';
+            const tipoClass = isReceita
+                ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300'
+                : 'bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300';
+
+            // ALTERAÇÃO DE RESPONSIVIDADE AQUI:
+            // Adicionado min-w-[800px] e padding ajustado
+            const html = `
             <div class="grid grid-cols-[64px_2fr_1.5fr_2fr_1.2fr_1fr_72px] min-w-[800px] items-center px-4 sm:px-6 py-4 ${borderClass}">
                 <div class="bg-primary/10 dark:bg-primary/20 text-primary dark:text-primary rounded-full w-10 h-10 flex items-center justify-center flex-shrink-0">
                     ${icon}
@@ -485,129 +486,129 @@ function updateRecentActivities() {
                 </div>
             </div>
         `;
-        
-        activityContainer.insertAdjacentHTML('beforeend', html);
-    });
-}
 
-function getTransactionIcon(transaction) {
-    const tipo = transaction.tipo === 'receita' ? 'receita' : 'despesa';
-    const catSource = transaction.categoria_slug || transaction.categoria || transaction.descricao || '';
-    const cat = catSource.toLowerCase();
-
-    const svg = {
-        receita: `<svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9" /><line x1="12" y1="8" x2="12" y2="16" /><line x1="8" y1="12" x2="16" y2="12" /></svg>`,
-        despesa: `<svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9" /><line x1="8" y1="12" x2="16" y2="12" /></svg>`,
-        mercado: `<svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="21" r="1" /><circle cx="20" cy="21" r="1" /><path d="M1 1h4l2.68 13.39a1 1 0 0 0 1 .81h9.72a1 1 0 0 0 .98-.8l1.2-6H6" /></svg>`,
-        transporte: `<svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="11" width="18" height="7" rx="2" /><path d="M3 11l2-4h14l2 4" /><circle cx="7.5" cy="18.5" r="1" /><circle cx="16.5" cy="18.5" r="1" /></svg>`,
-        moradia: `<svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 9.5 12 4l9 5.5V20a1 1 0 0 1-1 1h-5v-5H9v5H4a1 1 0 0 1-1-1V9.5Z" /></svg>`,
-        saude: `<svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78L12 21.23l8.84-8.84a5.5 5.5 0 0 0 0-7.78Z" /></svg>`,
-        educacao: `<svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 10L12 4 2 10l10 6 10-6Z" /><path d="M6 12v5c3 3 9 3 12 0v-5" /></svg>`,
-        entretenimento: `<svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2" /><path d="M7 5v14" /><path d="M17 5v14" /></svg>`,
-        default: `<svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9" /><path d="M9 12h6" /><path d="M12 9v6" /></svg>`
-    };
-
-    if (cat.includes('merc') || cat.includes('super') || cat.includes('market') || cat.includes('alimen') || cat.includes('comida')) return svg.mercado;
-    if (cat.includes('transp')) return svg.transporte;
-    if (cat.includes('morad') || cat.includes('casa')) return svg.moradia;
-    if (cat.includes('saud')) return svg.saude;
-    if (cat.includes('educ')) return svg.educacao;
-    if (cat.includes('entreten') || cat.includes('lazer')) return svg.entretenimento;
-
-    return tipo === 'receita' ? svg.receita : svg.despesa;
-}
-
-function normalizeCategorySlug(value) {
-    const v = (value || '').toString().trim().toLowerCase();
-    if (!v) return '';
-    if (v.includes('aliment') || v.includes('merc')) return 'alimentacao';
-    if (v.includes('transp')) return 'transporte';
-    if (v.includes('saud')) return 'saude';
-    if (v.includes('educ')) return 'educacao';
-    if (v.includes('entreten') || v.includes('lazer')) return 'entretenimento';
-    if (v.includes('outros') || v.includes('outro')) return 'outros';
-    return v.replace(/\s+/g, '-');
-}
-
-function handleAddExpense() {
-    if (typeof openExpenseModal === 'function') {
-        openExpenseModal();
-    } else if (window.expenseModal && typeof window.expenseModal.openExpenseModalForEdit === 'function') {
-        openExpenseModal();
+            activityContainer.insertAdjacentHTML('beforeend', html);
+        });
     }
-}
 
-function handleViewStatement() {
-    try {
-        const rows = buildStatementRows();
-        const userData = JSON.parse(sessionStorage.getItem('user') || localStorage.getItem('user') || '{}');
-        const userName = userData && userData.nome ? userData.nome : 'Usuário';
-        const html = renderStatementHTML(rows, userName);
-        const printWindow = window.open('', '_blank', 'width=1100,height=800');
+    function getTransactionIcon(transaction) {
+        const tipo = transaction.tipo === 'receita' ? 'receita' : 'despesa';
+        const catSource = transaction.categoria_slug || transaction.categoria || transaction.descricao || '';
+        const cat = catSource.toLowerCase();
 
-        if (!printWindow) {
-            showError('Não foi possível abrir a janela de impressão.');
-            return;
+        const svg = {
+            receita: `<svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9" /><line x1="12" y1="8" x2="12" y2="16" /><line x1="8" y1="12" x2="16" y2="12" /></svg>`,
+            despesa: `<svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9" /><line x1="8" y1="12" x2="16" y2="12" /></svg>`,
+            mercado: `<svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="21" r="1" /><circle cx="20" cy="21" r="1" /><path d="M1 1h4l2.68 13.39a1 1 0 0 0 1 .81h9.72a1 1 0 0 0 .98-.8l1.2-6H6" /></svg>`,
+            transporte: `<svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="11" width="18" height="7" rx="2" /><path d="M3 11l2-4h14l2 4" /><circle cx="7.5" cy="18.5" r="1" /><circle cx="16.5" cy="18.5" r="1" /></svg>`,
+            moradia: `<svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 9.5 12 4l9 5.5V20a1 1 0 0 1-1 1h-5v-5H9v5H4a1 1 0 0 1-1-1V9.5Z" /></svg>`,
+            saude: `<svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78L12 21.23l8.84-8.84a5.5 5.5 0 0 0 0-7.78Z" /></svg>`,
+            educacao: `<svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 10L12 4 2 10l10 6 10-6Z" /><path d="M6 12v5c3 3 9 3 12 0v-5" /></svg>`,
+            entretenimento: `<svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2" /><path d="M7 5v14" /><path d="M17 5v14" /></svg>`,
+            default: `<svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9" /><path d="M9 12h6" /><path d="M12 9v6" /></svg>`
+        };
+
+        if (cat.includes('merc') || cat.includes('super') || cat.includes('market') || cat.includes('alimen') || cat.includes('comida')) return svg.mercado;
+        if (cat.includes('transp')) return svg.transporte;
+        if (cat.includes('morad') || cat.includes('casa')) return svg.moradia;
+        if (cat.includes('saud')) return svg.saude;
+        if (cat.includes('educ')) return svg.educacao;
+        if (cat.includes('entreten') || cat.includes('lazer')) return svg.entretenimento;
+
+        return tipo === 'receita' ? svg.receita : svg.despesa;
+    }
+
+    function normalizeCategorySlug(value) {
+        const v = (value || '').toString().trim().toLowerCase();
+        if (!v) return '';
+        if (v.includes('aliment') || v.includes('merc')) return 'alimentacao';
+        if (v.includes('transp')) return 'transporte';
+        if (v.includes('saud')) return 'saude';
+        if (v.includes('educ')) return 'educacao';
+        if (v.includes('entreten') || v.includes('lazer')) return 'entretenimento';
+        if (v.includes('outros') || v.includes('outro')) return 'outros';
+        return v.replace(/\s+/g, '-');
+    }
+
+    function handleAddExpense() {
+        if (typeof openExpenseModal === 'function') {
+            openExpenseModal();
+        } else if (window.expenseModal && typeof window.expenseModal.openExpenseModalForEdit === 'function') {
+            openExpenseModal();
+        }
+    }
+
+    function handleViewStatement() {
+        try {
+            const rows = buildStatementRows();
+            const userData = JSON.parse(sessionStorage.getItem('user') || localStorage.getItem('user') || '{}');
+            const userName = userData && userData.nome ? userData.nome : 'Usuário';
+            const html = renderStatementHTML(rows, userName);
+            const printWindow = window.open('', '_blank', 'width=1100,height=800');
+
+            if (!printWindow) {
+                showError('Não foi possível abrir a janela de impressão.');
+                return;
+            }
+
+            printWindow.document.write(html);
+            printWindow.document.close();
+            printWindow.onload = () => {
+                printWindow.focus();
+                printWindow.print();
+            };
+        } catch (error) {
+            showError('Erro ao gerar o PDF do extrato. Tente novamente.');
+        }
+    }
+
+    function buildStatementRows() {
+        const rows = [];
+        (dashboardData.gastosFixos || []).forEach(g => {
+            rows.push({
+                data: g.data || g.data_gasto || g.created_at || new Date(),
+                descricao: g.nome || g.descricao || 'Gasto Fixo',
+                categoria: g.categoria || 'Fixo',
+                tipo: 'Despesa',
+                valor: parseFloat(g.valor || 0)
+            });
+        });
+
+        (dashboardData.gastosVariaveis || []).forEach(g => {
+            const isEntrada = g.tipo === 'entrada';
+            rows.push({
+                data: g.data_gasto || g.data || g.created_at || new Date(),
+                descricao: g.nome || g.descricao || (isEntrada ? 'Entrada' : 'Gasto Variável'),
+                categoria: g.categoria || g.categoria_slug || 'Variável',
+                tipo: isEntrada ? 'Receita' : 'Despesa',
+                valor: parseFloat(g.valor || 0)
+            });
+        });
+
+        if (dashboardData.salario && dashboardData.salario > 0) {
+            const hoje = new Date();
+            rows.push({
+                data: hoje,
+                descricao: 'Salário',
+                categoria: 'Renda Fixa',
+                tipo: 'Receita',
+                valor: parseFloat(dashboardData.salario || 0)
+            });
         }
 
-        printWindow.document.write(html);
-        printWindow.document.close();
-        printWindow.onload = () => {
-            printWindow.focus();
-            printWindow.print();
-        };
-    } catch (error) {
-        showError('Erro ao gerar o PDF do extrato. Tente novamente.');
-    }
-}
-
-function buildStatementRows() {
-    const rows = [];
-    (dashboardData.gastosFixos || []).forEach(g => {
-        rows.push({
-            data: g.data || g.data_gasto || g.created_at || new Date(),
-            descricao: g.nome || g.descricao || 'Gasto Fixo',
-            categoria: g.categoria || 'Fixo',
-            tipo: 'Despesa',
-            valor: parseFloat(g.valor || 0)
-        });
-    });
-
-    (dashboardData.gastosVariaveis || []).forEach(g => {
-        const isEntrada = g.tipo === 'entrada';
-        rows.push({
-            data: g.data_gasto || g.data || g.created_at || new Date(),
-            descricao: g.nome || g.descricao || (isEntrada ? 'Entrada' : 'Gasto Variável'),
-            categoria: g.categoria || g.categoria_slug || 'Variável',
-            tipo: isEntrada ? 'Receita' : 'Despesa',
-            valor: parseFloat(g.valor || 0)
-        });
-    });
-
-    if (dashboardData.salario && dashboardData.salario > 0) {
-        const hoje = new Date();
-        rows.push({
-            data: hoje,
-            descricao: 'Salário',
-            categoria: 'Renda Fixa',
-            tipo: 'Receita',
-            valor: parseFloat(dashboardData.salario || 0)
-        });
+        rows.sort((a, b) => new Date(b.data) - new Date(a.data));
+        return rows;
     }
 
-    rows.sort((a, b) => new Date(b.data) - new Date(a.data));
-    return rows;
-}
+    function renderStatementHTML(rows, userName = 'Usuário') {
+        const today = new Date();
+        const formatter = (value) => formatCurrency(value || 0);
 
-function renderStatementHTML(rows, userName = 'Usuário') {
-    const today = new Date();
-    const formatter = (value) => formatCurrency(value || 0);
-
-    const tableRows = rows.map(r => {
-        const data = new Date(r.data);
-        const dataStr = isNaN(data) ? '' : data.toLocaleDateString('pt-BR');
-        const tipoClass = r.tipo === 'Receita' ? 'tag tag-receita' : 'tag tag-despesa';
-        return `
+        const tableRows = rows.map(r => {
+            const data = new Date(r.data);
+            const dataStr = isNaN(data) ? '' : data.toLocaleDateString('pt-BR');
+            const tipoClass = r.tipo === 'Receita' ? 'tag tag-receita' : 'tag tag-despesa';
+            return `
             <tr>
                 <td>${dataStr}</td>
                 <td>${r.descricao || ''}</td>
@@ -616,9 +617,9 @@ function renderStatementHTML(rows, userName = 'Usuário') {
                 <td class="valor">${formatter(r.valor)}</td>
             </tr>
         `;
-    }).join('');
+        }).join('');
 
-    return `
+        return `
     <!DOCTYPE html>
     <html lang="pt-BR">
     <head>
@@ -679,34 +680,34 @@ function renderStatementHTML(rows, userName = 'Usuário') {
     </body>
     </html>
     `;
-}
+    }
 
-function showLoading(show) {
-    console.log(show ? 'Carregando...' : 'Carregamento completo');
-}
+    function showLoading(show) {
+        console.log(show ? 'Carregando...' : 'Carregamento completo');
+    }
 
-function showError(message) {
-    alert(message);
-}
+    function showError(message) {
+        alert(message);
+    }
 
-function formatCurrency(value) {
-    return new Intl.NumberFormat('pt-BR', {
-        style: 'currency',
-        currency: 'BRL'
-    }).format(value);
-}
+    function formatCurrency(value) {
+        return new Intl.NumberFormat('pt-BR', {
+            style: 'currency',
+            currency: 'BRL'
+        }).format(value);
+    }
 
-function updateDashboardData(data) {
-    const balanceElement = document.querySelector('[data-value="balance"]');
-    if (balanceElement && data.balance) balanceElement.textContent = formatCurrency(data.balance);
-    
-    const incomeElement = document.querySelector('[data-value="income"]');
-    if (incomeElement && data.income) incomeElement.textContent = formatCurrency(data.income);
-    
-    const expenseElement = document.querySelector('[data-value="expense"]');
-    if (expenseElement && data.expense) expenseElement.textContent = formatCurrency(data.expense);
-}
+    function updateDashboardData(data) {
+        const balanceElement = document.querySelector('[data-value="balance"]');
+        if (balanceElement && data.balance) balanceElement.textContent = formatCurrency(data.balance);
 
-window.dashboardApp = { updateDashboardData, formatCurrency };
+        const incomeElement = document.querySelector('[data-value="income"]');
+        if (incomeElement && data.income) incomeElement.textContent = formatCurrency(data.income);
+
+        const expenseElement = document.querySelector('[data-value="expense"]');
+        if (expenseElement && data.expense) expenseElement.textContent = formatCurrency(data.expense);
+    }
+
+    window.dashboardApp = { updateDashboardData, formatCurrency };
 
 })();
