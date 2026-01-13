@@ -1,62 +1,74 @@
 const variaveisService = require('../services/variaveisService');
+const metasModel = require('../models/metasModel');
 const { sendError } = require('../../../utils/errorHandler');
 
+// Helper: Promisify Service Calls (Internal)
+const Service = {
+  create: (data) => new Promise((resolve, reject) => variaveisService.create(data, (err, res) => err ? reject(err) : resolve(res))),
+  findByIdAndUser: (id, uid) => new Promise((resolve, reject) => variaveisService.findByIdAndUser(id, uid, (err, res) => err ? reject(err) : resolve(res))),
+  updateByIdAndUser: (id, uid, data) => new Promise((resolve, reject) => variaveisService.updateByIdAndUser(id, uid, data, (err, res) => err ? reject(err) : resolve(res))),
+  deleteByIdAndUser: (id, uid) => new Promise((resolve, reject) => variaveisService.deleteByIdAndUser(id, uid, (err, res) => err ? reject(err) : resolve(res))),
+  findMeta: (id, uid) => new Promise((resolve, reject) => metasModel.findByIdAndUser(id, uid, (err, res) => err ? reject(err) : resolve(res))),
+  updateMeta: (id, uid, data) => new Promise((resolve, reject) => metasModel.updateByIdAndUser(id, uid, data, (err, res) => err ? reject(err) : resolve(res)))
+};
+
+// Helper: Update Meta Balance Logic
+// Delta is positive to add (create), negative to remove (delete)
+async function syncMetaBalance(metaId, userId, deltaValue) {
+  if (!metaId || metaId <= 0 || !deltaValue) return;
+  try {
+    const meta = await Service.findMeta(metaId, userId);
+    if (!meta) return;
+
+    const currentMetaValue = parseFloat(meta.valor_atual) || 0;
+    const newMetaValue = currentMetaValue + parseFloat(deltaValue);
+
+    await Service.updateMeta(metaId, userId, { valor_atual: newMetaValue });
+  } catch (err) {
+    console.error(`❌ Erro ao sincronizar meta ${metaId}:`, err.message);
+    // Non-blocking error for main flow, but logged
+  }
+}
+
 module.exports = {
-  create(req, res) {
+  async create(req, res) {
     if (req.passo) req.passo('⚙️', 'Criando Gasto Variável');
 
-    const dados = { ...req.body, user_id: req.user.id };
-    if (!dados.categoria_id) dados.categoria_id = null;
+    try {
+      const dados = { ...req.body, user_id: req.user.id };
+      if (!dados.categoria_id) dados.categoria_id = null;
 
-    variaveisService.create(dados, (err, result) => {
-      if (err) {
-        console.error('❌ Erro ao criar despesa:', err);
-        return res.status(500).json({
-          error: 'Erro ao salvar despesa',
-          details: err.message,
-          code: err.code,
-          sql: err.sql
-        });
-      }
+      // 1. Save Expense
+      const result = await Service.create(dados);
 
       if (req.passo) req.passo('💾', `Salvo no Banco(ID: ${result.insertId})`);
 
-      // Se houver meta_id, atualiza o saldo da meta
-      // Se houver meta_id, atualiza o saldo da meta
-      if (dados.meta_id && dados.meta_id > 0) {
-        try {
-          const metasModel = require('../models/metasModel'); // Use Model directly to avoid service complexity
-
-          metasModel.findByIdAndUser(dados.meta_id, req.user.id, (errMeta, meta) => {
-            if (errMeta) {
-              console.error('Erro ao buscar meta para atualização:', errMeta);
-              return;
-            }
-            if (meta) {
-              const novoValor = (parseFloat(meta.valor_atual) || 0) + parseFloat(dados.valor);
-              metasModel.updateByIdAndUser(dados.meta_id, req.user.id, { valor_atual: novoValor }, (errUp) => {
-                if (errUp) console.error('Erro ao atualizar saldo da meta:', errUp);
-              });
-            }
-          });
-        } catch (e) {
-          console.error('Erro ao processar atualização de meta:', e);
-        }
+      // 2. Sync Meta (if linked)
+      if (dados.meta_id) {
+        await syncMetaBalance(dados.meta_id, req.user.id, dados.valor);
       }
 
       return res.status(201).json({
         message: 'Gasto variável criado com sucesso',
         id: result.insertId
       });
-    });
+
+    } catch (err) {
+      console.error('❌ Erro ao criar despesa:', err);
+      // Fallback manual error handling to match original format
+      return res.status(500).json({
+        error: 'Erro ao salvar despesa',
+        details: err.message,
+        code: err.code,
+        sql: err.sql
+      });
+    }
   },
 
   findByUserId(req, res) {
     const userId = req.user.id;
-
     variaveisService.findByUserId(userId, (err, rows) => {
       if (err) return sendError(res, err);
-
       return res.status(200).json(rows || []);
     });
   },
@@ -70,139 +82,86 @@ module.exports = {
 
   findById(req, res) {
     const id = parseInt(req.params.id, 10);
-
-    if (!Number.isInteger(id) || id <= 0) {
-      return res.status(400).json({
-        error: 'ID deve ser um número inteiro válido'
-      });
-    }
+    if (!Number.isInteger(id) || id <= 0) return res.status(400).json({ error: 'ID deve ser um número inteiro válido' });
 
     variaveisService.findByIdAndUser(id, req.user.id, (err, row) => {
       if (err) return sendError(res, err);
-
-      if (!row) {
-        return res.status(403).json({
-          error: 'Acesso negado ou gasto não encontrado'
-        });
-      }
-
+      if (!row) return res.status(403).json({ error: 'Acesso negado ou gasto não encontrado' });
       return res.status(200).json(row);
     });
   },
 
-  update(req, res) {
+  async update(req, res) {
     const id = parseInt(req.params.id, 10);
+    if (!Number.isInteger(id) || id <= 0) return res.status(400).json({ error: 'ID deve ser um número inteiro válido' });
 
-    if (!Number.isInteger(id) || id <= 0) {
-      return res.status(400).json({
-        error: 'ID deve ser um número inteiro válido'
-      });
-    }
-
-    const variaveisService = require('../services/variaveisService'); // Ensure service is available
-    const metasModel = require('../models/metasModel');
-
-    // 1. Busca estado ATUAL (antes da edição)
-    variaveisService.findByIdAndUser(id, req.user.id, (errFind, currentExpense) => {
-      if (errFind) return sendError(res, errFind);
+    try {
+      // 1. Fetch Current State
+      const currentExpense = await Service.findByIdAndUser(id, req.user.id);
       if (!currentExpense) return res.status(404).json({ error: 'Gasto não encontrado' });
 
+      // 2. Calculate Diffs
       const oldMetaId = currentExpense.meta_id;
       const oldVal = parseFloat(currentExpense.valor) || 0;
 
       const newMetaId = req.body.meta_id !== undefined ? req.body.meta_id : oldMetaId;
       const newVal = req.body.valor !== undefined ? parseFloat(req.body.valor) : oldVal;
 
-      // Função auxiliar para atualizar meta (promisified-like logic for simplicity in callback hell)
-      const updateMetaBalance = (mId, delta, cb) => {
-        if (!mId) return cb();
-        metasModel.findByIdAndUser(mId, req.user.id, (errM, metaObj) => {
-          if (errM || !metaObj) return cb(); // Log erro?
-          const updatedVal = (parseFloat(metaObj.valor_atual) || 0) + delta;
-          metasModel.updateByIdAndUser(mId, req.user.id, { valor_atual: updatedVal }, () => cb());
-        });
-      };
-
-      // 2. Lógica de Balanço
-      const processBalanceUpdates = (done) => {
-        // Caso 1: Meta mudou (A -> B, A -> Null, Null -> B)
-        if (oldMetaId != newMetaId) {
-          // Remove da antiga (se existia)
-          updateMetaBalance(oldMetaId, -oldVal, () => {
-            // Adiciona na nova (se existe)
-            updateMetaBalance(newMetaId, newVal, done);
-          });
+      // 3. Process Meta Changes
+      // A. Remove old value from old meta
+      if (oldMetaId) {
+        // If meta changed OR value changed, we remove the OLD contribution first
+        // Optimization: If meta is same, we can just do delta, but removing/adding is safer logic
+        if (oldMetaId !== newMetaId) {
+          await syncMetaBalance(oldMetaId, req.user.id, -oldVal);
         } else {
-          // Caso 2: Mesma meta, valor mudou
+          // Same meta, just calc delta
           const delta = newVal - oldVal;
-          if (delta !== 0) {
-            updateMetaBalance(oldMetaId, delta, done);
-          } else {
-            done();
-          }
+          if (delta !== 0) await syncMetaBalance(oldMetaId, req.user.id, delta);
         }
-      };
+      }
 
-      processBalanceUpdates(() => {
-        // 3. Persiste a alteração do Gasto
-        variaveisService.updateByIdAndUser(id, req.user.id, req.body, (errUpd, result) => {
-          if (errUpd) return sendError(res, errUpd);
-          return res.status(200).json({ message: 'Gasto variável atualizado com sucesso' });
-        });
-      });
-    });
+      // B. Add new value to new meta (if meta changed)
+      if (newMetaId && newMetaId !== oldMetaId) {
+        await syncMetaBalance(newMetaId, req.user.id, newVal);
+      }
+
+      // 4. Update Expense
+      await Service.updateByIdAndUser(id, req.user.id, req.body);
+
+      return res.status(200).json({ message: 'Gasto variável atualizado com sucesso' });
+
+    } catch (err) {
+      return sendError(res, err);
+    }
   },
 
-  delete(req, res) {
+  async delete(req, res) {
     const id = parseInt(req.params.id, 10);
-    if (!Number.isInteger(id) || id <= 0) {
-      return res.status(400).json({
-        error: 'ID deve ser um número inteiro válido'
-      });
-    }
+    if (!Number.isInteger(id) || id <= 0) return res.status(400).json({ error: 'ID deve ser um número inteiro válido' });
 
-    const variaveisService = require('../services/variaveisService');
-    const metasModel = require('../models/metasModel');
+    try {
+      // 1. Fetch before delete (to handle meta)
+      const expense = await Service.findByIdAndUser(id, req.user.id);
 
-    // 1. Busca a despesa antes de deletar para ajustar a meta
-    variaveisService.findByIdAndUser(id, req.user.id, (errFind, expense) => {
-      if (errFind) return sendError(res, errFind);
-
-      // Se não achou, deixa o delete normal lidar (ou retorna 404)
-      // Mas para consistência, vamos prosseguir para o delete que retornará affectedRows=0 se não existir
-
-      const proceedDelete = () => {
-        variaveisService.deleteByIdAndUser(id, req.user.id, (err, result) => {
-          if (err) return sendError(res, err);
-
-          if (result.affectedRows === 0) {
-            return res.status(403).json({
-              error: 'Acesso negado ou gasto não encontrado'
-            });
-          }
-
-          return res.status(200).json({
-            message: 'Gasto variável deletado com sucesso'
-          });
-        });
-      };
-
+      // If not found, proceed to delete anyway to ensure idempotency/consistent return
       if (expense && expense.meta_id) {
-        // Decrementa da meta
         const valorADeduzir = parseFloat(expense.valor) || 0;
-        metasModel.findByIdAndUser(expense.meta_id, req.user.id, (errM, metaObj) => {
-          if (!errM && metaObj) {
-            const novoValor = (parseFloat(metaObj.valor_atual) || 0) - valorADeduzir;
-            metasModel.updateByIdAndUser(expense.meta_id, req.user.id, { valor_atual: novoValor }, () => {
-              proceedDelete();
-            });
-          } else {
-            proceedDelete();
-          }
-        });
-      } else {
-        proceedDelete();
+        await syncMetaBalance(expense.meta_id, req.user.id, -valorADeduzir);
       }
-    });
+
+      // 2. Delete
+      const result = await Service.deleteByIdAndUser(id, req.user.id);
+
+      if (result.affectedRows === 0) {
+        // Double check if it was truly not found or just access denied (already checked by findByIdAndUser implicitly)
+        return res.status(403).json({ error: 'Acesso negado ou gasto não encontrado' });
+      }
+
+      return res.status(200).json({ message: 'Gasto variável deletado com sucesso' });
+
+    } catch (err) {
+      return sendError(res, err);
+    }
   },
 };

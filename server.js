@@ -41,12 +41,14 @@ app.use(helmet({
   contentSecurityPolicy: {
     directives: {
       defaultSrc: ["'self'"],
+      // NOTE: 'unsafe-inline' is required for legacy inline scripts in HTML files.
+      // FUTURE TODO: Refactor all inline event handlers (onclick) to external addEventListener calls to enable strict CSP.
       scriptSrc: ["'self'", "'unsafe-inline'", "https://cdn.tailwindcss.com"],
       scriptSrcAttr: ["'unsafe-inline'"], // Permite onclick inline
       styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com", "https://cdn.tailwindcss.com"],
       fontSrc: ["'self'", "https://fonts.gstatic.com"],
       imgSrc: ["'self'", "data:", "https:"],
-      connectSrc: ["'self'"],
+      connectSrc: ["'self'"], // Restricts Fetch/XHR to same origin
     },
   },
 }));
