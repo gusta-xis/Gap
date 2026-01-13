@@ -116,8 +116,7 @@
                 <span class="material-symbols-outlined text-[24px] group-hover:scale-110 transition-transform">event_repeat</span>
                 <span class="text-sm font-bold tracking-wide">Gastos Fixos</span>
             </a>
-
-            <a class="nav-link group flex items-center gap-3 px-4 py-3.5 rounded-xl text-text-muted-light dark:text-text-muted-dark hover:bg-secondary/50 hover:text-primary dark:hover:bg-white/5 dark:hover:text-white transition-all duration-200" href="#">
+            <a class="nav-link group flex items-center gap-3 px-4 py-3.5 rounded-xl text-text-muted-light dark:text-text-muted-dark hover:bg-secondary/50 hover:text-primary dark:hover:bg-white/5 dark:hover:text-white transition-all duration-200" href="#" data-page="metas">
                 <span class="material-symbols-outlined text-[24px] group-hover:scale-110 transition-transform">trending_up</span>
                 <span class="text-sm font-bold tracking-wide">Metas Financeiras</span>
             </a>
@@ -185,11 +184,7 @@
                                 <span class="material-symbols-outlined text-[24px] group-hover:scale-110 transition-transform">event_repeat</span>
                                 <span class="text-sm font-bold tracking-wide">Gastos Fixos</span>
                             </a>
-                            <a class="nav-link group flex items-center gap-3 px-4 py-3.5 rounded-xl text-text-muted-light dark:text-text-muted-dark hover:bg-secondary/50 hover:text-primary dark:hover:bg-white/5 dark:hover:text-white transition-all duration-200" href="#">
-                                <span class="material-symbols-outlined text-[24px] group-hover:scale-110 transition-transform">category</span>
-                                <span class="text-sm font-bold tracking-wide">Categorias</span>
-                            </a>
-                            <a class="nav-link group flex items-center gap-3 px-4 py-3.5 rounded-xl text-text-muted-light dark:text-text-muted-dark hover:bg-secondary/50 hover:text-primary dark:hover:bg-white/5 dark:hover:text-white transition-all duration-200" href="#">
+                            <a class="nav-link group flex items-center gap-3 px-4 py-3.5 rounded-xl text-text-muted-light dark:text-text-muted-dark hover:bg-secondary/50 hover:text-primary dark:hover:bg-white/5 dark:hover:text-white transition-all duration-200" href="#" data-page="metas">
                                 <span class="material-symbols-outlined text-[24px] group-hover:scale-110 transition-transform">trending_up</span>
                                 <span class="text-sm font-bold tracking-wide">Metas Financeiras</span>
                             </a>
@@ -344,7 +339,7 @@
                         />
                     </div>
 
-<div class="space-y-2">
+                    <div class="space-y-2">
     <label for="salaryReceiveDay" class="block text-xs font-bold uppercase tracking-wider text-text-muted-light dark:text-text-muted-dark">
         Dia do Recebimento <span class="text-red-500">*</span>
     </label>
@@ -793,7 +788,8 @@
     <script src="/scripts/gastos-fixos.js"></script>
     <script src="/scripts/expense-modal.js"></script>
     <script src="/scripts/gasto-fixo-modal.js"></script>
-    <script src="/scripts/salario-modal.js"></script> <script src="/scripts/spa-router.js"></script>
+    <script src="/scripts/salario-modal.js"></script> 
+    <script src="/scripts/spa-router.js"></script>
     <script>
 // filepath: c:\Users\luizg\Desktop\Projetos\Gap\public\app.html
 function openMobileMenu() {
@@ -820,6 +816,9 @@ const aside = document.getElementById('mobileMenuAside');
 
 openBtn.onclick = function(e) {
     // animação leve no ícone
+
+
+
     hamburgerIcon.classList.add('scale-110', 'rotate-12');
     setTimeout(() => {
         hamburgerIcon.classList.remove('scale-110', 'rotate-12');

@@ -8,8 +8,9 @@ const salarioRoutes = require('./Modules/Gap-Finance/routes/salarioRoutes');
 const fixoRoutes = require('./Modules/Gap-Finance/routes/fixoRoutes');
 const variaveisRoutes = require('./Modules/Gap-Finance/routes/variaveisRoutes');
 const categoriaRoutes = require('./Modules/Gap-Finance/routes/categoriaRoutes');
+const metasRoutes = require('./Modules/Gap-Finance/routes/metasRoutes');
 
- 
+router.use('/metas', metasRoutes);
 router.use('/users', userRoutes);
 router.use('/salarios', salarioRoutes);
 router.use('/gastos-fixos', fixoRoutes);

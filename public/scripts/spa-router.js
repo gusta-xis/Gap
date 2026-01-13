@@ -25,7 +25,13 @@ const SPARouter = {
             title: 'Gastos Fixos - GAP Financeiro',
             contentUrl: '/pages/gastos-fixos-content.html',
             script: '/scripts/gastos-fixos.js'
-        }
+        },
+        metas: {
+            title: 'Metas Financeiras - GAP Financeiro',
+            contentUrl: '/pages/metas-content.html',
+            script: '/scripts/metas.js'
+        },
+
     },
 
     init() {
@@ -207,7 +213,7 @@ const SPARouter = {
             'normalizeTransactions', 'applyFilters', 'renderTransactions',
             'updateStatistics', 'loadCustomCategories', 'saveNewCategory',
             // ADICIONADO: Limpeza de variáveis de salário se necessário (opcional)
-            'initializeSalaryModal' 
+            'initializeSalaryModal', 'metasData', 'initializeMetaModal', 'loadMetas', 'submitMeta'
         ];
         
         globalVarsToClean.forEach(varName => {
@@ -262,6 +268,13 @@ const SPARouter = {
                 window.initializeGastosFixos();
             } else {
                 console.warn('⚠️ initializeGastosFixos não está disponível');
+            }
+        } else if (pageName === 'metas') {
+            if (typeof window.initializeMetaModal === 'function') {
+                console.log('✅ Chamando initializeMetaModal...');
+                window.initializeMetaModal();
+            } else {
+                console.warn('⚠️ initializeMetaModal não está disponível');
             }
         }
 

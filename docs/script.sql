@@ -90,6 +90,18 @@ CREATE TABLE transacoes (
     INDEX idx_extrato (user_id, data_transacao)
 );
 
+-- 7. METAS
+CREATE TABLE metas (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT NOT NULL,
+    nome VARCHAR(100) NOT NULL,
+    valor_alvo DECIMAL(10,2) NOT NULL,
+    valor_atual DECIMAL(10,2) DEFAULT 0,
+    prazo DATE NOT NULL,
+    criado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
 -- GATILHOS (TRIGGERS) - AUTOMAÇÃO
 DELIMITER $$
 
