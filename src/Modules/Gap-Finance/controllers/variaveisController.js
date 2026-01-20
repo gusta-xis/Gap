@@ -32,7 +32,7 @@ async function syncMetaBalance(metaId, userId, deltaValue) {
 
 module.exports = {
   async create(req, res) {
-    if (req.passo) req.passo('⚙️', 'Criando Gasto Variável');
+
 
     try {
       const dados = { ...req.body, user_id: req.user.id };
@@ -41,7 +41,7 @@ module.exports = {
       // 1. Save Expense
       const result = await Service.create(dados);
 
-      if (req.passo) req.passo('💾', `Salvo no Banco(ID: ${result.insertId})`);
+
 
       // 2. Sync Meta (if linked)
       if (dados.meta_id) {

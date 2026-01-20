@@ -8,7 +8,7 @@ module.exports = {
     salarioService.create(dados, (err, result) => {
       if (err) return sendError(res, err);
 
-      if (req.passo) req.passo('💾', `Salvo no Banco (ID: ${result.insertId})`);
+
 
       return res.status(201).json({
         message: 'Salário criado com sucesso',

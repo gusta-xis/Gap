@@ -1,59 +1,43 @@
 const express = require('express');
-// Force Restart
 const cors = require('cors');
 const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
 const path = require('path');
-const fs = require('fs');
 require('dotenv').config();
 
-// =======================================================
-// VALIDAÇÃO DE VARIÁVEIS DE AMBIENTE
-// =======================================================
-const requiredEnvVars = [
-  'DB_HOST',
-  'DB_USER',
-  'DB_NAME',
-  'DB_PORT',
-  'JWT_SECRET',
-  'JWT_REFRESH_SECRET'
-];
+const db = require('./src/config/db'); // Database connection
+const apiRoutes = require('./src/api'); // Centralized API routes
+const userRoutes = require('../Gap/src/Modules/Gap-Core/routes/userRoutes');
+const sanitizationMiddleware = require('./src/middlewares/sanitizationMiddleware');
+const { authPageMiddleware, authResetPasswordMiddleware } = require('./src/middlewares/authPageMiddleware');
 
-for (const envVar of requiredEnvVars) {
+// --- Environment Validation ---
+const requiredEnvVars = ['DB_HOST', 'DB_USER', 'DB_NAME', 'DB_PORT', 'JWT_SECRET'];
+requiredEnvVars.forEach((envVar) => {
   if (!process.env[envVar]) {
     console.error(`❌ Variável de ambiente obrigatória ausente: ${envVar}`);
     process.exit(1);
   }
-}
-
-// DB_PASSWORD pode ser vazia (banco local sem senha)
-if (process.env.DB_PASSWORD === undefined) {
-  console.error(`❌ Variável de ambiente DB_PASSWORD não definida (pode estar vazia, mas precisa existir)`);
-  process.exit(1);
-}
+});
 
 const app = express();
 
-// =======================================================
-// 0. SECURITY HEADERS COM HELMET
-// =======================================================
+// --- Security Middleware (Helmet) ---
 app.use(helmet({
   contentSecurityPolicy: {
     directives: {
       defaultSrc: ["'self'"],
-      // NOTE: 'unsafe-inline' is required for legacy inline scripts in HTML files.
-      // FUTURE TODO: Refactor all inline event handlers (onclick) to external addEventListener calls to enable strict CSP.
-      scriptSrc: ["'self'", "'unsafe-inline'", "https://cdn.tailwindcss.com"],
-      scriptSrcAttr: ["'unsafe-inline'"], // Permite onclick inline
+      scriptSrc: ["'self'", "'unsafe-inline'", "https://cdn.tailwindcss.com"], // Consider moving inline scripts to files
+      scriptSrcAttr: ["'unsafe-inline'"],
       styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com", "https://cdn.tailwindcss.com"],
       fontSrc: ["'self'", "https://fonts.gstatic.com"],
       imgSrc: ["'self'", "data:", "https:"],
-      connectSrc: ["'self'"], // Restricts Fetch/XHR to same origin
+      connectSrc: ["'self'"],
     },
   },
 }));
 
-// Headers de segurança adicionais
+// Additional Security Headers
 app.use((req, res, next) => {
   res.setHeader('X-Content-Type-Options', 'nosniff');
   res.setHeader('X-Frame-Options', 'DENY');
@@ -61,23 +45,16 @@ app.use((req, res, next) => {
   res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
   res.setHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
   res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
-  res.setHeader('Pragma', 'no-cache');
-  res.setHeader('Expires', '0');
-  res.setHeader('Surrogate-Control', 'no-store');
   next();
 });
 
-// =======================================================
-// 1. CORS SEGURO (APENAS ORIGINS AUTORIZADAS)
-// =======================================================
+// --- CORS Configuration ---
 const corsOptions = {
   origin: function (origin, callback) {
     const allowedOrigins = [
       'http://localhost:3000',
-      'http://localhost:5173',
       'http://127.0.0.1:3000',
-      'http://127.0.0.1:5173',
-      process.env.ALLOWED_ORIGINS || ''
+      process.env.ALLOWED_ORIGINS
     ].filter(Boolean);
 
     if (!origin || allowedOrigins.includes(origin)) {
@@ -89,32 +66,21 @@ const corsOptions = {
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
-  maxAge: 3600,
-  optionsSuccessStatus: 200
 };
-
 app.use(cors(corsOptions));
 
-// =======================================================
-// 2. RATE LIMITING
-// =======================================================
+// --- Rate Limiting ---
 const loginLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000,  // 15 minutos
-  max: 5,                     // máximo 5 tentativas
-  message: 'Muitas tentativas de login. Tente novamente em 15 minutos.',
+  windowMs: 15 * 60 * 1000,
+  max: 10,
+  message: { error: 'Muitas tentativas de login. Tente novamente mais tarde.' },
   standardHeaders: true,
   legacyHeaders: false,
-  handler: (req, res) => {
-    console.warn(`⚠️ Rate limit atingido para IP: ${req.ip}`);
-    res.status(429).json({
-      error: 'Muitas tentativas. Tente novamente mais tarde.'
-    });
-  }
 });
 
 const apiLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: 1000,                   // Aumentado para 1000 para evitar bloqueios durante testes
+  max: 1000,
   standardHeaders: true,
   legacyHeaders: false,
 });
@@ -122,171 +88,71 @@ const apiLimiter = rateLimit({
 app.use('/api/', apiLimiter);
 app.use('/api/users/login', loginLimiter);
 
-// =======================================================
-// 3. MIDDLEWARE DE SEGURANÇA
-// =======================================================
-// Limita tamanho do payload
+// --- Body Parsing & Sanitization ---
 app.use(express.json({ limit: '10kb' }));
 app.use(express.urlencoded({ limit: '10kb', extended: false }));
+app.use(sanitizationMiddleware);
 
-// Remove headers perigosos
-app.use((req, res, next) => {
-  delete req.headers['transfer-encoding'];
-  next();
-});
-
-// =======================================================
-// 4. ARQUIVOS ESTÁTICOS (FRONT-END)
-// =======================================================
-// Serve a pasta 'public' (CSS, JS, Imagens)
+// --- Static Files ---
 app.set('etag', false);
 app.use(express.static(path.join(__dirname, 'public'), {
   etag: false,
   lastModified: false,
   setHeaders: (res) => {
     res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
-    res.setHeader('Pragma', 'no-cache');
-    res.setHeader('Expires', '0');
-    res.setHeader('Surrogate-Control', 'no-store');
   }
 }));
 
-// =======================================================
-// 5. ROTAS DA API (BACK-END)
-// =======================================================
-// Carrega as rotas centralizadas
-const apiRoutes = require('./src/api');
+// --- Routes ---
 app.use('/api/v1', apiRoutes);
-console.log('✅ APIs carregadas com sucesso (v1).');
-
-
-const userRoutes = require('../Gap/src/Modules/Gap-Core/routes/userRoutes');
 app.use('/api/v1/users', userRoutes);
-console.log('✅ Usuários carregados com sucesso (v1).');
 
-// =======================================================
-// 5.1. MIDDLEWARE DE AUTENTICAÇÃO DE PÁGINAS
-// =======================================================
-const { authPageMiddleware, authResetPasswordMiddleware } = require('./src/middlewares/authPageMiddleware');
-
-// =======================================================
-// 6. ROTAS DE NAVEGAÇÃO (URLS LIMPAS)
-// =======================================================
-
-// Rota Raiz -> Carrega o Login (login.html)
-app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'login.html'));
-});
-
-// Rota Explícita de Login
-app.get('/login', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'login.html'));
-});
-
-// Redirecionamento de segurança (acesso direto ao arquivo)
+// Page Navigation Routes
+app.get('/', (req, res) => res.sendFile(path.join(__dirname, 'public', 'login.html')));
+app.get('/login', (req, res) => res.sendFile(path.join(__dirname, 'public', 'login.html')));
 app.get('/login.html', (req, res) => res.redirect(301, '/'));
 
-// Rota Dashboard (A autenticação é feita no client-side via JavaScript)
-app.get('/subsistemas', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'subtemas.html'));
-});
+app.get('/subsistemas', (req, res) => res.sendFile(path.join(__dirname, 'public', 'subtemas.html')));
+app.get('/financeiro', (req, res) => res.sendFile(path.join(__dirname, 'public', 'finance.html')));
+app.get('/financeiro/dashboard', (req, res) => res.sendFile(path.join(__dirname, 'public', 'app.html')));
 
-// Rota Financeiro (A autenticação é feita no client-side via JavaScript)
-app.get('/financeiro', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'finance.html'));
-});
-
-// Rota Financeiro Dashboard (SPA - A autenticação é feita no client-side via JavaScript)
-app.get('/financeiro/dashboard', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'app.html'));
-});
-
-// Rota Reset Password (Protegida - Requer token válido na query string)
 app.get('/reset-password', authResetPasswordMiddleware, (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'reset-password.html'));
 });
 
-// =======================================================
-// 7. TRATAMENTO DE ERROS GLOBAL
-// =======================================================
-// Middleware para reforçar no-cache especificamente em rotas protegidas
+// No-cache for protected views
 const noCache = (req, res, next) => {
   res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
   res.setHeader('Pragma', 'no-cache');
   res.setHeader('Expires', '0');
-  res.setHeader('Surrogate-Control', 'no-store');
   next();
 };
-
 app.use(['/subsistemas', '/financeiro', '/financeiro/dashboard'], noCache);
 
+// --- Error Handling ---
+app.use((req, res) => res.status(404).json({ error: 'Rota não encontrada' }));
+
 app.use((err, req, res, next) => {
-  console.error('Erro não tratado:', err.message);
-
-  // Não expõe detalhes do erro em produção
-  const message = process.env.NODE_ENV === 'production'
-    ? 'Erro interno do servidor'
-    : err.message;
-
+  console.error('🔥 Erro:', err.message);
+  const message = process.env.NODE_ENV === 'production' ? 'Erro interno do servidor' : err.message;
   res.status(err.status || 500).json({ error: message });
 });
 
-// Rota 404
-app.use((req, res) => {
-  res.status(404).json({ error: 'Rota não encontrada' });
-});
-
-// =======================================================
-// INICIALIZAÇÃO
-// =======================================================
-
-// --- CORREÇÃO DE BANCO DE DADOS (FORÇADA) ---
-const db = require('./src/config/db');
-console.log('🔧 Verificando esquema do banco de dados...');
-
-// 1. Adicionar Coluna (Syntax Compatível)
+// --- Server Startup & DB Check ---
+// Legacy database column check (Keeping per requirement to preserve architecture)
 db.query("ALTER TABLE gastos_variaveis ADD COLUMN meta_id INT DEFAULT NULL", (err) => {
-  if (err) {
-    // Se o erro for "Duplicate column name" (Code 1060 ou ER_DUP_FIELDNAME), ignoramos
-    if (err.code === 'ER_DUP_FIELDNAME' || err.errno === 1060) {
-      console.log('✅ Coluna meta_id já existe.');
-    } else {
-      console.error('❌ Erro ao adicionar coluna meta_id:', err.message);
-    }
-  } else {
-    console.log('✅ Coluna meta_id criada com sucesso.');
+  if (!err || err.code === 'ER_DUP_FIELDNAME') {
+    db.query(`
+            ALTER TABLE gastos_variaveis 
+            ADD CONSTRAINT fk_gastos_metas 
+            FOREIGN KEY (meta_id) REFERENCES metas(id) 
+            ON DELETE SET NULL
+        `, () => { }); // Silently fail if exists
   }
-
-  // 2. Adicionar Foreign Key
-  db.query(`
-        ALTER TABLE gastos_variaveis
-        ADD CONSTRAINT fk_gastos_metas 
-        FOREIGN KEY (meta_id) REFERENCES metas(id) 
-        ON DELETE SET NULL
-    `, (errFK) => {
-    if (errFK) {
-      // Ignora se já existe
-      if (errFK.code === 'ER_DUP_KEYNAME' || errFK.code === 'ER_CANT_CREATE_TABLE') {
-        console.log('✅ FK fk_gastos_metas já configurada.');
-      } else {
-        console.error('⚠️ Erro ao adicionar FK (pode ser ignorado se já existir):', errFK.message);
-      }
-    } else {
-      console.log('✅ FK fk_gastos_metas criada com sucesso.');
-    }
-  });
 });
-// -------------------------------------------
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-  console.log(`--------------------------------------------------`);
   console.log(`🚀 Servidor rodando em: http://localhost:${PORT}`);
-  console.log(`📂 Rotas Disponíveis:`);
-  console.log(`   - Login:      /`);
-  console.log(`   - Dashboard:  /subsistemas`);
-  console.log(`   - Financeiro: /financeiro`);
-  console.log(`📊 Ambiente: ${process.env.NODE_ENV || 'development'}`);
-  console.log(`🔒 Segurança: Ativa`);
-  console.log(`--------------------------------------------------`);
+  console.log(`🔒 Segurança: Ativa (${process.env.NODE_ENV || 'development'})`);
 });

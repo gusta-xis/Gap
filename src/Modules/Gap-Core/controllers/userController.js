@@ -3,12 +3,12 @@ const { sendError } = require('../../../utils/errorHandler');
 
 module.exports = {
   login(req, res) {
-    if (req.passo) req.passo('🔑', 'Tentativa de Login');
+
 
     userService.login(req.body.email, req.body.senha, (err, result) => {
       if (err) return sendError(res, err);
 
-      if (req.passo) req.passo('✅', 'Login Sucesso');
+
 
       return res.json({
         accessToken: result.accessToken,
@@ -38,12 +38,12 @@ module.exports = {
   },
 
   create(req, res) {
-    if (req.passo) req.passo('⚙️', 'Criando Usuário');
+
 
     userService.create(req.body, (err, result) => {
       if (err) return sendError(res, err);
 
-      if (req.passo) req.passo('💾', 'Usuário Salvo');
+
 
       return res.status(201).json({
         message: 'Usuário criado com sucesso',

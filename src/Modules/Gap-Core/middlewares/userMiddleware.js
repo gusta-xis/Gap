@@ -25,23 +25,23 @@ module.exports = {
     const { nome, email, senha } = req.body;
     if (req.path === '/login') {
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-      
+
       if (!email || !emailRegex.test(email)) {
-        if (req.passo) req.passo('⚠️', 'Validação falhou: Email inválido');
+
         return res.status(400).json({ error: 'Email inválido.' });
       }
 
       if (!senha || typeof senha !== 'string') {
-        if (req.passo) req.passo('⚠️', 'Validação falhou: Senha inválida');
+
         return res.status(400).json({ error: 'Senha inválida.' });
       }
 
-      if (req.passo) req.passo('📝', 'Validação Login: OK');
+
       return next();
     }
 
     if (!nome || !email || !senha) {
-      if (req.passo) req.passo('⚠️', 'Validação User falhou: Dados incompletos');
+
       return res
         .status(400)
         .json({ error: 'Campos nome, email e senha são obrigatórios.' });
@@ -76,12 +76,12 @@ module.exports = {
 
     const passwordErrors = validatePasswordStrength(senha);
     if (passwordErrors.length > 0) {
-      return res.status(400).json({ 
-        error: passwordErrors[0] 
+      return res.status(400).json({
+        error: passwordErrors[0]
       });
     }
 
-    if (req.passo) req.passo('📝', 'Validação User: OK');
+
     next();
   },
   validateResetPassword: (req, res, next) => {
@@ -97,8 +97,8 @@ module.exports = {
 
     const passwordErrors = validatePasswordStrength(newPassword);
     if (passwordErrors.length > 0) {
-      return res.status(400).json({ 
-        error: passwordErrors[0] 
+      return res.status(400).json({
+        error: passwordErrors[0]
       });
     }
 

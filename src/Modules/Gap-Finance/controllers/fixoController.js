@@ -2,30 +2,30 @@ const fixoService = require('../services/fixoService');
 const { sendError } = require('../../../utils/errorHandler');
 
 module.exports = {
-create(req, res) {
-  if (req.passo) req.passo('⚙️', 'Criando Gasto Fixo');
+  create(req, res) {
 
-  // Validação dos campos obrigatórios
-  const { nome, valor, categoria_id, dia_vencimento } = req.body;
-  if (!nome || !valor || !dia_vencimento) {
-    return res.status(400).json({
-      error: 'Campos obrigatórios: nome, valor, categoria_id, dia_vencimento.'
+
+    // Validação dos campos obrigatórios
+    const { nome, valor, categoria_id, dia_vencimento } = req.body;
+    if (!nome || !valor || !dia_vencimento) {
+      return res.status(400).json({
+        error: 'Campos obrigatórios: nome, valor, categoria_id, dia_vencimento.'
+      });
+    }
+
+    const dados = { ...req.body, user_id: req.user.id };
+
+    fixoService.create(dados, (err, result) => {
+      if (err) return sendError(res, err);
+
+
+
+      return res.status(201).json({
+        message: 'Gasto fixo criado com sucesso',
+        id: result.insertId,
+      });
     });
-  }
-
-  const dados = { ...req.body, user_id: req.user.id };
-
-  fixoService.create(dados, (err, result) => {
-    if (err) return sendError(res, err);
-
-    if (req.passo) req.passo('💾', `Salvo no Banco (ID: ${result.insertId})`);
-
-    return res.status(201).json({
-      message: 'Gasto fixo criado com sucesso',
-      id: result.insertId,
-    });
-  });
-},
+  },
 
   findAll(req, res) {
     fixoService.findAll((err, rows) => {
