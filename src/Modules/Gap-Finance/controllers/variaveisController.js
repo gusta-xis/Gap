@@ -1,51 +1,78 @@
-// ========================================================
-// VARIAVEIS CONTROLLER - COM VALIDAÇÃO DE IDOR
-// ========================================================
-
 const variaveisService = require('../services/variaveisService');
+const metasModel = require('../models/metasModel');
 const { sendError } = require('../../../utils/errorHandler');
 
+// Helper: Promisify Service Calls (Internal)
+const Service = {
+  create: (data) => new Promise((resolve, reject) => variaveisService.create(data, (err, res) => err ? reject(err) : resolve(res))),
+  findByIdAndUser: (id, uid) => new Promise((resolve, reject) => variaveisService.findByIdAndUser(id, uid, (err, res) => err ? reject(err) : resolve(res))),
+  updateByIdAndUser: (id, uid, data) => new Promise((resolve, reject) => variaveisService.updateByIdAndUser(id, uid, data, (err, res) => err ? reject(err) : resolve(res))),
+  deleteByIdAndUser: (id, uid) => new Promise((resolve, reject) => variaveisService.deleteByIdAndUser(id, uid, (err, res) => err ? reject(err) : resolve(res))),
+  findMeta: (id, uid) => new Promise((resolve, reject) => metasModel.findByIdAndUser(id, uid, (err, res) => err ? reject(err) : resolve(res))),
+  updateMeta: (id, uid, data) => new Promise((resolve, reject) => metasModel.updateByIdAndUser(id, uid, data, (err, res) => err ? reject(err) : resolve(res)))
+};
+
+// Helper: Update Meta Balance Logic
+// Delta is positive to add (create), negative to remove (delete)
+async function syncMetaBalance(metaId, userId, deltaValue) {
+  if (!metaId || metaId <= 0 || !deltaValue) return;
+  try {
+    const meta = await Service.findMeta(metaId, userId);
+    if (!meta) return;
+
+    const currentMetaValue = parseFloat(meta.valor_atual) || 0;
+    const newMetaValue = currentMetaValue + parseFloat(deltaValue);
+
+    await Service.updateMeta(metaId, userId, { valor_atual: newMetaValue });
+  } catch (err) {
+    console.error(`❌ Erro ao sincronizar meta ${metaId}:`, err.message);
+    // Non-blocking error for main flow, but logged
+  }
+}
+
 module.exports = {
-  /**
-   * Create - Cria novo gasto variável
-   */
-  create(req, res) {
-    if (req.passo) req.passo('⚙️', 'Criando Gasto Variável');
+  async create(req, res) {
 
-    const dados = { ...req.body, user_id: req.user.id };
 
-    // Categoria é opcional, define como null se não fornecida
-    if (!dados.categoria_id) dados.categoria_id = null;
+    try {
+      const dados = { ...req.body, user_id: req.user.id };
+      if (!dados.categoria_id) dados.categoria_id = null;
 
-    variaveisService.create(dados, (err, result) => {
-      if (err) return sendError(res, err);
+      // 1. Save Expense
+      const result = await Service.create(dados);
 
-      if (req.passo) req.passo('💾', `Salvo no Banco (ID: ${result.insertId})`);
+
+
+      // 2. Sync Meta (if linked)
+      if (dados.meta_id) {
+        await syncMetaBalance(dados.meta_id, req.user.id, dados.valor);
+      }
 
       return res.status(201).json({
         message: 'Gasto variável criado com sucesso',
         id: result.insertId
       });
-    });
+
+    } catch (err) {
+      console.error('❌ Erro ao criar despesa:', err);
+      // Fallback manual error handling to match original format
+      return res.status(500).json({
+        error: 'Erro ao salvar despesa',
+        details: err.message,
+        code: err.code,
+        sql: err.sql
+      });
+    }
   },
 
-  /**
-   * Find By User ID - Busca gastos variáveis do usuário logado
-   */
   findByUserId(req, res) {
     const userId = req.user.id;
-
     variaveisService.findByUserId(userId, (err, rows) => {
       if (err) return sendError(res, err);
-
-      // Array vazio é OK (usuário sem gastos variáveis)
       return res.status(200).json(rows || []);
     });
   },
 
-  /**
-   * Find All - Busca todos (apenas admin)
-   */
   findAll(req, res) {
     variaveisService.findAll((err, rows) => {
       if (err) return sendError(res, err);
@@ -53,94 +80,88 @@ module.exports = {
     });
   },
 
-  /**
-   * Find By ID - Busca gasto específico
-   * ⚠️ IDOR PROTECTION: Valida que o gasto pertence ao usuário
-   */
   findById(req, res) {
     const id = parseInt(req.params.id, 10);
+    if (!Number.isInteger(id) || id <= 0) return res.status(400).json({ error: 'ID deve ser um número inteiro válido' });
 
-    // Validação de ID
-    if (!Number.isInteger(id) || id <= 0) {
-      return res.status(400).json({
-        error: 'ID deve ser um número inteiro válido'
-      });
-    }
-
-    // Usa findByIdAndUser para garantir que o usuário tem acesso
     variaveisService.findByIdAndUser(id, req.user.id, (err, row) => {
       if (err) return sendError(res, err);
-
-      if (!row) {
-        // Retorna 403 (Forbidden) em vez de 404 para não vazar informações
-        return res.status(403).json({
-          error: 'Acesso negado ou gasto não encontrado'
-        });
-      }
-
+      if (!row) return res.status(403).json({ error: 'Acesso negado ou gasto não encontrado' });
       return res.status(200).json(row);
     });
   },
 
-  /**
-   * Update - Atualiza gasto variável
-   * ⚠️ IDOR PROTECTION: Valida que o gasto pertence ao usuário
-   */
-  update(req, res) {
+  async update(req, res) {
     const id = parseInt(req.params.id, 10);
+    if (!Number.isInteger(id) || id <= 0) return res.status(400).json({ error: 'ID deve ser um número inteiro válido' });
 
-    // Validação de ID
-    if (!Number.isInteger(id) || id <= 0) {
-      return res.status(400).json({
-        error: 'ID deve ser um número inteiro válido'
-      });
-    }
+    try {
+      // 1. Fetch Current State
+      const currentExpense = await Service.findByIdAndUser(id, req.user.id);
+      if (!currentExpense) return res.status(404).json({ error: 'Gasto não encontrado' });
 
-    // Usa updateByIdAndUser para garantir autorização
-    variaveisService.updateByIdAndUser(id, req.user.id, req.body, (err, result) => {
-      if (err) return sendError(res, err);
+      // 2. Calculate Diffs
+      const oldMetaId = currentExpense.meta_id;
+      const oldVal = parseFloat(currentExpense.valor) || 0;
 
-      // Se nenhuma linha foi afetada, usuário não tem acesso
-      if (result.affectedRows === 0) {
-        return res.status(403).json({
-          error: 'Acesso negado ou gasto não encontrado'
-        });
+      const newMetaId = req.body.meta_id !== undefined ? req.body.meta_id : oldMetaId;
+      const newVal = req.body.valor !== undefined ? parseFloat(req.body.valor) : oldVal;
+
+      // 3. Process Meta Changes
+      // A. Remove old value from old meta
+      if (oldMetaId) {
+        // If meta changed OR value changed, we remove the OLD contribution first
+        // Optimization: If meta is same, we can just do delta, but removing/adding is safer logic
+        if (oldMetaId !== newMetaId) {
+          await syncMetaBalance(oldMetaId, req.user.id, -oldVal);
+        } else {
+          // Same meta, just calc delta
+          const delta = newVal - oldVal;
+          if (delta !== 0) await syncMetaBalance(oldMetaId, req.user.id, delta);
+        }
       }
 
-      return res.status(200).json({
-        message: 'Gasto variável atualizado com sucesso'
-      });
-    });
+      // B. Add new value to new meta (if meta changed)
+      if (newMetaId && newMetaId !== oldMetaId) {
+        await syncMetaBalance(newMetaId, req.user.id, newVal);
+      }
+
+      // 4. Update Expense
+      await Service.updateByIdAndUser(id, req.user.id, req.body);
+
+      return res.status(200).json({ message: 'Gasto variável atualizado com sucesso' });
+
+    } catch (err) {
+      return sendError(res, err);
+    }
   },
 
-  /**
-   * Delete - Deleta gasto variável
-   * ⚠️ IDOR PROTECTION: Valida que o gasto pertence ao usuário
-   */
-  delete(req, res) {
+  async delete(req, res) {
     const id = parseInt(req.params.id, 10);
+    if (!Number.isInteger(id) || id <= 0) return res.status(400).json({ error: 'ID deve ser um número inteiro válido' });
 
-    // Validação de ID
-    if (!Number.isInteger(id) || id <= 0) {
-      return res.status(400).json({
-        error: 'ID deve ser um número inteiro válido'
-      });
-    }
+    try {
+      // 1. Fetch before delete (to handle meta)
+      const expense = await Service.findByIdAndUser(id, req.user.id);
 
-    // Usa deleteByIdAndUser para garantir autorização
-    variaveisService.deleteByIdAndUser(id, req.user.id, (err, result) => {
-      if (err) return sendError(res, err);
-
-      // Se nenhuma linha foi afetada, usuário não tem acesso
-      if (result.affectedRows === 0) {
-        return res.status(403).json({
-          error: 'Acesso negado ou gasto não encontrado'
-        });
+      // If not found, proceed to delete anyway to ensure idempotency/consistent return
+      if (expense && expense.meta_id) {
+        const valorADeduzir = parseFloat(expense.valor) || 0;
+        await syncMetaBalance(expense.meta_id, req.user.id, -valorADeduzir);
       }
 
-      return res.status(200).json({
-        message: 'Gasto variável deletado com sucesso'
-      });
-    });
+      // 2. Delete
+      const result = await Service.deleteByIdAndUser(id, req.user.id);
+
+      if (result.affectedRows === 0) {
+        // Double check if it was truly not found or just access denied (already checked by findByIdAndUser implicitly)
+        return res.status(403).json({ error: 'Acesso negado ou gasto não encontrado' });
+      }
+
+      return res.status(200).json({ message: 'Gasto variável deletado com sucesso' });
+
+    } catch (err) {
+      return sendError(res, err);
+    }
   },
 };

@@ -1,15 +1,7 @@
-// ========================================================
-// FIXO MODEL - GASTOS FIXOS COM PREVENÇÃO DE IDOR
-// ========================================================
-
 const db = require('../../../config/db');
 
-// Campos permitidos para INSERT/UPDATE (whitelist)
-const ALLOWED_FIELDS = ['descricao', 'valor', 'dia_vencimento', 'categoria_id', 'user_id'];
+const ALLOWED_FIELDS = ['nome', 'valor', 'dia_vencimento', 'categoria_id', 'user_id'];
 
-/**
- * Filtra objeto para incluir apenas campos permitidos
- */
 function filterAllowedFields(data) {
   const filtered = {};
   ALLOWED_FIELDS.forEach((field) => {
@@ -21,14 +13,11 @@ function filterAllowedFields(data) {
 }
 
 module.exports = {
-  /**
-   * Cria novo gasto fixo
-   */
   create(data, callback) {
     const filteredData = filterAllowedFields(data);
 
-    if (!filteredData.descricao || !filteredData.valor || !filteredData.user_id) {
-      return callback(new Error('Descricao, valor e user_id são obrigatórios'));
+    if (!filteredData.nome || !filteredData.valor || !filteredData.user_id) {
+      return callback(new Error('Nome, valor e user_id são obrigatórios'));
     }
 
     const fields = Object.keys(filteredData);
@@ -40,16 +29,10 @@ module.exports = {
     db.query(query, values, callback);
   },
 
-  /**
-   * Busca todos os gastos (sem filtro - apenas admin)
-   */
   findAll(callback) {
     db.query('SELECT * FROM gastos_fixos', callback);
   },
 
-  /**
-   * Busca gastos fixos por usuário (com categoria)
-   */
   findByUserId(userId, callback) {
     if (!Number.isInteger(userId) || userId <= 0) {
       return callback(new Error('User ID deve ser um número inteiro válido'));
@@ -66,9 +49,6 @@ module.exports = {
     );
   },
 
-  /**
-   * Busca gasto fixo por ID (sem validação de proprietário)
-   */
   findById(id, callback) {
     if (!Number.isInteger(id) || id <= 0) {
       return callback(new Error('ID deve ser um número inteiro válido'));
@@ -81,10 +61,6 @@ module.exports = {
     );
   },
 
-  /**
-   * Busca gasto fixo por ID E user_id (PREVINE IDOR)
-   * Usa esta função em controllers para garantir autorização
-   */
   findByIdAndUser(id, userId, callback) {
     if (!Number.isInteger(id) || id <= 0) {
       return callback(new Error('ID deve ser um número inteiro válido'));
@@ -104,9 +80,6 @@ module.exports = {
     );
   },
 
-  /**
-   * Atualiza gasto fixo
-   */
   update(id, data, callback) {
     if (!Number.isInteger(id) || id <= 0) {
       return callback(new Error('ID deve ser um número inteiro válido'));
@@ -128,9 +101,6 @@ module.exports = {
     db.query(query, values, callback);
   },
 
-  /**
-   * Atualiza gasto fixo com validação de proprietário
-   */
   updateByIdAndUser(id, userId, data, callback) {
     if (!Number.isInteger(id) || id <= 0) {
       return callback(new Error('ID deve ser um número inteiro válido'));
@@ -149,7 +119,7 @@ module.exports = {
     const fields = Object.keys(filteredData);
     const values = Object.values(filteredData);
     values.push(id);
-    values.push(userId); // Validação dupla: id AND user_id
+values.push(userId);
 
     const setClause = fields.map((f) => `${f} = ?`).join(', ');
     const query = `UPDATE gastos_fixos SET ${setClause} WHERE id = ? AND user_id = ?`;
@@ -157,9 +127,6 @@ module.exports = {
     db.query(query, values, callback);
   },
 
-  /**
-   * Remove gasto fixo
-   */
   remove(id, callback) {
     if (!Number.isInteger(id) || id <= 0) {
       return callback(new Error('ID deve ser um número inteiro válido'));
@@ -168,9 +135,6 @@ module.exports = {
     db.query('DELETE FROM gastos_fixos WHERE id = ?', [id], callback);
   },
 
-  /**
-   * Remove gasto fixo com validação de proprietário
-   */
   removeByIdAndUser(id, userId, callback) {
     if (!Number.isInteger(id) || id <= 0) {
       return callback(new Error('ID deve ser um número inteiro válido'));

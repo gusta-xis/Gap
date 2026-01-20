@@ -1,68 +1,64 @@
-// ========================================================
-// LOGIN/SIGNUP COM SEGURANÇA
-// Usa sessionStorage, sanitização de XSS e refresh tokens
-// ========================================================
-
-/**
- * Sanitiza string removendo tags HTML e caracteres perigosos
- * @param {string} str - String a sanitizar
- * @returns {string} String sanitizada
- */
 function sanitizeInput(str) {
   if (typeof str !== 'string') return str;
-  
-  // Remove tags HTML
+
   str = str.replace(/<[^>]*>/g, '');
-  
-  // Remove caracteres de controle
+
   str = str.replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, '');
-  
+
   return str.trim();
 }
 
-/**
- * Limpa todos os dados da sessão do usuário
- */
 function clearUserSession() {
-  // ⚠️ SEGURANÇA: Usa sessionStorage em vez de localStorage
   sessionStorage.removeItem('accessToken');
   sessionStorage.removeItem('refreshToken');
   sessionStorage.removeItem('user');
   sessionStorage.removeItem('userName');
-  
-  // Também limpa localStorage se houve migração
+
   localStorage.removeItem('token');
   localStorage.removeItem('user');
   localStorage.removeItem('userName');
 }
 
-// =========================================
-// ANTI-CACHE: RECARREGA PAGE SHOW
-// =========================================
-window.addEventListener('pageshow', function(event) {
+window.addEventListener('pageshow', function (event) {
   if (event.persisted || (window.performance && window.performance.navigation.type === 2)) {
     window.location.reload();
   }
 });
 
 document.addEventListener('DOMContentLoaded', () => {
-  // =========================================
-  // AUTO-LOGOUT AO ACESSAR LOGIN PAGE
-  // =========================================
   clearUserSession();
 
-  // =========================================
-  // ANIMAÇÃO LOGIN/SIGNUP/FORGOT PASSWORD
-  // =========================================
   const mainContainer = document.querySelector('.main-container');
   const linkToSignup = document.getElementById('linkToSignup');
   const linkToLogin = document.getElementById('linkToLogin');
   const linkToForgotPassword = document.getElementById('linkToForgotPassword');
   const linkBackToLogin = document.getElementById('linkBackToLogin');
 
+  // Helper para exibir feedback visual e esconder o oposto
+  function showFeedback(context, type, message) {
+    const successBox = document.getElementById(`${context}SuccessMessage`);
+    const errorBox = document.getElementById(`${context}ErrorMessage`);
+    const msgData = type === 'success' ? successBox : errorBox;
+    const boxHide = type === 'success' ? errorBox : successBox;
+
+    if (boxHide) boxHide.classList.add('hidden');
+
+    if (msgData) {
+      const span = msgData.querySelector('.msg-text');
+      if (span) span.textContent = message;
+      msgData.classList.remove('hidden');
+    }
+  }
+
+  // Helper para limpar feedbacks ao trocar de tela
+  function clearAllFeedbacks() {
+    document.querySelectorAll('.message-box').forEach(box => box.classList.add('hidden'));
+  }
+
   if (linkToSignup) {
     linkToSignup.addEventListener('click', (e) => {
       e.preventDefault();
+      clearAllFeedbacks();
       mainContainer.classList.remove('forgot-password-mode');
       mainContainer.classList.add('sign-up-mode');
     });
@@ -71,6 +67,7 @@ document.addEventListener('DOMContentLoaded', () => {
   if (linkToLogin) {
     linkToLogin.addEventListener('click', (e) => {
       e.preventDefault();
+      clearAllFeedbacks();
       mainContainer.classList.remove('sign-up-mode');
       mainContainer.classList.remove('forgot-password-mode');
     });
@@ -79,6 +76,7 @@ document.addEventListener('DOMContentLoaded', () => {
   if (linkToForgotPassword) {
     linkToForgotPassword.addEventListener('click', (e) => {
       e.preventDefault();
+      clearAllFeedbacks();
       mainContainer.classList.remove('sign-up-mode');
       mainContainer.classList.add('forgot-password-mode');
     });
@@ -87,13 +85,11 @@ document.addEventListener('DOMContentLoaded', () => {
   if (linkBackToLogin) {
     linkBackToLogin.addEventListener('click', (e) => {
       e.preventDefault();
+      clearAllFeedbacks();
       mainContainer.classList.remove('forgot-password-mode');
     });
   }
 
-  // =========================================
-  // TOGGLE VISIBILIDADE SENHA
-  // =========================================
   const toggleButtons = document.querySelectorAll('.toggle-password');
   toggleButtons.forEach((button) => {
     button.addEventListener('click', () => {
@@ -111,30 +107,23 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 
-  // =========================================
-  // SUBMISSÃO LOGIN
-  // =========================================
   const loginForm = document.getElementById('loginForm');
   if (loginForm) {
     loginForm.addEventListener('submit', async (e) => {
       e.preventDefault();
+      clearAllFeedbacks();
 
       const email = sanitizeInput(document.getElementById('login-email').value);
-      const senha = document.getElementById('login-senha').value; // Senha não é sanitizada
+      const senha = document.getElementById('login-senha').value;
       const btn = loginForm.querySelector('.btn-submit');
       const txtOriginal = btn.innerText;
 
-      // Validação básica
-      if (!email || !senha) {
-        alert('Email e senha são obrigatórios.');
-        return;
-      }
+      /* Browser validation handles empty fields */
 
       btn.innerText = 'Entrando...';
       btn.disabled = true;
 
       try {
-        // Usa a nova API com versão
         const response = await fetch('/api/v1/users/login', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -144,16 +133,9 @@ document.addEventListener('DOMContentLoaded', () => {
         const result = await response.json().catch(() => ({}));
 
         if (response.ok) {
-          // ⚠️ SEGURANÇA: Armazena tokens em sessionStorage
-          if (result.accessToken) {
-            sessionStorage.setItem('accessToken', result.accessToken);
-          }
+          if (result.accessToken) sessionStorage.setItem('accessToken', result.accessToken);
+          if (result.refreshToken) sessionStorage.setItem('refreshToken', result.refreshToken);
 
-          if (result.refreshToken) {
-            sessionStorage.setItem('refreshToken', result.refreshToken);
-          }
-
-          // Armazena dados do usuário (sanitizados)
           if (result.user) {
             try {
               sessionStorage.setItem('user', JSON.stringify(result.user));
@@ -165,18 +147,23 @@ document.addEventListener('DOMContentLoaded', () => {
             }
           }
 
-          alert('✅ Login com sucesso! Redirecionando...');
+          showFeedback('login', 'success', 'Acesso permitido! Redirecionando...');
 
-          // Sempre redireciona para subsistemas após login
-          window.location.replace('/subsistemas');
+          setTimeout(() => {
+            if (result.user && result.user.introducao_vista === 0) {
+              window.location.replace('/financeiro');
+            } else {
+              window.location.replace('/financeiro/dashboard');
+            }
+          }, 1000); // Pequeno delay para ler a mensagem
+
         } else {
-          alert(`❌ ${result.error || 'Falha no login.'}`);
+          showFeedback('login', 'error', 'Acesso negado, verifique suas credenciais.');
         }
       } catch (error) {
         console.error('❌ Erro de conexão:', error);
-        alert('❌ Erro de conexão com o servidor.');
+        showFeedback('login', 'error', 'Erro de conexão com o servidor.');
       } finally {
-        // Limpa campo de senha
         const senhaInput = document.getElementById('login-senha');
         if (senhaInput) senhaInput.value = '';
 
@@ -186,41 +173,34 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // =========================================
-  // SUBMISSÃO CADASTRO
-  // =========================================
   const signupForm = document.getElementById('signupForm');
   if (signupForm) {
     signupForm.addEventListener('submit', async (e) => {
       e.preventDefault();
+      clearAllFeedbacks();
 
       const nome = sanitizeInput(document.getElementById('signup-nome').value);
       const email = sanitizeInput(document.getElementById('signup-email').value);
-      const senha = document.getElementById('signup-senha').value; // Não sanitiza senha
+      const senha = document.getElementById('signup-senha').value;
       const confSenha = document.getElementById('signup-confSenha').value;
       const btn = signupForm.querySelector('.btn-submit');
       const txtOriginal = btn.innerText;
 
-      // Validações
-      if (!nome || !email || !senha || !confSenha) {
-        alert('Todos os campos são obrigatórios.');
-        return;
-      }
+      /* Browser validation handles empty fields */
 
       if (senha !== confSenha) {
-        alert('As senhas não coincidem.');
+        showFeedback('signup', 'error', 'As senhas não coincidem.');
         return;
       }
 
       if (senha.length < 8) {
-        alert('A senha deve ter no mínimo 8 caracteres.');
+        showFeedback('signup', 'error', 'A senha deve ter no mínimo 8 caracteres.');
         return;
       }
 
-      // Validação de email simples
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
       if (!emailRegex.test(email)) {
-        alert('Email inválido.');
+        showFeedback('signup', 'error', 'Email inválido.');
         return;
       }
 
@@ -228,7 +208,6 @@ document.addEventListener('DOMContentLoaded', () => {
       btn.disabled = true;
 
       try {
-        // Usa a nova API com versão
         const response = await fetch('/api/v1/users', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -238,17 +217,21 @@ document.addEventListener('DOMContentLoaded', () => {
         const result = await response.json().catch(() => ({}));
 
         if (response.ok) {
-          alert(`✅ ${result.message || 'Cadastro realizado! Faça login.'}`);
+          showFeedback('signup', 'success', result.message || 'Cadastro realizado! Faça login.');
           signupForm.reset();
-          mainContainer.classList.remove('sign-up-mode');
+          // Opcional: Voltar para login automaticamente após um tempo
+          setTimeout(() => {
+            mainContainer.classList.remove('sign-up-mode');
+            clearAllFeedbacks();
+            showFeedback('login', 'success', 'Cadastro realizado! Faça login.');
+          }, 2000);
         } else {
-          alert(`❌ ${result.error || 'Falha no cadastro.'}`);
+          showFeedback('signup', 'error', result.error || 'Falha no cadastro.');
         }
       } catch (error) {
         console.error('❌ Erro de conexão:', error);
-        alert('❌ Erro de conexão com o servidor.');
+        showFeedback('signup', 'error', 'Erro de conexão com o servidor.');
       } finally {
-        // Limpa campos de senha
         const senhaInput = document.getElementById('signup-senha');
         if (senhaInput) senhaInput.value = '';
 
@@ -261,13 +244,11 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // =========================================
-  // FORMULÁRIO DE RECUPERAÇÃO DE SENHA
-  // =========================================
   const forgotPasswordForm = document.getElementById('forgotPasswordForm');
   if (forgotPasswordForm) {
     forgotPasswordForm.addEventListener('submit', async (e) => {
       e.preventDefault();
+      clearAllFeedbacks();
 
       const btn = forgotPasswordForm.querySelector('button[type="submit"]');
       const txtOriginal = btn.innerText;
@@ -286,30 +267,24 @@ document.addEventListener('DOMContentLoaded', () => {
         const result = await response.json();
 
         if (response.ok) {
-          // Em produção, o token seria enviado por email
-          // Por ora, mostramos o link direto para teste
           if (result.token) {
             const resetLink = `${window.location.origin}/reset-password.html?token=${result.token}`;
-            
-            // Copia automaticamente para clipboard
             try {
               await navigator.clipboard.writeText(resetLink);
-              alert(`✅ Link de recuperação copiado!\n\nCole no navegador para redefinir sua senha.\n\n⚠️ Em produção, este link seria enviado por email.`);
+              showFeedback('forgot', 'success', 'Link copiado para a área de transferência! (Simulação)');
             } catch (clipboardErr) {
-              // Fallback se clipboard falhar
-              alert(`✅ Link de recuperação:\n\n${resetLink}\n\n📋 Copie o link acima\n⚠️ Em produção, este link seria enviado por email.`);
+              showFeedback('forgot', 'success', 'Link gerado (verifique console/alert antigo se necessário).');
             }
           } else {
-            alert(`✅ ${result.message || 'Se o email existir, um link de recuperação foi enviado.'}`);
+            showFeedback('forgot', 'success', result.message || 'Se o email existir, um link foi enviado.');
           }
           forgotPasswordForm.reset();
-          mainContainer.classList.remove('forgot-password-mode');
         } else {
-          alert(`❌ ${result.error || 'Falha ao enviar link de recuperação.'}`);
+          showFeedback('forgot', 'error', result.error || 'Falha ao enviar link.');
         }
       } catch (error) {
         console.error('❌ Erro de conexão:', error);
-        alert('❌ Erro de conexão com o servidor.');
+        showFeedback('forgot', 'error', 'Erro de conexão com o servidor.');
       } finally {
         btn.innerText = txtOriginal;
         btn.disabled = false;

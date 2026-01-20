@@ -1,0 +1,873 @@
+<!DOCTYPE html>
+<html class="light h-full w-full antialiased" lang="pt-br">
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" name="viewport"/>
+    <title>GAP Financeiro</title>
+    
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <script>
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        primary: "#A0430A",
+                        secondary: "#DFE8E6",
+                        "background-light": "#f8f7f6", 
+                        "background-dark": "#121212", 
+                        "surface-light": "#ffffff",    
+                        "surface-dark": "#1E1E1E",     
+                        "text-light": "#1a1a1a",
+                        "text-dark": "#e5e5e5",
+                        "text-muted-light": "#666666",
+                        "text-muted-dark": "#a3a3a3",
+                        border: "rgba(0,0,0,0.08)",
+                        "border-dark": "rgba(255,255,255,0.08)",
+                    },
+                    fontFamily: {
+                        display: ["Manrope", "sans-serif"]
+                    },
+                    borderRadius: {
+                        DEFAULT: "0.5rem",
+                        xl: "0.75rem",
+                        "2xl": "1rem",
+                        "3xl": "1.5rem"
+                    },
+                    zIndex: {
+                        'sticky': '40',
+                        'modal': '50',
+                        'overlay': '45',
+                    },
+                    keyframes: {
+                        slideUpMobile: {
+                            '0%': { transform: 'translateY(100%)' },
+                            '100%': { transform: 'translateY(0)' }
+                        },
+                        fadeInScale: {
+                            '0%': { opacity: '0', transform: 'scale(0.95)' },
+                            '100%': { opacity: '1', transform: 'scale(1)' }
+                        },
+                        fadeIn: {
+                            'from': { opacity: '0' },
+                            'to': { opacity: '1' }
+                        }
+                    },
+                    animation: {
+                        'modal-mobile': 'slideUpMobile 0.35s cubic-bezier(0.16, 1, 0.3, 1)',
+                        'modal-desktop': 'fadeInScale 0.2s ease-out',
+                        'fade-in': 'fadeIn 0.2s ease-out',
+                    }
+                },
+            },
+        };
+    </script>
+    
+    <link href="https://fonts.googleapis.com" rel="preconnect"/>
+    <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+    <link rel="stylesheet" href="/styles/dashboard.css">
+    
+    <style>
+        body { -webkit-tap-highlight-color: transparent; }
+        .scroll-smooth-y { overflow-y: auto; -webkit-overflow-scrolling: touch; }
+        
+        ::-webkit-scrollbar { width: 5px; height: 5px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+        .dark ::-webkit-scrollbar-thumb { background: #475569; }
+        
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes slideIn { from { transform: translateX(-20px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+    </style>
+    
+    <script>
+        (function() {
+            try {
+                const userDataString = sessionStorage.getItem('user') || localStorage.getItem('user');
+                if (userDataString) {
+                    const userData = JSON.parse(userDataString);
+                    window.__preloadedUserName = userData.nome || userData.name || 'Usuário';
+                    window.__preloadedUserInitial = (userData.nome || userData.name || 'U').charAt(0).toUpperCase();
+                }
+            } catch (e) { console.error(e); }
+        })();
+    </script>
+</head>
+
+<body class="bg-background-light dark:bg-background-dark text-text-light dark:text-text-dark font-display h-full w-full overflow-hidden flex selection:bg-primary/20 selection:text-primary">
+
+    <aside class="hidden lg:flex w-72 flex-col border-r border-border dark:border-border-dark bg-surface-light dark:bg-surface-dark h-full shrink-0 z-20 transition-colors">
+        <div class="flex h-20 items-center px-8 shrink-0">
+            <img src="/img/financel.svg" alt="Finance Icon" class="h-10 w-auto object-contain">
+        </div>
+        
+        <nav class="flex flex-col gap-2 px-4 py-4 flex-1 overflow-y-auto scroll-smooth-y">
+            <a class="nav-link group flex items-center gap-3 px-4 py-3.5 rounded-xl text-text-muted-light dark:text-text-muted-dark hover:bg-secondary/50 hover:text-primary dark:hover:bg-white/5 dark:hover:text-white transition-all duration-200" href="#" data-page="dashboard">
+                <span class="material-symbols-outlined text-[24px] group-hover:scale-110 transition-transform">dashboard</span>
+                <span class="text-sm font-bold tracking-wide">Dashboard</span>
+            </a>
+            <a class="nav-link group flex items-center gap-3 px-4 py-3.5 rounded-xl text-text-muted-light dark:text-text-muted-dark hover:bg-secondary/50 hover:text-primary dark:hover:bg-white/5 dark:hover:text-white transition-all duration-200" href="#" data-page="transacoes">
+                <span class="material-symbols-outlined text-[24px] group-hover:scale-110 transition-transform">receipt_long</span>
+                <span class="text-sm font-bold tracking-wide">Minhas Transações</span>
+            </a>
+            <a class="nav-link group flex items-center gap-3 px-4 py-3.5 rounded-xl text-text-muted-light dark:text-text-muted-dark hover:bg-secondary/50 hover:text-primary dark:hover:bg-white/5 dark:hover:text-white transition-all duration-200" href="#" data-page="gastos-fixos">
+                <span class="material-symbols-outlined text-[24px] group-hover:scale-110 transition-transform">event_repeat</span>
+                <span class="text-sm font-bold tracking-wide">Gastos Fixos</span>
+            </a>
+            <a class="nav-link group flex items-center gap-3 px-4 py-3.5 rounded-xl text-text-muted-light dark:text-text-muted-dark hover:bg-secondary/50 hover:text-primary dark:hover:bg-white/5 dark:hover:text-white transition-all duration-200" href="#" data-page="metas">
+                <span class="material-symbols-outlined text-[24px] group-hover:scale-110 transition-transform">trending_up</span>
+                <span class="text-sm font-bold tracking-wide">Metas Financeiras</span>
+            </a>
+        </nav>
+        
+        <div class="mt-auto px-4 py-6 border-t border-border dark:border-border-dark shrink-0">
+            <a class="nav-link group flex items-center gap-3 px-4 py-3.5 rounded-xl text-text-muted-light dark:text-text-muted-dark hover:bg-secondary/50 hover:text-primary dark:hover:bg-white/5 dark:hover:text-white transition-all duration-200" href="#">
+                <span class="material-symbols-outlined text-[24px] group-hover:rotate-45 transition-transform">settings</span>
+                <span class="text-sm font-bold tracking-wide">Configurações</span>
+            </a>
+        </div>
+    </aside>
+
+    <div class="layout-container relative flex flex-1 flex-col h-full overflow-hidden bg-background-light dark:bg-background-dark">
+        
+        <div class="flex-1 overflow-y-auto overflow-x-hidden scroll-smooth-y relative">
+            <div class="layout-content-container flex flex-col w-full min-h-full max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-10 py-4 sm:py-6">
+                
+                <header class="header-fixed sticky top-0 z-sticky mb-6 flex items-center justify-between rounded-2xl bg-white/5 dark:bg-black/20 backdrop-blur-md border border-white/10 dark:border-white/5 px-4 py-3 shadow-sm transition-all duration-300">
+                    <!-- Botão Hamburguer Mobile -->
+                    <button id="openMobileMenuBtn" class="lg:hidden mr-3 flex items-center justify-center p-2 rounded-xl text-text-light dark:text-text-dark hover:bg-secondary dark:hover:bg-white/10 transition-all" aria-label="Abrir menu">
+                        <span id="hamburgerIcon" class="material-symbols-outlined text-3xl transition-transform duration-300">menu</span>
+                    </button>
+                    <div class="flex items-center gap-3">
+                        <div id="headerAvatar" class="header-avatar flex h-10 w-10 items-center justify-center rounded-full bg-primary/10 text-primary font-bold shadow-inner ring-2 ring-white/50 dark:ring-white/10">
+                            <script>document.write(window.__preloadedUserInitial || 'U');</script>
+                        </div>
+                        <div class="flex flex-col justify-center">
+                            <p id="headerUserName" class="header-user-name text-sm font-bold text-text-light dark:text-text-dark leading-tight">
+                                <script>document.write(window.__preloadedUserName || 'Usuário');</script>
+                            </p>
+                            </div>
+                    </div>
+
+                    <button class="logout-btn group flex items-center justify-center p-2.5 rounded-xl text-text-muted-light hover:text-red-600 hover:bg-red-50 dark:text-text-muted-dark dark:hover:text-red-400 dark:hover:bg-red-900/20 transition-all duration-200" title="Voltar para Subtemas" onclick="voltarParaSubtemas()">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 transition-transform group-hover:-translate-x-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+                            <polyline points="16 17 21 12 16 7" />
+                            <line x1="21" y1="12" x2="9" y2="12" />
+                        </svg>
+                    </button>
+                </header>
+
+                <!-- Drawer Mobile Menu -->
+                <div id="mobileMenuDrawer" class="fixed inset-0 z-[70] bg-black/40 backdrop-blur-[2px] transition-opacity duration-300 hidden lg:hidden" onclick="closeMobileMenu()">
+                    <aside class="absolute left-0 top-0 h-full w-64 bg-surface-light dark:bg-surface-dark shadow-2xl flex flex-col transition-transform duration-300 transform -translate-x-full" id="mobileMenuAside" onclick="event.stopPropagation();">
+                        <div class="flex h-20 items-center px-8 shrink-0 justify-between">
+                            <img src="/img/financel.svg" alt="Finance Icon" class="h-10 w-auto object-contain">
+                            <!-- Botão X para fechar -->
+                            <button id="closeMobileMenuBtn" class="flex items-center justify-center p-2 rounded-xl text-text-light dark:text-text-dark hover:bg-secondary dark:hover:bg-white/10 transition-all" aria-label="Fechar menu">
+                                <span class="material-symbols-outlined text-3xl">close</span>
+                            </button>
+                        </div>
+                        <nav class="flex flex-col gap-2 px-4 py-4 flex-1 overflow-y-auto scroll-smooth-y">
+                            <!-- Copie os links do menu lateral aqui -->
+                            <a class="nav-link group flex items-center gap-3 px-4 py-3.5 rounded-xl text-text-muted-light dark:text-text-muted-dark hover:bg-secondary/50 hover:text-primary dark:hover:bg-white/5 dark:hover:text-white transition-all duration-200" href="#" data-page="dashboard">
+                                <span class="material-symbols-outlined text-[24px] group-hover:scale-110 transition-transform">dashboard</span>
+                                <span class="text-sm font-bold tracking-wide">Dashboard</span>
+                            </a>
+                            <a class="nav-link group flex items-center gap-3 px-4 py-3.5 rounded-xl text-text-muted-light dark:text-text-muted-dark hover:bg-secondary/50 hover:text-primary dark:hover:bg-white/5 dark:hover:text-white transition-all duration-200" href="#" data-page="transacoes">
+                                <span class="material-symbols-outlined text-[24px] group-hover:scale-110 transition-transform">receipt_long</span>
+                                <span class="text-sm font-bold tracking-wide">Minhas Transações</span>
+                            </a>
+                            <a class="nav-link group flex items-center gap-3 px-4 py-3.5 rounded-xl text-text-muted-light dark:text-text-muted-dark hover:bg-secondary/50 hover:text-primary dark:hover:bg-white/5 dark:hover:text-white transition-all duration-200" href="#" data-page="gastos-fixos">
+                                <span class="material-symbols-outlined text-[24px] group-hover:scale-110 transition-transform">event_repeat</span>
+                                <span class="text-sm font-bold tracking-wide">Gastos Fixos</span>
+                            </a>
+                            <a class="nav-link group flex items-center gap-3 px-4 py-3.5 rounded-xl text-text-muted-light dark:text-text-muted-dark hover:bg-secondary/50 hover:text-primary dark:hover:bg-white/5 dark:hover:text-white transition-all duration-200" href="#" data-page="metas">
+                                <span class="material-symbols-outlined text-[24px] group-hover:scale-110 transition-transform">trending_up</span>
+                                <span class="text-sm font-bold tracking-wide">Metas Financeiras</span>
+                            </a>
+                        </nav>
+                        <div class="mt-auto px-4 py-6 border-t border-border dark:border-border-dark shrink-0">
+                            <a class="nav-link group flex items-center gap-3 px-4 py-3.5 rounded-xl text-text-muted-light dark:text-text-muted-dark hover:bg-secondary/50 hover:text-primary dark:hover:bg-white/5 dark:hover:text-white transition-all duration-200" href="#">
+                                <span class="material-symbols-outlined text-[24px] group-hover:rotate-45 transition-transform">settings</span>
+                                <span class="text-sm font-bold tracking-wide">Configurações</span>
+                            </a>
+                        </div>
+                    </aside>
+                </div>
+
+                <main id="app-content" class="flex-1 w-full animate-fade-in relative z-0 pb-20 lg:pb-0">
+                    </main>
+                
+            </div>
+        </div>
+    </div>
+    
+    <div id="addExpenseModal" class="fixed inset-0 z-modal hidden" onclick="closeExpenseModal(event)">
+        <div class="absolute inset-0 bg-black/60 backdrop-blur-[2px] transition-opacity duration-300 animate-fade-in"></div>
+        
+        <div class="absolute inset-0 flex items-end justify-center sm:items-center sm:p-4 pointer-events-none">
+            <div class="pointer-events-auto w-full bg-surface-light dark:bg-surface-dark rounded-t-3xl sm:rounded-2xl shadow-2xl shadow-black/50 border-t border-white/20 sm:border dark:border-white/10 max-w-lg max-h-[95vh] sm:max-h-[90vh] flex flex-col transform transition-transform animate-modal-mobile sm:animate-modal-desktop overflow-hidden" onclick="event.stopPropagation();">
+                
+                <div class="w-full flex justify-center pt-3 pb-1 sm:hidden cursor-grab active:cursor-grabbing">
+                    <div class="w-12 h-1.5 rounded-full bg-slate-300 dark:bg-slate-600"></div>
+                </div>
+
+                <div class="flex items-center justify-between px-6 py-4 border-b border-border dark:border-border-dark shrink-0">
+                    <h2 class="text-xl font-bold text-text-light dark:text-text-dark tracking-tight">Nova Despesa</h2>
+                    <button onclick="closeExpenseModal(event)" class="p-2 -mr-2 text-text-muted-light hover:text-text-light dark:text-text-muted-dark dark:hover:text-text-dark hover:bg-secondary dark:hover:bg-white/10 rounded-full transition-colors">
+                        <span class="material-symbols-outlined text-2xl">close</span>
+                    </button>
+                </div>
+
+                <div class="p-6 space-y-5 overflow-y-auto overscroll-contain">
+                    <div class="space-y-2">
+                        <label for="expenseDescription" class="block text-xs font-bold uppercase tracking-wider text-text-muted-light dark:text-text-muted-dark">
+                            Descrição <span class="text-red-500">*</span>
+                        </label>
+                        <input type="text" id="expenseDescription" placeholder="Ex: Supermercado, Uber..." class="w-full px-4 py-3.5 bg-background-light dark:bg-background-dark border border-border dark:border-border-dark rounded-xl text-base text-text-light dark:text-text-dark placeholder-text-muted-light/50 dark:placeholder-text-muted-dark/50 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all shadow-sm"/>
+                    </div>
+
+                    <div class="space-y-2">
+                        <label for="expenseAmount" class="block text-xs font-bold uppercase tracking-wider text-text-muted-light dark:text-text-muted-dark">
+                            Valor (R$) <span class="text-red-500">*</span>
+                        </label>
+                        <div class="flex items-stretch gap-3">
+                            <input type="text" id="expenseAmount" placeholder="0,00" oninput="formatCurrencyInput(this)" class="flex-1 px-4 py-3.5 bg-background-light dark:bg-background-dark border border-border dark:border-border-dark rounded-xl text-lg font-semibold text-text-light dark:text-text-dark placeholder-text-muted-light/50 dark:placeholder-text-muted-dark/50 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all shadow-sm"/>
+                            
+                            <div class="grid grid-cols-2 p-1 bg-background-light dark:bg-background-dark border border-border dark:border-border-dark rounded-xl w-[120px] shrink-0">
+                                <button type="button" data-expense-type="entrada" class="flex items-center justify-center rounded-lg text-green-600 dark:text-green-400 hover:bg-green-50 dark:hover:bg-green-900/20 transition-all focus:outline-none focus:ring-2 focus:ring-green-500/50" aria-label="Entrada">
+                                    <svg class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor"><path d="M11 5h2v6h6v2h-6v6h-2v-6H5v-2h6z" /></svg>
+                                </button>
+                                <button type="button" data-expense-type="saida" class="flex items-center justify-center rounded-lg text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-all focus:outline-none focus:ring-2 focus:ring-red-500/50" aria-label="Saída">
+                                    <svg class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor"><rect x="5" y="11" width="14" height="2" rx="0.5" /></svg>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="space-y-2">
+                        <label class="block text-xs font-bold uppercase tracking-wider text-text-muted-light dark:text-text-muted-dark">Categoria</label>
+                        <div class="flex gap-2">
+                            <select id="expenseCategory" class="w-full px-4 py-3.5 bg-background-light dark:bg-background-dark border border-border dark:border-border-dark rounded-xl text-base text-text-light dark:text-text-dark focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all shadow-sm">
+                                <option value="">Selecione (Opcional)</option>
+                                <option value="alimentacao">Alimentação</option>
+                                <option value="transporte">Transporte</option>
+                                <option value="saude">Saúde</option>
+                                <option value="educacao">Educação</option>
+                                <option value="entretenimento">Entretenimento</option>
+                                <option value="outros">Outros</option>
+                            </select>
+                            
+                            <button type="button" id="openAddCategoryBtn" onclick="showAddCategoryFromExpense()" class="shrink-0 w-14 flex items-center justify-center border border-primary/20 bg-primary/5 text-primary rounded-xl hover:bg-primary hover:text-white active:scale-95 transition-all duration-200">
+                                <span class="material-symbols-outlined">add</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="space-y-2">
+                        <label for="expenseMeta" class="block text-xs font-bold uppercase tracking-wider text-text-muted-light dark:text-text-muted-dark">
+                            Meta (Opcional)
+                        </label>
+                        <select id="expenseMeta" class="w-full px-4 py-3.5 bg-background-light dark:bg-background-dark border border-border dark:border-border-dark rounded-xl text-base text-text-light dark:text-text-dark focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all shadow-sm">
+                            <option value="">Nenhuma</option>
+                        </select>
+                        <p class="text-xs text-text-muted-light dark:text-text-muted-dark px-1">
+                            Ao selecionar uma meta, este valor será somado ao saldo dela.
+                        </p>
+                    </div>
+
+                    <div class="space-y-2">
+                        <label for="expenseDate" class="block text-xs font-bold uppercase tracking-wider text-text-muted-light dark:text-text-muted-dark">
+                            Data <span class="text-red-500">*</span>
+                        </label>
+                        <input type="date" id="expenseDate" class="w-full px-4 py-3.5 bg-background-light dark:bg-background-dark border border-border dark:border-border-dark rounded-xl text-base text-text-light dark:text-text-dark focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all shadow-sm"/>
+                    </div>
+
+                    <div id="errorMessage" class="hidden p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl text-red-700 dark:text-red-300 text-sm font-semibold animate-fade-in flex items-center gap-2">
+                        <span class="material-symbols-outlined text-lg">error</span>
+                        <span class="msg-text"></span>
+                    </div>
+                    <div id="successMessage" class="hidden p-4 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-xl text-green-700 dark:text-green-300 text-sm font-semibold animate-fade-in flex items-center gap-2">
+                        <span class="material-symbols-outlined text-lg">check_circle</span>
+                        <span class="msg-text"></span>
+                    </div>
+                </div>
+
+                <div class="flex items-center justify-end gap-3 px-6 py-4 border-t border-border dark:border-border-dark bg-background-light/50 dark:bg-background-dark/50 shrink-0 pb-8 sm:pb-4">
+                    <button onclick="closeExpenseModal(event)" class="px-5 py-3 rounded-xl border border-border dark:border-border-dark text-text-light dark:text-text-dark font-bold hover:bg-secondary dark:hover:bg-white/5 active:scale-95 transition-all">
+                        Cancelar
+                    </button>
+                    <button class="px-8 py-3 rounded-xl bg-primary text-white font-bold shadow-lg shadow-primary/25 hover:bg-primary/90 hover:shadow-primary/40 active:scale-95 transition-all duration-200" data-action="submit-expense">
+                      Salvar
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="addSalaryModal" class="fixed inset-0 z-modal hidden" onclick="closeSalaryModal(event)">
+        <div class="absolute inset-0 bg-black/60 backdrop-blur-[2px] transition-opacity duration-300 animate-fade-in"></div>
+        
+        <div class="absolute inset-0 flex items-end justify-center sm:items-center sm:p-4 pointer-events-none">
+            <div class="pointer-events-auto w-full bg-surface-light dark:bg-surface-dark rounded-t-3xl sm:rounded-2xl shadow-2xl shadow-black/50 border-t border-white/20 sm:border dark:border-white/10 max-w-lg max-h-[95vh] sm:max-h-[90vh] flex flex-col transform transition-transform animate-modal-mobile sm:animate-modal-desktop overflow-hidden" onclick="event.stopPropagation();">
+                
+                <div class="w-full flex justify-center pt-3 pb-1 sm:hidden cursor-grab active:cursor-grabbing">
+                    <div class="w-12 h-1.5 rounded-full bg-slate-300 dark:bg-slate-600"></div>
+                </div>
+
+                <div class="flex items-center justify-between px-6 py-4 border-b border-border dark:border-border-dark shrink-0">
+                    <h2 class="text-xl font-bold text-text-light dark:text-text-dark tracking-tight">Novo Salário</h2>
+                    <button onclick="closeSalaryModal(event)" class="p-2 -mr-2 text-text-muted-light hover:text-text-light dark:text-text-muted-dark dark:hover:text-text-dark hover:bg-secondary dark:hover:bg-white/10 rounded-full transition-colors">
+                        <span class="material-symbols-outlined text-2xl">close</span>
+                    </button>
+                </div>
+
+                <div class="p-6 space-y-5 overflow-y-auto overscroll-contain">
+                    <div class="space-y-2">
+                        <label for="salaryDescription" class="block text-xs font-bold uppercase tracking-wider text-text-muted-light dark:text-text-muted-dark">
+                            Descrição / Empresa <span class="text-red-500">*</span>
+                        </label>
+                        <input 
+                            type="text" 
+                            id="salaryDescription" 
+                            placeholder="Ex: Salário Mensal, Freelance..." 
+                            class="w-full px-4 py-3.5 bg-background-light dark:bg-background-dark border border-border dark:border-border-dark rounded-xl text-base text-text-light dark:text-text-dark placeholder-text-muted-light/50 dark:placeholder-text-muted-dark/50 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all shadow-sm"
+                        />
+                    </div>
+
+                    <div class="space-y-2">
+                        <label for="salaryAmount" class="block text-xs font-bold uppercase tracking-wider text-text-muted-light dark:text-text-muted-dark">
+                            Valor Líquido (R$) <span class="text-red-500">*</span>
+                        </label>
+                        <input 
+                            type="text" 
+                            id="salaryAmount" 
+                            placeholder="0,00" 
+                            oninput="formatCurrencyInput(this)"
+                            class="w-full px-4 py-3.5 bg-background-light dark:bg-background-dark border border-border dark:border-border-dark rounded-xl text-lg font-semibold text-text-light dark:text-text-dark placeholder-text-muted-light/50 dark:placeholder-text-muted-dark/50 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all shadow-sm"
+                        />
+                    </div>
+
+                    <div class="space-y-2">
+    <label for="salaryReceiveDay" class="block text-xs font-bold uppercase tracking-wider text-text-muted-light dark:text-text-muted-dark">
+        Dia do Recebimento <span class="text-red-500">*</span>
+    </label>
+    <div class="relative">
+        <select id="salaryReceiveDay" class="w-full pl-4 pr-10 py-3.5 bg-background-light dark:bg-background-dark border border-border dark:border-border-dark rounded-xl text-base text-text-light dark:text-text-dark focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all appearance-none shadow-sm scroll-smooth-y">
+            <option value="">Selecione o dia</option>
+            <option value="1">Dia 1</option>
+            <option value="2">Dia 2</option>
+            <option value="3">Dia 3</option>
+            <option value="4">Dia 4</option>
+            <option value="5">Dia 5</option>
+            <option value="6">Dia 6</option>
+            <option value="7">Dia 7</option>
+            <option value="8">Dia 8</option>
+            <option value="9">Dia 9</option>
+            <option value="10">Dia 10</option>
+            <option value="11">Dia 11</option>
+            <option value="12">Dia 12</option>
+            <option value="13">Dia 13</option>
+            <option value="14">Dia 14</option>
+            <option value="15">Dia 15</option>
+            <option value="16">Dia 16</option>
+            <option value="17">Dia 17</option>
+            <option value="18">Dia 18</option>
+            <option value="19">Dia 19</option>
+            <option value="20">Dia 20</option>
+            <option value="21">Dia 21</option>
+            <option value="22">Dia 22</option>
+            <option value="23">Dia 23</option>
+            <option value="24">Dia 24</option>
+            <option value="25">Dia 25</option>
+            <option value="26">Dia 26</option>
+            <option value="27">Dia 27</option>
+            <option value="28">Dia 28</option>
+            <option value="29">Dia 29</option>
+            <option value="30">Dia 30</option>
+            <option value="31">Dia 31</option>
+        </select>
+        <div class="absolute inset-y-0 right-3 flex items-center pointer-events-none text-text-muted-light dark:text-text-muted-dark">
+            <span class="material-symbols-outlined">calendar_today</span>
+        </div>
+    </div>
+</div>
+
+                    <div id="salaryErrorMessage" class="hidden p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl text-red-700 dark:text-red-300 text-sm font-semibold animate-fade-in flex items-center gap-2">
+                        <span class="material-symbols-outlined text-lg">error</span>
+                        <span class="msg-text"></span>
+                    </div>
+                    <div id="salarySuccessMessage" class="hidden p-4 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-xl text-green-700 dark:text-green-300 text-sm font-semibold animate-fade-in flex items-center gap-2">
+                        <span class="material-symbols-outlined text-lg">check_circle</span>
+                        <span class="msg-text"></span>
+                    </div>
+                </div>
+
+                <div class="flex items-center justify-end gap-3 px-6 py-4 border-t border-border dark:border-border-dark bg-background-light/50 dark:bg-background-dark/50 shrink-0 pb-8 sm:pb-4">
+                    <button onclick="closeSalaryModal(event)" class="px-5 py-3 rounded-xl border border-border dark:border-border-dark text-text-light dark:text-text-dark font-bold hover:bg-secondary dark:hover:bg-white/5 active:scale-95 transition-all">
+                        Cancelar
+                    </button>
+                    <button
+                      class="px-8 py-3 rounded-xl bg-primary text-white font-bold shadow-lg shadow-primary/25 hover:bg-primary/90 hover:shadow-primary/40 active:scale-95 transition-all duration-200"
+                      data-action="submit-salary"
+                    >
+                      Salvar
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div id="addCategoryModal" class="fixed inset-0 z-[60] hidden" onclick="closeAddCategoryModal()">
+        <div class="absolute inset-0 bg-black/60 backdrop-blur-[2px] transition-opacity duration-300 animate-fade-in"></div>
+        
+        <div class="absolute inset-0 flex items-end justify-center sm:items-center sm:p-4 pointer-events-none">
+            <div class="pointer-events-auto w-full bg-surface-light dark:bg-surface-dark rounded-t-3xl sm:rounded-2xl shadow-2xl border-t border-white/20 sm:border dark:border-white/10 max-w-2xl max-h-[90vh] flex flex-col transform transition-transform animate-modal-mobile sm:animate-modal-desktop overflow-hidden" onclick="event.stopPropagation();">
+                
+                <div class="w-full flex justify-center pt-3 pb-1 sm:hidden cursor-grab">
+                    <div class="w-12 h-1.5 rounded-full bg-slate-300 dark:bg-slate-600"></div>
+                </div>
+
+                <div class="flex items-center justify-between px-6 py-4 border-b border-border dark:border-border-dark shrink-0">
+                    <h2 class="text-xl font-bold text-text-light dark:text-text-dark tracking-tight">Nova Categoria</h2>
+                    <button onclick="closeAddCategoryModal()" class="p-2 -mr-2 text-text-muted-light hover:text-text-light dark:text-text-muted-dark dark:hover:text-text-dark hover:bg-secondary dark:hover:bg-white/10 rounded-full transition-colors">
+                        <span class="material-symbols-outlined text-2xl">close</span>
+                    </button>
+                </div>
+
+                <div class="p-6 space-y-5 overflow-y-auto">
+                    <div class="space-y-2">
+                        <label for="newCategoryName" class="block text-xs font-bold uppercase tracking-wider text-text-muted-light dark:text-text-muted-dark">
+                            Nome <span class="text-red-500">*</span>
+                        </label>
+                        <input type="text" id="newCategoryName" placeholder="Ex: Viagens, Pets..." class="w-full px-4 py-3.5 bg-background-light dark:bg-background-dark border border-border dark:border-border-dark rounded-xl text-base text-text-light dark:text-text-dark focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all shadow-sm"/>
+                    </div>
+
+                    <div class="space-y-2">
+                        <label class="block text-xs font-bold uppercase tracking-wider text-text-muted-light dark:text-text-muted-dark mb-3">Selecione um ícone</label>
+                        <div class="grid grid-cols-5 gap-2 max-h-64 overflow-y-auto p-3 border border-border dark:border-border-dark rounded-xl bg-background-light/50 dark:bg-background-dark/50">
+                            <!-- Linha 1 -->
+                            <button type="button" data-icon="restaurant" class="category-icon-btn p-3 flex flex-col items-center justify-center rounded-xl border-2 border-border dark:border-border-dark text-text-muted-light dark:text-text-muted-dark hover:border-primary hover:text-primary hover:bg-primary/5 focus:ring-2 focus:ring-primary/50 transition-all duration-200" title="Alimentação">
+                                <span class="material-symbols-outlined text-2xl">restaurant</span>
+                                <span class="text-xs mt-1 text-center">Alimentação</span>
+                            </button>
+                            <button type="button" data-icon="directions_car" class="category-icon-btn p-3 flex flex-col items-center justify-center rounded-xl border-2 border-border dark:border-border-dark text-text-muted-light dark:text-text-muted-dark hover:border-primary hover:text-primary hover:bg-primary/5 focus:ring-2 focus:ring-primary/50 transition-all duration-200" title="Transporte">
+                                <span class="material-symbols-outlined text-2xl">directions_car</span>
+                                <span class="text-xs mt-1 text-center">Transporte</span>
+                            </button>
+                            <button type="button" data-icon="home" class="category-icon-btn p-3 flex flex-col items-center justify-center rounded-xl border-2 border-border dark:border-border-dark text-text-muted-light dark:text-text-muted-dark hover:border-primary hover:text-primary hover:bg-primary/5 focus:ring-2 focus:ring-primary/50 transition-all duration-200" title="Moradia">
+                                <span class="material-symbols-outlined text-2xl">home</span>
+                                <span class="text-xs mt-1 text-center">Moradia</span>
+                            </button>
+                            <button type="button" data-icon="favorite" class="category-icon-btn p-3 flex flex-col items-center justify-center rounded-xl border-2 border-border dark:border-border-dark text-text-muted-light dark:text-text-muted-dark hover:border-primary hover:text-primary hover:bg-primary/5 focus:ring-2 focus:ring-primary/50 transition-all duration-200" title="Saúde">
+                                <span class="material-symbols-outlined text-2xl">favorite</span>
+                                <span class="text-xs mt-1 text-center">Saúde</span>
+                            </button>
+                            <button type="button" data-icon="movie" class="category-icon-btn p-3 flex flex-col items-center justify-center rounded-xl border-2 border-border dark:border-border-dark text-text-muted-light dark:text-text-muted-dark hover:border-primary hover:text-primary hover:bg-primary/5 focus:ring-2 focus:ring-primary/50 transition-all duration-200" title="Lazer">
+                                <span class="material-symbols-outlined text-2xl">movie</span>
+                                <span class="text-xs mt-1 text-center">Lazer</span>
+                            </button>
+
+                            <!-- Linha 2 -->
+                            <button type="button" data-icon="school" class="category-icon-btn p-3 flex flex-col items-center justify-center rounded-xl border-2 border-border dark:border-border-dark text-text-muted-light dark:text-text-muted-dark hover:border-primary hover:text-primary hover:bg-primary/5 focus:ring-2 focus:ring-primary/50 transition-all duration-200" title="Educação">
+                                <span class="material-symbols-outlined text-2xl">school</span>
+                                <span class="text-xs mt-1 text-center">Educação</span>
+                            </button>
+                            <button type="button" data-icon="shopping_bag" class="category-icon-btn p-3 flex flex-col items-center justify-center rounded-xl border-2 border-border dark:border-border-dark text-text-muted-light dark:text-text-muted-dark hover:border-primary hover:text-primary hover:bg-primary/5 focus:ring-2 focus:ring-primary/50 transition-all duration-200" title="Compras">
+                                <span class="material-symbols-outlined text-2xl">shopping_bag</span>
+                                <span class="text-xs mt-1 text-center">Compras</span>
+                            </button>
+                            <button type="button" data-icon="checkroom" class="category-icon-btn p-3 flex flex-col items-center justify-center rounded-xl border-2 border-border dark:border-border-dark text-text-muted-light dark:text-text-muted-dark hover:border-primary hover:text-primary hover:bg-primary/5 focus:ring-2 focus:ring-primary/50 transition-all duration-200" title="Roupas">
+                                <span class="material-symbols-outlined text-2xl">checkroom</span>
+                                <span class="text-xs mt-1 text-center">Roupas</span>
+                            </button>
+                            <button type="button" data-icon="devices" class="category-icon-btn p-3 flex flex-col items-center justify-center rounded-xl border-2 border-border dark:border-border-dark text-text-muted-light dark:text-text-muted-dark hover:border-primary hover:text-primary hover:bg-primary/5 focus:ring-2 focus:ring-primary/50 transition-all duration-200" title="Eletrônicos">
+                                <span class="material-symbols-outlined text-2xl">devices</span>
+                                <span class="text-xs mt-1 text-center">Eletrônicos</span>
+                            </button>
+                            <button type="button" data-icon="pets" class="category-icon-btn p-3 flex flex-col items-center justify-center rounded-xl border-2 border-border dark:border-border-dark text-text-muted-light dark:text-text-muted-dark hover:border-primary hover:text-primary hover:bg-primary/5 focus:ring-2 focus:ring-primary/50 transition-all duration-200" title="Pets">
+                                <span class="material-symbols-outlined text-2xl">pets</span>
+                                <span class="text-xs mt-1 text-center">Pets</span>
+                            </button>
+
+                            <!-- Linha 3 -->
+                            <button type="button" data-icon="spa" class="category-icon-btn p-3 flex flex-col items-center justify-center rounded-xl border-2 border-border dark:border-border-dark text-text-muted-light dark:text-text-muted-dark hover:border-primary hover:text-primary hover:bg-primary/5 focus:ring-2 focus:ring-primary/50 transition-all duration-200" title="Beleza">
+                                <span class="material-symbols-outlined text-2xl">spa</span>
+                                <span class="text-xs mt-1 text-center">Beleza</span>
+                            </button>
+                            <button type="button" data-icon="flight_takeoff" class="category-icon-btn p-3 flex flex-col items-center justify-center rounded-xl border-2 border-border dark:border-border-dark text-text-muted-light dark:text-text-muted-dark hover:border-primary hover:text-primary hover:bg-primary/5 focus:ring-2 focus:ring-primary/50 transition-all duration-200" title="Viagem">
+                                <span class="material-symbols-outlined text-2xl">flight_takeoff</span>
+                                <span class="text-xs mt-1 text-center">Viagem</span>
+                            </button>
+                            <button type="button" data-icon="local_gas_station" class="category-icon-btn p-3 flex flex-col items-center justify-center rounded-xl border-2 border-border dark:border-border-dark text-text-muted-light dark:text-text-muted-dark hover:border-primary hover:text-primary hover:bg-primary/5 focus:ring-2 focus:ring-primary/50 transition-all duration-200" title="Combustível">
+                                <span class="material-symbols-outlined text-2xl">local_gas_station</span>
+                                <span class="text-xs mt-1 text-center">Combustível</span>
+                            </button>
+                            <button type="button" data-icon="dining" class="category-icon-btn p-3 flex flex-col items-center justify-center rounded-xl border-2 border-border dark:border-border-dark text-text-muted-light dark:text-text-muted-dark hover:border-primary hover:text-primary hover:bg-primary/5 focus:ring-2 focus:ring-primary/50 transition-all duration-200" title="Restaurante">
+                                <span class="material-symbols-outlined text-2xl">dining</span>
+                                <span class="text-xs mt-1 text-center">Restaurante</span>
+                            </button>
+                            <button type="button" data-icon="coffee" class="category-icon-btn p-3 flex flex-col items-center justify-center rounded-xl border-2 border-border dark:border-border-dark text-text-muted-light dark:text-text-muted-dark hover:border-primary hover:text-primary hover:bg-primary/5 focus:ring-2 focus:ring-primary/50 transition-all duration-200" title="Café">
+                                <span class="material-symbols-outlined text-2xl">coffee</span>
+                                <span class="text-xs mt-1 text-center">Café</span>
+                            </button>
+
+                            <!-- Linha 4 -->
+                            <button type="button" data-icon="local_bar" class="category-icon-btn p-3 flex flex-col items-center justify-center rounded-xl border-2 border-border dark:border-border-dark text-text-muted-light dark:text-text-muted-dark hover:border-primary hover:text-primary hover:bg-primary/5 focus:ring-2 focus:ring-primary/50 transition-all duration-200" title="Bar">
+                                <span class="material-symbols-outlined text-2xl">local_bar</span>
+                                <span class="text-xs mt-1 text-center">Bar</span>
+                            </button>
+                            <button type="button" data-icon="fitness_center" class="category-icon-btn p-3 flex flex-col items-center justify-center rounded-xl border-2 border-border dark:border-border-dark text-text-muted-light dark:text-text-muted-dark hover:border-primary hover:text-primary hover:bg-primary/5 focus:ring-2 focus:ring-primary/50 transition-all duration-200" title="Gym">
+                                <span class="material-symbols-outlined text-2xl">fitness_center</span>
+                                <span class="text-xs mt-1 text-center">Gym</span>
+                            </button>
+                            <button type="button" data-icon="local_hospital" class="category-icon-btn p-3 flex flex-col items-center justify-center rounded-xl border-2 border-border dark:border-border-dark text-text-muted-light dark:text-text-muted-dark hover:border-primary hover:text-primary hover:bg-primary/5 focus:ring-2 focus:ring-primary/50 transition-all duration-200" title="Médico">
+                                <span class="material-symbols-outlined text-2xl">local_hospital</span>
+                                <span class="text-xs mt-1 text-center">Médico</span>
+                            </button>
+                            <button type="button" data-icon="medication" class="category-icon-btn p-3 flex flex-col items-center justify-center rounded-xl border-2 border-border dark:border-border-dark text-text-muted-light dark:text-text-muted-dark hover:border-primary hover:text-primary hover:bg-primary/5 focus:ring-2 focus:ring-primary/50 transition-all duration-200" title="Farmácia">
+                                <span class="material-symbols-outlined text-2xl">medication</span>
+                                <span class="text-xs mt-1 text-center">Farmácia</span>
+                            </button>
+                            <button type="button" data-icon="theaters" class="category-icon-btn p-3 flex flex-col items-center justify-center rounded-xl border-2 border-border dark:border-border-dark text-text-muted-light dark:text-text-muted-dark hover:border-primary hover:text-primary hover:bg-primary/5 focus:ring-2 focus:ring-primary/50 transition-all duration-200" title="Cinema">
+                                <span class="material-symbols-outlined text-2xl">theaters</span>
+                                <span class="text-xs mt-1 text-center">Cinema</span>
+                            </button>
+
+                            <!-- Linha 5 -->
+                            <button type="button" data-icon="music_note" class="category-icon-btn p-3 flex flex-col items-center justify-center rounded-xl border-2 border-border dark:border-border-dark text-text-muted-light dark:text-text-muted-dark hover:border-primary hover:text-primary hover:bg-primary/5 focus:ring-2 focus:ring-primary/50 transition-all duration-200" title="Música">
+                                <span class="material-symbols-outlined text-2xl">music_note</span>
+                                <span class="text-xs mt-1 text-center">Música</span>
+                            </button>
+                            <button type="button" data-icon="library_books" class="category-icon-btn p-3 flex flex-col items-center justify-center rounded-xl border-2 border-border dark:border-border-dark text-text-muted-light dark:text-text-muted-dark hover:border-primary hover:text-primary hover:bg-primary/5 focus:ring-2 focus:ring-primary/50 transition-all duration-200" title="Livros">
+                                <span class="material-symbols-outlined text-2xl">library_books</span>
+                                <span class="text-xs mt-1 text-center">Livros</span>
+                            </button>
+                            <button type="button" data-icon="sports_esports" class="category-icon-btn p-3 flex flex-col items-center justify-center rounded-xl border-2 border-border dark:border-border-dark text-text-muted-light dark:text-text-muted-dark hover:border-primary hover:text-primary hover:bg-primary/5 focus:ring-2 focus:ring-primary/50 transition-all duration-200" title="Joguinhos">
+                                <span class="material-symbols-outlined text-2xl">sports_esports</span>
+                                <span class="text-xs mt-1 text-center">Joguinhos</span>
+                            </button>
+                            <button type="button" data-icon="router" class="category-icon-btn p-3 flex flex-col items-center justify-center rounded-xl border-2 border-border dark:border-border-dark text-text-muted-light dark:text-text-muted-dark hover:border-primary hover:text-primary hover:bg-primary/5 focus:ring-2 focus:ring-primary/50 transition-all duration-200" title="Internet">
+                                <span class="material-symbols-outlined text-2xl">router</span>
+                                <span class="text-xs mt-1 text-center">Internet</span>
+                            </button>
+                            <button type="button" data-icon="phone" class="category-icon-btn p-3 flex flex-col items-center justify-center rounded-xl border-2 border-border dark:border-border-dark text-text-muted-light dark:text-text-muted-dark hover:border-primary hover:text-primary hover:bg-primary/5 focus:ring-2 focus:ring-primary/50 transition-all duration-200" title="Telefone">
+                                <span class="material-symbols-outlined text-2xl">phone</span>
+                                <span class="text-xs mt-1 text-center">Telefone</span>
+                            </button>
+
+                            <!-- Linha 6 -->
+                            <button type="button" data-icon="electric_bolt" class="category-icon-btn p-3 flex flex-col items-center justify-center rounded-xl border-2 border-border dark:border-border-dark text-text-muted-light dark:text-text-muted-dark hover:border-primary hover:text-primary hover:bg-primary/5 focus:ring-2 focus:ring-primary/50 transition-all duration-200" title="Energia">
+                                <span class="material-symbols-outlined text-2xl">electric_bolt</span>
+                                <span class="text-xs mt-1 text-center">Energia</span>
+                            </button>
+                            <button type="button" data-icon="water_drop" class="category-icon-btn p-3 flex flex-col items-center justify-center rounded-xl border-2 border-border dark:border-border-dark text-text-muted-light dark:text-text-muted-dark hover:border-primary hover:text-primary hover:bg-primary/5 focus:ring-2 focus:ring-primary/50 transition-all duration-200" title="Água">
+                                <span class="material-symbols-outlined text-2xl">water_drop</span>
+                                <span class="text-xs mt-1 text-center">Água</span>
+                            </button>
+                            <button type="button" data-icon="local_fire_department" class="category-icon-btn p-3 flex flex-col items-center justify-center rounded-xl border-2 border-border dark:border-border-dark text-text-muted-light dark:text-text-muted-dark hover:border-primary hover:text-primary hover:bg-primary/5 focus:ring-2 focus:ring-primary/50 transition-all duration-200" title="Gás">
+                                <span class="material-symbols-outlined text-2xl">local_fire_department</span>
+                                <span class="text-xs mt-1 text-center">Gás</span>
+                            </button>
+                            <button type="button" data-icon="security" class="category-icon-btn p-3 flex flex-col items-center justify-center rounded-xl border-2 border-border dark:border-border-dark text-text-muted-light dark:text-text-muted-dark hover:border-primary hover:text-primary hover:bg-primary/5 focus:ring-2 focus:ring-primary/50 transition-all duration-200" title="Seguro">
+                                <span class="material-symbols-outlined text-2xl">security</span>
+                                <span class="text-xs mt-1 text-center">Seguro</span>
+                            </button>
+                            <button type="button" data-icon="account_balance" class="category-icon-btn p-3 flex flex-col items-center justify-center rounded-xl border-2 border-border dark:border-border-dark text-text-muted-light dark:text-text-muted-dark hover:border-primary hover:text-primary hover:bg-primary/5 focus:ring-2 focus:ring-primary/50 transition-all duration-200" title="Impostos">
+                                <span class="material-symbols-outlined text-2xl">account_balance</span>
+                                <span class="text-xs mt-1 text-center">Impostos</span>
+                            </button>
+
+                            <!-- Linha 7 -->
+                            <button type="button" data-icon="trending_down" class="category-icon-btn p-3 flex flex-col items-center justify-center rounded-xl border-2 border-border dark:border-border-dark text-text-muted-light dark:text-text-muted-dark hover:border-primary hover:text-primary hover:bg-primary/5 focus:ring-2 focus:ring-primary/50 transition-all duration-200" title="Empréstimo">
+                                <span class="material-symbols-outlined text-2xl">trending_down</span>
+                                <span class="text-xs mt-1 text-center">Empréstimo</span>
+                            </button>
+                            <button type="button" data-icon="trending_up" class="category-icon-btn p-3 flex flex-col items-center justify-center rounded-xl border-2 border-border dark:border-border-dark text-text-muted-light dark:text-text-muted-dark hover:border-primary hover:text-primary hover:bg-primary/5 focus:ring-2 focus:ring-primary/50 transition-all duration-200" title="Investimento">
+                                <span class="material-symbols-outlined text-2xl">trending_up</span>
+                                <span class="text-xs mt-1 text-center">Investimento</span>
+                            </button>
+                            <button type="button" data-icon="savings" class="category-icon-btn p-3 flex flex-col items-center justify-center rounded-xl border-2 border-border dark:border-border-dark text-text-muted-light dark:text-text-muted-dark hover:border-primary hover:text-primary hover:bg-primary/5 focus:ring-2 focus:ring-primary/50 transition-all duration-200" title="Poupança">
+                                <span class="material-symbols-outlined text-2xl">savings</span>
+                                <span class="text-xs mt-1 text-center">Poupança</span>
+                            </button>
+                            <button type="button" data-icon="child_care" class="category-icon-btn p-3 flex flex-col items-center justify-center rounded-xl border-2 border-border dark:border-border-dark text-text-muted-light dark:text-text-muted-dark hover:border-primary hover:text-primary hover:bg-primary/5 focus:ring-2 focus:ring-primary/50 transition-all duration-200" title="Criança">
+                                <span class="material-symbols-outlined text-2xl">child_care</span>
+                                <span class="text-xs mt-1 text-center">Criança</span>
+                            </button>
+                            <button type="button" data-icon="work" class="category-icon-btn p-3 flex flex-col items-center justify-center rounded-xl border-2 border-border dark:border-border-dark text-text-muted-light dark:text-text-muted-dark hover:border-primary hover:text-primary hover:bg-primary/5 focus:ring-2 focus:ring-primary/50 transition-all duration-200" title="Trabalho">
+                                <span class="material-symbols-outlined text-2xl">work</span>
+                                <span class="text-xs mt-1 text-center">Trabalho</span>
+                            </button>
+
+                            <!-- Linha 8 -->
+                            <button type="button" data-icon="card_giftcard" class="category-icon-btn p-3 flex flex-col items-center justify-center rounded-xl border-2 border-border dark:border-border-dark text-text-muted-light dark:text-text-muted-dark hover:border-primary hover:text-primary hover:bg-primary/5 focus:ring-2 focus:ring-primary/50 transition-all duration-200" title="Presente">
+                                <span class="material-symbols-outlined text-2xl">card_giftcard</span>
+                                <span class="text-xs mt-1 text-center">Presente</span>
+                            </button>
+                            <button type="button" data-icon="volunteer_activism" class="category-icon-btn p-3 flex flex-col items-center justify-center rounded-xl border-2 border-border dark:border-border-dark text-text-muted-light dark:text-text-muted-dark hover:border-primary hover:text-primary hover:bg-primary/5 focus:ring-2 focus:ring-primary/50 transition-all duration-200" title="Doação">
+                                <span class="material-symbols-outlined text-2xl">volunteer_activism</span>
+                                <span class="text-xs mt-1 text-center">Doação</span>
+                            </button>
+                            <button type="button" data-icon="home_repair_service" class="category-icon-btn p-3 flex flex-col items-center justify-center rounded-xl border-2 border-border dark:border-border-dark text-text-muted-light dark:text-text-muted-dark hover:border-primary hover:text-primary hover:bg-primary/5 focus:ring-2 focus:ring-primary/50 transition-all duration-200" title="Casa">
+                                <span class="material-symbols-outlined text-2xl">home_repair_service</span>
+                                <span class="text-xs mt-1 text-center">Casa</span>
+                            </button>
+                            <button type="button" data-icon="eco" class="category-icon-btn p-3 flex flex-col items-center justify-center rounded-xl border-2 border-border dark:border-border-dark text-text-muted-light dark:text-text-muted-dark hover:border-primary hover:text-primary hover:bg-primary/5 focus:ring-2 focus:ring-primary/50 transition-all duration-200" title="Jardinagem">
+                                <span class="material-symbols-outlined text-2xl">eco</span>
+                                <span class="text-xs mt-1 text-center">Jardinagem</span>
+                            </button>
+                            <button type="button" data-icon="cleaning_services" class="category-icon-btn p-3 flex flex-col items-center justify-center rounded-xl border-2 border-border dark:border-border-dark text-text-muted-light dark:text-text-muted-dark hover:border-primary hover:text-primary hover:bg-primary/5 focus:ring-2 focus:ring-primary/50 transition-all duration-200" title="Limpeza">
+                                <span class="material-symbols-outlined text-2xl">cleaning_services</span>
+                                <span class="text-xs mt-1 text-center">Limpeza</span>
+                            </button>
+
+                            <!-- Linha 9 -->
+                            <button type="button" data-icon="two_wheeler" class="category-icon-btn p-3 flex flex-col items-center justify-center rounded-xl border-2 border-border dark:border-border-dark text-text-muted-light dark:text-text-muted-dark hover:border-primary hover:text-primary hover:bg-primary/5 focus:ring-2 focus:ring-primary/50 transition-all duration-200" title="Carro">
+                                <span class="material-symbols-outlined text-2xl">two_wheeler</span>
+                                <span class="text-xs mt-1 text-center">Carro</span>
+                            </button>
+                            <button type="button" data-icon="build" class="category-icon-btn p-3 flex flex-col items-center justify-center rounded-xl border-2 border-border dark:border-border-dark text-text-muted-light dark:text-text-muted-dark hover:border-primary hover:text-primary hover:bg-primary/5 focus:ring-2 focus:ring-primary/50 transition-all duration-200" title="Manutenção">
+                                <span class="material-symbols-outlined text-2xl">build</span>
+                                <span class="text-xs mt-1 text-center">Manutenção</span>
+                            </button>
+                            <button type="button" data-icon="gavel" class="category-icon-btn p-3 flex flex-col items-center justify-center rounded-xl border-2 border-border dark:border-border-dark text-text-muted-light dark:text-text-muted-dark hover:border-primary hover:text-primary hover:bg-primary/5 focus:ring-2 focus:ring-primary/50 transition-all duration-200" title="Multa">
+                                <span class="material-symbols-outlined text-2xl">gavel</span>
+                                <span class="text-xs mt-1 text-center">Multa</span>
+                            </button>
+                            <button type="button" data-icon="palette" class="category-icon-btn p-3 flex flex-col items-center justify-center rounded-xl border-2 border-border dark:border-border-dark text-text-muted-light dark:text-text-muted-dark hover:border-primary hover:text-primary hover:bg-primary/5 focus:ring-2 focus:ring-primary/50 transition-all duration-200" title="Hobby">
+                                <span class="material-symbols-outlined text-2xl">palette</span>
+                                <span class="text-xs mt-1 text-center">Hobby</span>
+                            </button>
+                            <button type="button" data-icon="sports_basketball" class="category-icon-btn p-3 flex flex-col items-center justify-center rounded-xl border-2 border-border dark:border-border-dark text-text-muted-light dark:text-text-muted-dark hover:border-primary hover:text-primary hover:bg-primary/5 focus:ring-2 focus:ring-primary/50 transition-all duration-200" title="Esporte">
+                                <span class="material-symbols-outlined text-2xl">sports_basketball</span>
+                                <span class="text-xs mt-1 text-center">Esporte</span>
+                            </button>
+
+                            <!-- Linha 10 -->
+                            <button type="button" data-icon="ondemand_video" class="category-icon-btn p-3 flex flex-col items-center justify-center rounded-xl border-2 border-border dark:border-border-dark text-text-muted-light dark:text-text-muted-dark hover:border-primary hover:text-primary hover:bg-primary/5 focus:ring-2 focus:ring-primary/50 transition-all duration-200" title="Streaming">
+                                <span class="material-symbols-outlined text-2xl">ondemand_video</span>
+                                <span class="text-xs mt-1 text-center">Streaming</span>
+                            </button>
+                            <button type="button" data-icon="videogame_asset" class="category-icon-btn p-3 flex flex-col items-center justify-center rounded-xl border-2 border-border dark:border-border-dark text-text-muted-light dark:text-text-muted-dark hover:border-primary hover:text-primary hover:bg-primary/5 focus:ring-2 focus:ring-primary/50 transition-all duration-200" title="Vídeo Game">
+                                <span class="material-symbols-outlined text-2xl">videogame_asset</span>
+                                <span class="text-xs mt-1 text-center">Vídeo Game</span>
+                            </button>
+                            <button type="button" data-icon="computer" class="category-icon-btn p-3 flex flex-col items-center justify-center rounded-xl border-2 border-border dark:border-border-dark text-text-muted-light dark:text-text-muted-dark hover:border-primary hover:text-primary hover:bg-primary/5 focus:ring-2 focus:ring-primary/50 transition-all duration-200" title="Software">
+                                <span class="material-symbols-outlined text-2xl">computer</span>
+                                <span class="text-xs mt-1 text-center">Software</span>
+                            </button>
+                            <button type="button" data-icon="category" class="category-icon-btn p-3 flex flex-col items-center justify-center rounded-xl border-2 border-border dark:border-border-dark text-text-muted-light dark:text-text-muted-dark hover:border-primary hover:text-primary hover:bg-primary/5 focus:ring-2 focus:ring-primary/50 transition-all duration-200" title="Categoria">
+                                <span class="material-symbols-outlined text-2xl">category</span>
+                                <span class="text-xs mt-1 text-center">Categoria</span>
+                            </button>
+                            <button type="button" data-icon="more_horiz" class="category-icon-btn p-3 flex flex-col items-center justify-center rounded-xl border-2 border-border dark:border-border-dark text-text-muted-light dark:text-text-muted-dark hover:border-primary hover:text-primary hover:bg-primary/5 focus:ring-2 focus:ring-primary/50 transition-all duration-200" title="Outros">
+                                <span class="material-symbols-outlined text-2xl">more_horiz</span>
+                                <span class="text-xs mt-1 text-center">Outros</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div id="categoryErrorMessage" class="hidden p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl text-red-700 dark:text-red-300 text-sm font-semibold animate-fade-in flex items-center gap-2"></div>
+                    <div id="categorySuccessMessage" class="hidden p-4 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-xl text-green-700 dark:text-green-300 text-sm font-semibold animate-fade-in flex items-center gap-2"></div>
+                </div>
+
+                <div class="flex items-center justify-end gap-3 px-6 py-4 border-t border-border dark:border-border-dark bg-background-light/50 dark:bg-background-dark/50 shrink-0 pb-8 sm:pb-4">
+                    <button onclick="closeAddCategoryAndReturnToExpense()" class="px-5 py-3 rounded-xl border border-border dark:border-border-dark text-text-light dark:text-text-dark font-bold hover:bg-secondary dark:hover:bg-white/5 active:scale-95 transition-all">
+                        Cancelar
+                    </button>
+                    <button onclick="saveNewCategory()" class="px-8 py-3 rounded-xl bg-primary text-white font-bold shadow-lg shadow-primary/25 hover:bg-primary/90 hover:shadow-primary/40 active:scale-95 transition-all duration-200">
+                        Adicionar
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="modalGastoFixoGlobal" class="fixed inset-0 z-modal hidden" onclick="closeGastoFixoModal(event)">
+        <div class="absolute inset-0 bg-black/60 backdrop-blur-[2px] transition-opacity duration-300 animate-fade-in"></div>
+        
+        <div class="absolute inset-0 flex items-end justify-center sm:items-center sm:p-4 pointer-events-none">
+            <div class="pointer-events-auto w-full bg-surface-light dark:bg-surface-dark rounded-t-3xl sm:rounded-2xl shadow-2xl border-t border-white/20 sm:border dark:border-white/10 max-w-lg max-h-[90vh] flex flex-col transform transition-transform animate-modal-mobile sm:animate-modal-desktop overflow-hidden" onclick="event.stopPropagation();">
+                
+                <div class="w-full flex justify-center pt-3 pb-1 sm:hidden cursor-grab">
+                    <div class="w-12 h-1.5 rounded-full bg-slate-300 dark:bg-slate-600"></div>
+                </div>
+
+                <div class="flex items-center justify-between px-6 py-4 border-b border-border dark:border-border-dark shrink-0">
+                    <h2 id="modalGastoFixoTitle" class="text-xl font-bold text-text-light dark:text-text-dark tracking-tight">Adicionar Gasto Fixo</h2>
+                    <button onclick="closeGastoFixoModal(event)" class="p-2 -mr-2 text-text-muted-light hover:text-text-light dark:text-text-muted-dark dark:hover:text-text-dark hover:bg-secondary dark:hover:bg-white/10 rounded-full transition-colors">
+                        <span class="material-symbols-outlined text-2xl">close</span>
+                    </button>
+                </div>
+
+                <div class="p-6 space-y-5 overflow-y-auto overscroll-contain">
+                    <div class="space-y-2">
+                        <label for="gastoFixoDescription" class="block text-xs font-bold uppercase tracking-wider text-text-muted-light dark:text-text-muted-dark">
+                            Descrição <span class="text-red-500">*</span>
+                        </label>
+                        <input type="text" id="gastoFixoDescription" placeholder="Ex: Aluguel, Condomínio..." class="w-full px-4 py-3.5 bg-background-light dark:bg-background-dark border border-border dark:border-border-dark rounded-xl text-base text-text-light dark:text-text-dark placeholder-text-muted-light/50 dark:placeholder-text-muted-dark/50 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all shadow-sm"/>
+                    </div>
+
+                    <div class="space-y-2">
+                        <label for="gastoFixoAmount" class="block text-xs font-bold uppercase tracking-wider text-text-muted-light dark:text-text-muted-dark">
+                            Valor (R$) <span class="text-red-500">*</span>
+                        </label>
+                        <input type="text" id="gastoFixoAmount" placeholder="0,00" oninput="formatCurrencyInput(this)" class="w-full px-4 py-3.5 bg-background-light dark:bg-background-dark border border-border dark:border-border-dark rounded-xl text-lg font-semibold text-text-light dark:text-text-dark placeholder-text-muted-light/50 dark:placeholder-text-muted-dark/50 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all shadow-sm"/>
+                    </div>
+
+                    <div class="space-y-2">
+                        <label class="block text-xs font-bold uppercase tracking-wider text-text-muted-light dark:text-text-muted-dark">Categoria</label>
+                        <div class="flex gap-2">
+                            <select id="gastoFixoCategory" class="w-full px-4 py-3.5 bg-background-light dark:bg-background-dark border border-border dark:border-border-dark rounded-xl text-base text-text-light dark:text-text-dark focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all shadow-sm">
+                                <option value="">Selecione (Opcional)</option>
+                                <option value="alimentacao">Alimentação</option>
+                                <option value="transporte">Transporte</option>
+                                <option value="saude">Saúde</option>
+                                <option value="educacao">Educação</option>
+                                <option value="entretenimento">Entretenimento</option>
+                                <option value="outros">Outros</option>
+                            </select>
+                            <button type="button" id="openAddCategoryBtnGastoFixo" onclick="showAddCategoryFromGastoFixo()" class="shrink-0 w-14 flex items-center justify-center border border-primary/20 bg-primary/5 text-primary rounded-xl hover:bg-primary hover:text-white active:scale-95 transition-all duration-200">
+                                <span class="material-symbols-outlined">add</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="space-y-2">
+                        <label for="gastoFixoDueDay" class="block text-xs font-bold uppercase tracking-wider text-text-muted-light dark:text-text-muted-dark">
+                            Dia do Vencimento <span class="text-red-500">*</span>
+                        </label>
+                        <div class="relative">
+                            <select id="gastoFixoDueDay" class="w-full pl-4 pr-10 py-3.5 bg-background-light dark:bg-background-dark border border-border dark:border-border-dark rounded-xl text-base text-text-light dark:text-text-dark focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all appearance-none shadow-sm">
+                                <option value="">Selecione o dia</option>
+<option value="1">Dia 1</option>
+            <option value="2">Dia 2</option>
+            <option value="3">Dia 3</option>
+            <option value="4">Dia 4</option>
+            <option value="5">Dia 5</option>
+            <option value="6">Dia 6</option>
+            <option value="7">Dia 7</option>
+            <option value="8">Dia 8</option>
+            <option value="9">Dia 9</option>
+            <option value="10">Dia 10</option>
+            <option value="11">Dia 11</option>
+            <option value="12">Dia 12</option>
+            <option value="13">Dia 13</option>
+            <option value="14">Dia 14</option>
+            <option value="15">Dia 15</option>
+            <option value="16">Dia 16</option>
+            <option value="17">Dia 17</option>
+            <option value="18">Dia 18</option>
+            <option value="19">Dia 19</option>
+            <option value="20">Dia 20</option>
+            <option value="21">Dia 21</option>
+            <option value="22">Dia 22</option>
+            <option value="23">Dia 23</option>
+            <option value="24">Dia 24</option>
+            <option value="25">Dia 25</option>
+            <option value="26">Dia 26</option>
+            <option value="27">Dia 27</option>
+            <option value="28">Dia 28</option>
+            <option value="29">Dia 29</option>
+            <option value="30">Dia 30</option>
+            <option value="31">Dia 31</option>                         </select>
+                            <div class="absolute inset-y-0 right-3 flex items-center pointer-events-none text-text-muted-light dark:text-text-muted-dark">
+                                <span class="material-symbols-outlined">calendar_today</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="gastoFixoErrorMessage" class="hidden p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl text-red-700 dark:text-red-300 text-sm font-semibold animate-fade-in flex items-center gap-2"></div>
+                    <div id="gastoFixoSuccessMessage" class="hidden p-4 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-xl text-green-700 dark:text-green-300 text-sm font-semibold animate-fade-in flex items-center gap-2"></div>
+                </div>
+
+                <div class="flex items-center justify-end gap-3 px-6 py-4 border-t border-border dark:border-border-dark bg-background-light/50 dark:bg-background-dark/50 shrink-0 pb-8 sm:pb-4">
+                    <button onclick="closeGastoFixoModal(event)" class="px-5 py-3 rounded-xl border border-border dark:border-border-dark text-text-light dark:text-text-dark font-bold hover:bg-secondary dark:hover:bg-white/5 active:scale-95 transition-all">
+                        Cancelar
+                    </button>
+                    <button onclick="submitGastoFixo(event)" data-action="submit-gasto-fixo" class="px-8 py-3 rounded-xl bg-primary text-white font-bold shadow-lg shadow-primary/25 hover:bg-primary/90 hover:shadow-primary/40 active:scale-95 transition-all duration-200">
+                        Salvar
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="/scripts/api-service.js"></script>
+    <script src="/scripts/gastos-fixos.js"></script>
+    <script src="/scripts/expense-modal.js"></script>
+    <script src="/scripts/gasto-fixo-modal.js"></script>
+    <script src="/scripts/salario-modal.js"></script> 
+    <script src="/scripts/spa-router.js"></script>
+    <script>
+// filepath: c:\Users\luizg\Desktop\Projetos\Gap\public\app.html
+function openMobileMenu() {
+    const drawer = document.getElementById('mobileMenuDrawer');
+    const aside = document.getElementById('mobileMenuAside');
+    drawer.classList.remove('hidden');
+    setTimeout(() => aside.classList.remove('-translate-x-full'), 10);
+}
+function closeMobileMenu() {
+    const drawer = document.getElementById('mobileMenuDrawer');
+    const aside = document.getElementById('mobileMenuAside');
+    aside.classList.add('-translate-x-full');
+    setTimeout(() => drawer.classList.add('hidden'), 300);
+}
+</script>
+<script>
+// filepath: c:\Users\luizg\Desktop\Projetos\Gap\public\app.html
+
+// Animação do botão hamburguer
+const openBtn = document.getElementById('openMobileMenuBtn');
+const hamburgerIcon = document.getElementById('hamburgerIcon');
+const drawer = document.getElementById('mobileMenuDrawer');
+const aside = document.getElementById('mobileMenuAside');
+
+openBtn.onclick = function(e) {
+    // animação leve no ícone
+
+
+
+    hamburgerIcon.classList.add('scale-110', 'rotate-12');
+    setTimeout(() => {
+        hamburgerIcon.classList.remove('scale-110', 'rotate-12');
+    }, 250);
+
+    drawer.classList.remove('hidden');
+    // animação do aside
+    setTimeout(() => aside.classList.remove('-translate-x-full'), 10);
+};
+
+// Botão X para fechar
+document.getElementById('closeMobileMenuBtn').onclick = function(e) {
+    e.stopPropagation();
+    closeMobileMenu(true);
+};
+
+// Fecha ao clicar em link do menu mobile
+aside.querySelectorAll('a').forEach(link => {
+    link.addEventListener('click', () => closeMobileMenu(false));
+});
+
+function closeMobileMenu(instant = false) {
+    aside.classList.add('-translate-x-full');
+    if (instant) {
+        // Fecha instantaneamente, mas mantém suavidade do aside
+        setTimeout(() => drawer.classList.add('hidden'), 150);
+    } else {
+        // Fecha instantaneamente ao clicar em link
+        drawer.classList.add('hidden');
+        setTimeout(() => aside.classList.remove('-translate-x-full'), 300); // prepara para próxima abertura
+    }
+}
+
+// Fecha ao clicar fora do aside
+drawer.onclick = function(e) {
+    if (e.target === drawer) closeMobileMenu(true);
+};
+</script>
+</body>
+</html>

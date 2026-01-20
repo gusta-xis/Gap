@@ -1,15 +1,7 @@
-// ========================================================
-// VARIAVEIS MODEL - GASTOS VARIÁVEIS COM PREVENÇÃO DE IDOR
-// ========================================================
-
 const db = require('../../../config/db');
 
-// Campos permitidos para INSERT/UPDATE (whitelist)
-const ALLOWED_FIELDS = ['nome', 'valor', 'data_gasto', 'categoria_id', 'user_id', 'tipo'];
+const ALLOWED_FIELDS = ['nome', 'valor', 'data_gasto', 'categoria_id', 'user_id', 'tipo', 'meta_id'];
 
-/**
- * Filtra objeto para incluir apenas campos permitidos
- */
 function filterAllowedFields(data) {
   const filtered = {};
   ALLOWED_FIELDS.forEach((field) => {
@@ -21,9 +13,6 @@ function filterAllowedFields(data) {
 }
 
 module.exports = {
-  /**
-   * Cria novo gasto variável
-   */
   create(data, callback) {
     const filteredData = filterAllowedFields(data);
 
@@ -40,16 +29,10 @@ module.exports = {
     db.query(query, values, callback);
   },
 
-  /**
-   * Busca todos os gastos (sem filtro - apenas admin)
-   */
   findAll(callback) {
     db.query('SELECT * FROM gastos_variaveis', callback);
   },
 
-  /**
-   * Busca gastos variáveis por usuário (com categoria)
-   */
   findByUserId(userId, callback) {
     if (!Number.isInteger(userId) || userId <= 0) {
       return callback(new Error('User ID deve ser um número inteiro válido'));
@@ -67,9 +50,6 @@ module.exports = {
     );
   },
 
-  /**
-   * Busca gasto variável por ID (sem validação de proprietário)
-   */
   findById(id, callback) {
     if (!Number.isInteger(id) || id <= 0) {
       return callback(new Error('ID deve ser um número inteiro válido'));
@@ -82,10 +62,6 @@ module.exports = {
     );
   },
 
-  /**
-   * Busca gasto variável por ID E user_id (PREVINE IDOR)
-   * Usa esta função em controllers para garantir autorização
-   */
   findByIdAndUser(id, userId, callback) {
     if (!Number.isInteger(id) || id <= 0) {
       return callback(new Error('ID deve ser um número inteiro válido'));
@@ -106,9 +82,6 @@ module.exports = {
     );
   },
 
-  /**
-   * Atualiza gasto variável
-   */
   update(id, data, callback) {
     if (!Number.isInteger(id) || id <= 0) {
       return callback(new Error('ID deve ser um número inteiro válido'));
@@ -130,9 +103,6 @@ module.exports = {
     db.query(query, values, callback);
   },
 
-  /**
-   * Atualiza gasto variável com validação de proprietário
-   */
   updateByIdAndUser(id, userId, data, callback) {
     if (!Number.isInteger(id) || id <= 0) {
       return callback(new Error('ID deve ser um número inteiro válido'));
@@ -151,7 +121,7 @@ module.exports = {
     const fields = Object.keys(filteredData);
     const values = Object.values(filteredData);
     values.push(id);
-    values.push(userId); // Validação dupla: id AND user_id
+    values.push(userId);
 
     const setClause = fields.map((f) => `${f} = ?`).join(', ');
     const query = `UPDATE gastos_variaveis SET ${setClause} WHERE id = ? AND user_id = ?`;
@@ -159,9 +129,6 @@ module.exports = {
     db.query(query, values, callback);
   },
 
-  /**
-   * Remove gasto variável
-   */
   remove(id, callback) {
     if (!Number.isInteger(id) || id <= 0) {
       return callback(new Error('ID deve ser um número inteiro válido'));
@@ -170,9 +137,6 @@ module.exports = {
     db.query('DELETE FROM gastos_variaveis WHERE id = ?', [id], callback);
   },
 
-  /**
-   * Remove gasto variável com validação de proprietário
-   */
   removeByIdAndUser(id, userId, callback) {
     if (!Number.isInteger(id) || id <= 0) {
       return callback(new Error('ID deve ser um número inteiro válido'));

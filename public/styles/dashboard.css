@@ -1,12 +1,16 @@
-/* Dashboard CSS - Estilos customizados */
+/*
+ * ============================================================
+ * Dashboard CSS - Estilos customizados (Completo)
+ * ============================================================
+ */
 
-/* Transições suaves globais */
+/* -------------------- Transições Globais -------------------- */
 * {
     transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
 }
 
 button, a, [role="button"] {
-    transition: all 0.3s ease;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 button:hover, a:hover {
@@ -21,7 +25,7 @@ svg:hover, img[src*="svg"]:hover {
     filter: drop-shadow(0 4px 6px rgba(160, 67, 10, 0.1));
 }
 
-/* Layout Container */
+/* -------------------- Layout Container -------------------- */
 .layout-container {
     display: flex;
     flex: 1;
@@ -93,12 +97,7 @@ aside {
     }
 }
 
-@media (max-width: 1023px) {
-    .header-fixed {
-        left: 0;
-    }
-}
-
+/* -------------------- Header -------------------- */
 .header-user-name {
     color: #334155;
     font-size: 0.875rem;
@@ -121,7 +120,7 @@ aside {
     flex-shrink: 0;
 }
 
-/* Gráfico de barras em tons pastel */
+/* -------------------- Gráfico de Barras -------------------- */
 .bar-chart-income {
     background-color: #a7f3d0;
     height: 0;
@@ -132,7 +131,7 @@ aside {
     height: 0;
 }
 
-/* Alturas das barras */
+/* Alturas Exemplo (Controladas via JS idealmente, mas mantidas do original) */
 .bar-height-jan-income { height: 40%; }
 .bar-height-jan-expense { height: 20%; }
 .bar-height-fev-income { height: 60%; }
@@ -146,7 +145,7 @@ aside {
 .bar-height-jun-income { height: 60%; }
 .bar-height-jun-expense { height: 50%; }
 
-/* Botão de logout */
+/* -------------------- Botão Logout -------------------- */
 .logout-btn {
     display: flex;
     align-items: center;
@@ -157,7 +156,7 @@ aside {
     background: transparent;
     border: none;
     cursor: pointer;
-    transition: all 0.3s ease;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     color: #A0430A;
     padding: 0.5rem;
 }
@@ -185,8 +184,10 @@ aside {
     background: rgba(160, 67, 10, 0.15);
 }
 
-/* Modal de Despesa */
-#addExpenseModal {
+/* -------------------- Modais (Despesa e Salário) -------------------- */
+/* ATUALIZADO: Inclui #addSalaryModal nas regras de visibilidade */
+#addExpenseModal,
+#addSalaryModal {
     display: none !important;
     position: fixed !important;
     inset: 0 !important;
@@ -196,15 +197,170 @@ aside {
     z-index: 50 !important;
 }
 
-#addExpenseModal.hidden {
+#addExpenseModal.hidden,
+#addSalaryModal.hidden {
     display: none !important;
 }
 
-#addExpenseModal:not(.hidden) {
+#addExpenseModal:not(.hidden),
+#addSalaryModal:not(.hidden) {
     display: flex !important;
 }
 
-#addExpenseModal > div {
+/* -------------------- Cards e Animações -------------------- */
+.stats-card {
+    animation: fadeInUp 0.5s ease-out backwards;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.stats-card:nth-child(1) { animation-delay: 0.1s; }
+.stats-card:nth-child(2) { animation-delay: 0.2s; }
+.stats-card:nth-child(3) { animation-delay: 0.3s; }
+
+.stats-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 24px rgba(0, 0, 0, 0.1);
+}
+
+.filters-card {
+    animation: fadeInUp 0.6s ease-out 0.4s backwards;
+    transition: all 0.3s ease;
+}
+
+.table-card {
+    animation: fadeInUp 0.6s ease-out 0.5s backwards;
+}
+
+/* Animação para linhas de tabelas genéricas */
+table tbody tr {
+    animation: slideIn 0.3s ease-out backwards;
+    transition: all 0.2s ease;
+}
+
+table tbody tr:nth-child(1) { animation-delay: 0.05s; }
+table tbody tr:nth-child(2) { animation-delay: 0.1s; }
+table tbody tr:nth-child(3) { animation-delay: 0.15s; }
+table tbody tr:nth-child(4) { animation-delay: 0.2s; }
+table tbody tr:nth-child(5) { animation-delay: 0.25s; }
+
+table tbody tr:hover {
+    background-color: rgba(160, 67, 10, 0.02);
+    transform: translateX(4px);
+}
+
+.dark table tbody tr:hover {
+    background-color: rgba(160, 67, 10, 0.05);
+}
+
+/* Animação para itens da tabela de transações */
+#transactionsTableBody > div {
+    animation: slideIn 0.3s ease-out backwards;
+    transition: all 0.2s ease;
+}
+
+#transactionsTableBody > div:nth-child(1) { animation-delay: 0.05s; }
+#transactionsTableBody > div:nth-child(2) { animation-delay: 0.1s; }
+#transactionsTableBody > div:nth-child(3) { animation-delay: 0.15s; }
+#transactionsTableBody > div:nth-child(4) { animation-delay: 0.2s; }
+#transactionsTableBody > div:nth-child(5) { animation-delay: 0.25s; }
+#transactionsTableBody > div:nth-child(6) { animation-delay: 0.3s; }
+#transactionsTableBody > div:nth-child(7) { animation-delay: 0.35s; }
+#transactionsTableBody > div:nth-child(8) { animation-delay: 0.4s; }
+#transactionsTableBody > div:nth-child(9) { animation-delay: 0.45s; }
+#transactionsTableBody > div:nth-child(10) { animation-delay: 0.5s; }
+
+/* Hover padrão (Despesas/Geral) - Laranja */
+#transactionsTableBody > div:hover,
+.transaction-row:hover {
+    background-color: rgba(160, 67, 10, 0.02);
+    transform: translateX(4px);
+    border-radius: 8px;
+}
+
+.dark #transactionsTableBody > div:hover,
+.dark .transaction-row:hover {
+    background-color: rgba(160, 67, 10, 0.05);
+}
+
+/* Animação para Atividades Recentes */
+#recent-activities-container > div {
+    animation: slideIn 0.3s ease-out backwards;
+    transition: all 0.2s ease;
+}
+
+#recent-activities-container > div:nth-child(1) { animation-delay: 0.05s; }
+#recent-activities-container > div:nth-child(2) { animation-delay: 0.1s; }
+#recent-activities-container > div:nth-child(3) { animation-delay: 0.15s; }
+#recent-activities-container > div:nth-child(4) { animation-delay: 0.2s; }
+#recent-activities-container > div:nth-child(5) { animation-delay: 0.25s; }
+#recent-activities-container > div:nth-child(6) { animation-delay: 0.3s; }
+
+#recent-activities-container > div:hover {
+    background-color: rgba(160, 67, 10, 0.02);
+    transform: translateX(4px);
+    border-radius: 8px;
+}
+
+.dark #recent-activities-container > div:hover {
+    background-color: rgba(160, 67, 10, 0.05);
+}
+
+/* -------------------- Inputs e Botões Gerais -------------------- */
+input:focus, select:focus {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(160, 67, 10, 0.1);
+}
+
+button[data-action] {
     position: relative;
-    z-index: 51;
+    overflow: hidden;
+}
+
+button[data-action]::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.2);
+    transform: translate(-50%, -50%);
+    transition: width 0.6s, height 0.6s;
+}
+
+button[data-action]:active::before {
+    width: 300px;
+    height: 300px;
+}
+
+/* Botão positivo (confirmação) */
+.btn-positive {
+    border-radius: 0.75rem;
+    transition: background 0.22s cubic-bezier(0.4, 0, 0.2, 1), color 0.2s, transform 0.22s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.22s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 2px 8px rgba(160,67,10,0.08);
+    will-change: transform, box-shadow;
+}
+.btn-positive:hover, .btn-positive:focus {
+    transform: translateY(-2px) scale(1.045);
+    box-shadow: 0 6px 18px rgba(160,67,10,0.13);
+}
+.btn-positive:active {
+    transform: scale(0.97);
+    box-shadow: 0 2px 8px rgba(160,67,10,0.10);
+}
+
+/* Botão negativo (cancelar/excluir) */
+.btn-negative {
+    border-radius: 0.75rem;
+    transition: background 0.22s cubic-bezier(0.4, 0, 0.2, 1), color 0.2s, transform 0.22s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.22s cubic-bezier(0.4, 0, 0.2, 1);
+    will-change: transform, box-shadow;
+}
+.btn-negative:hover, .btn-negative:focus {
+    transform: translateY(-2px) scale(1.045);
+    box-shadow: 0 6px 18px rgba(160,67,10,0.10);
+}
+.btn-negative:active {
+    transform: scale(0.97);
+    box-shadow: 0 2px 8px rgba(160,67,10,0.10);
 }
