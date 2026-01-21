@@ -1,0 +1,151 @@
+<div class="w-full max-w-7xl mx-auto flex flex-col gap-8">
+            
+    <div class="flex items-center justify-between mb-2">
+        <h1 class="text-3xl md:text-4xl font-extrabold tracking-tight">Configurações</h1>
+    </div>
+
+    <div class="grid grid-cols-1 xl:grid-cols-2 gap-8 items-start">
+        <!-- Profile Settings -->
+        <div class="w-full rounded-[22px] bg-white dark:bg-[#2A2420] border border-black/5 dark:border-white/5 p-6 md:p-8 shadow-sm h-full">
+            <div class="flex items-center gap-4 mb-6">
+                <!-- ... content ... -->
+                <div class="flex size-12 items-center justify-center rounded-xl bg-primary/10 text-primary">
+                    <span class="material-symbols-outlined text-2xl">person</span>
+                </div>
+                <div>
+                    <h2 class="text-xl font-bold">Dados Pessoais</h2>
+                    <p class="text-text-secondary-light dark:text-text-secondary-dark text-sm">Atualize suas informações de identificação.</p>
+                </div>
+            </div>
+
+            <!-- Feedback Messages for Profile -->
+            <div id="profileSuccessMessage" class="message-box success hidden mb-6">
+                <div class="icon-container">
+                    <span class="material-symbols-outlined">check_circle</span>
+                </div>
+                <div class="content-container">
+                    <span class="msg-title">Sucesso!</span>
+                    <span class="msg-text"></span>
+                </div>
+            </div>
+
+            <div id="profileErrorMessage" class="message-box error hidden mb-6">
+                <div class="icon-container">
+                    <span class="material-symbols-outlined">error</span>
+                </div>
+                <div class="content-container">
+                    <span class="msg-title">Erro!</span>
+                    <span class="msg-text"></span>
+                </div>
+            </div>
+
+            <form id="profileForm" class="space-y-4">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="space-y-2">
+                        <label for="profile-nome" class="block text-sm font-medium text-text-secondary-light dark:text-text-secondary-dark">Nome Completo</label>
+                        <input type="text" id="profile-nome" name="nome" required 
+                            class="w-full px-4 py-3 rounded-xl bg-background-light dark:bg-black/20 border border-black/10 dark:border-white/10 focus:ring-2 focus:ring-primary focus:border-transparent transition-all outline-none"
+                            placeholder="Seu nome">
+                    </div>
+                    <div class="space-y-2">
+                        <label for="profile-email" class="block text-sm font-medium text-text-secondary-light dark:text-text-secondary-dark">Email</label>
+                        <input type="email" id="profile-email" name="email" required 
+                            class="w-full px-4 py-3 rounded-xl bg-background-light dark:bg-black/20 border border-black/10 dark:border-white/10 focus:ring-2 focus:ring-primary focus:border-transparent transition-all outline-none"
+                            placeholder="seu@email.com">
+                    </div>
+                </div>
+                <div class="pt-2 flex justify-end">
+                    <button type="submit" class="btn-submit px-6 py-3 bg-primary hover:bg-primary-light text-white font-bold rounded-xl shadow-lg shadow-primary/20 transition-all active:scale-95 disabled:opacity-70 disabled:cursor-not-allowed">
+                        Salvar Alterações
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Security Settings -->
+        <div class="w-full rounded-[22px] bg-white dark:bg-[#2A2420] border border-black/5 dark:border-white/5 p-6 md:p-8 shadow-sm h-full">
+            <div class="flex items-center gap-4 mb-6">
+                <div class="flex size-12 items-center justify-center rounded-xl bg-primary/10 text-primary">
+                    <span class="material-symbols-outlined text-2xl">lock</span>
+                </div>
+                <div>
+                    <h2 class="text-xl font-bold">Segurança</h2>
+                    <p class="text-text-secondary-light dark:text-text-secondary-dark text-sm">Gerencie sua senha de acesso.</p>
+                </div>
+            </div>
+
+                <!-- Feedback Messages for Security -->
+                <div id="securitySuccessMessage" class="message-box success hidden mb-6">
+                <div class="icon-container">
+                    <span class="material-symbols-outlined">check_circle</span>
+                </div>
+                <div class="content-container">
+                    <span class="msg-title">Sucesso!</span>
+                    <span class="msg-text"></span>
+                </div>
+            </div>
+
+            <div id="securityErrorMessage" class="message-box error hidden mb-6">
+                <div class="icon-container">
+                    <span class="material-symbols-outlined">error</span>
+                </div>
+                <div class="content-container">
+                    <span class="msg-title">Erro!</span>
+                    <span class="msg-text"></span>
+                </div>
+            </div>
+
+            <form id="securityForm" class="space-y-4">
+                <div class="space-y-2">
+                    <label for="security-senhaAtual" class="block text-sm font-medium text-text-secondary-light dark:text-text-secondary-dark">Senha Atual</label>
+                    <div class="relative">
+                        <input type="password" id="security-senhaAtual" name="senhaAtual" required
+                            class="w-full px-4 py-3 rounded-xl bg-background-light dark:bg-black/20 border border-black/10 dark:border-white/10 focus:ring-2 focus:ring-primary focus:border-transparent transition-all outline-none pr-10"
+                            placeholder="Sua senha atual">
+                        <button type="button" class="absolute right-3 top-0 h-full flex items-center px-1 cursor-pointer bg-transparent border-none toggle-password" data-target="security-senhaAtual">
+                            <svg viewBox="0 0 24 24" class="w-5 h-5 fill-none text-gray-400 eye-icon" style="stroke: #9ca3af;">
+                                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                                <circle cx="12" cy="12" r="3" />
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+                <div class="space-y-2">
+                    <label for="security-senha" class="block text-sm font-medium text-text-secondary-light dark:text-text-secondary-dark">Nova Senha</label>
+                    <div class="relative">
+                        <input type="password" id="security-senha" name="senha" required minlength="8"
+                            class="w-full px-4 py-3 rounded-xl bg-background-light dark:bg-black/20 border border-black/10 dark:border-white/10 focus:ring-2 focus:ring-primary focus:border-transparent transition-all outline-none pr-10"
+                            placeholder="Mínimo 8 caracteres">
+                        <button type="button" class="absolute right-3 top-0 h-full flex items-center px-1 cursor-pointer bg-transparent border-none toggle-password" data-target="security-senha">
+                            <svg viewBox="0 0 24 24" class="w-5 h-5 fill-none text-gray-400 eye-icon" style="stroke: #9ca3af;">
+                                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                                <circle cx="12" cy="12" r="3" />
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+                <div class="space-y-2">
+                    <label for="security-confSenha" class="block text-sm font-medium text-text-secondary-light dark:text-text-secondary-dark">Confirmar Nova Senha</label>
+                    <div class="relative">
+                            <input type="password" id="security-confSenha" name="confSenha" required 
+                            class="w-full px-4 py-3 rounded-xl bg-background-light dark:bg-black/20 border border-black/10 dark:border-white/10 focus:ring-2 focus:ring-primary focus:border-transparent transition-all outline-none pr-10"
+                            placeholder="Repita a nova senha">
+                            <button type="button" class="absolute right-3 top-0 h-full flex items-center px-1 cursor-pointer bg-transparent border-none toggle-password" data-target="security-confSenha">
+                                <svg viewBox="0 0 24 24" class="w-5 h-5 fill-none text-gray-400 eye-icon" style="stroke: #9ca3af;">
+                                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                                    <circle cx="12" cy="12" r="3" />
+                                </svg>
+                            </button>
+                    </div>
+                </div>
+                
+                <div class="pt-2 flex justify-end">
+                    <button type="submit" class="btn-submit px-6 py-3 bg-white dark:bg-white/5 border border-black/10 dark:border-white/10 text-text-light dark:text-text-dark font-bold rounded-xl shadow-sm hover:bg-gray-50 dark:hover:bg-white/10 transition-all active:scale-95 disabled:opacity-70 disabled:cursor-not-allowed">
+                        Atualizar Senha
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+</div>
