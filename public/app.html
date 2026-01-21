@@ -123,7 +123,7 @@
         </nav>
         
         <div class="mt-auto px-4 py-6 border-t border-border dark:border-border-dark shrink-0">
-            <a class="nav-link group flex items-center gap-3 px-4 py-3.5 rounded-xl text-text-muted-light dark:text-text-muted-dark hover:bg-secondary/50 hover:text-primary dark:hover:bg-white/5 dark:hover:text-white transition-all duration-200" href="#">
+            <a class="nav-link group flex items-center gap-3 px-4 py-3.5 rounded-xl text-text-muted-light dark:text-text-muted-dark hover:bg-secondary/50 hover:text-primary dark:hover:bg-white/5 dark:hover:text-white transition-all duration-200" href="#" data-page="settings">
                 <span class="material-symbols-outlined text-[24px] group-hover:rotate-45 transition-transform">settings</span>
                 <span class="text-sm font-bold tracking-wide">Configurações</span>
             </a>
@@ -161,7 +161,7 @@
                 </header>
 
                 <!-- Drawer Mobile Menu -->
-                <div id="mobileMenuDrawer" class="fixed inset-0 z-[70] bg-black/40 backdrop-blur-[2px] transition-opacity duration-300 hidden lg:hidden" onclick="closeMobileMenu()">
+                <div id="mobileMenuDrawer" class="fixed inset-0 z-[70] bg-black/40 backdrop-blur-[2px] transition-opacity duration-300 hidden lg:hidden">
                     <aside class="absolute left-0 top-0 h-full w-64 bg-surface-light dark:bg-surface-dark shadow-2xl flex flex-col transition-transform duration-300 transform -translate-x-full" id="mobileMenuAside" onclick="event.stopPropagation();">
                         <div class="flex h-20 items-center px-8 shrink-0 justify-between">
                             <img src="/img/financel.svg" alt="Finance Icon" class="h-10 w-auto object-contain">
@@ -190,7 +190,7 @@
                             </a>
                         </nav>
                         <div class="mt-auto px-4 py-6 border-t border-border dark:border-border-dark shrink-0">
-                            <a class="nav-link group flex items-center gap-3 px-4 py-3.5 rounded-xl text-text-muted-light dark:text-text-muted-dark hover:bg-secondary/50 hover:text-primary dark:hover:bg-white/5 dark:hover:text-white transition-all duration-200" href="#">
+                            <a class="nav-link group flex items-center gap-3 px-4 py-3.5 rounded-xl text-text-muted-light dark:text-text-muted-dark hover:bg-secondary/50 hover:text-primary dark:hover:bg-white/5 dark:hover:text-white transition-all duration-200" href="#" data-page="settings">
                                 <span class="material-symbols-outlined text-[24px] group-hover:rotate-45 transition-transform">settings</span>
                                 <span class="text-sm font-bold tracking-wide">Configurações</span>
                             </a>
@@ -802,72 +802,82 @@
     <script src="/scripts/gasto-fixo-modal.js"></script>
     <script src="/scripts/salario-modal.js"></script> 
     <script src="/scripts/spa-router.js"></script>
-    <script>
-// filepath: c:\Users\luizg\Desktop\Projetos\Gap\public\app.html
-function openMobileMenu() {
-    const drawer = document.getElementById('mobileMenuDrawer');
-    const aside = document.getElementById('mobileMenuAside');
-    drawer.classList.remove('hidden');
-    setTimeout(() => aside.classList.remove('-translate-x-full'), 10);
-}
-function closeMobileMenu() {
-    const drawer = document.getElementById('mobileMenuDrawer');
-    const aside = document.getElementById('mobileMenuAside');
-    aside.classList.add('-translate-x-full');
-    setTimeout(() => drawer.classList.add('hidden'), 300);
-}
-</script>
 <script>
-// filepath: c:\Users\luizg\Desktop\Projetos\Gap\public\app.html
+    // Referências aos elementos
+    const openBtn = document.getElementById('openMobileMenuBtn');
+    const closeBtn = document.getElementById('closeMobileMenuBtn');
+    const hamburgerIcon = document.getElementById('hamburgerIcon');
+    const drawer = document.getElementById('mobileMenuDrawer');
+    const aside = document.getElementById('mobileMenuAside');
 
-// Animação do botão hamburguer
-const openBtn = document.getElementById('openMobileMenuBtn');
-const hamburgerIcon = document.getElementById('hamburgerIcon');
-const drawer = document.getElementById('mobileMenuDrawer');
-const aside = document.getElementById('mobileMenuAside');
+    // Função centralizada para fechar o menu
+    function closeMobileMenu(animate = true) {
+        if (!aside || !drawer) return;
+        
+        // Define estado inicial de saída
+        aside.classList.add('-translate-x-full');
 
-openBtn.onclick = function(e) {
-    // animação leve no ícone
-
-
-
-    hamburgerIcon.classList.add('scale-110', 'rotate-12');
-    setTimeout(() => {
-        hamburgerIcon.classList.remove('scale-110', 'rotate-12');
-    }, 250);
-
-    drawer.classList.remove('hidden');
-    // animação do aside
-    setTimeout(() => aside.classList.remove('-translate-x-full'), 10);
-};
-
-// Botão X para fechar
-document.getElementById('closeMobileMenuBtn').onclick = function(e) {
-    e.stopPropagation();
-    closeMobileMenu(true);
-};
-
-// Fecha ao clicar em link do menu mobile
-aside.querySelectorAll('a').forEach(link => {
-    link.addEventListener('click', () => closeMobileMenu(false));
-});
-
-function closeMobileMenu(instant = false) {
-    aside.classList.add('-translate-x-full');
-    if (instant) {
-        // Fecha instantaneamente, mas mantém suavidade do aside
-        setTimeout(() => drawer.classList.add('hidden'), 150);
-    } else {
-        // Fecha instantaneamente ao clicar em link
-        drawer.classList.add('hidden');
-        setTimeout(() => aside.classList.remove('-translate-x-full'), 300); // prepara para próxima abertura
+        if (animate) {
+            // Aguarda a transição CSS (300ms) antes de esconder o container
+            setTimeout(() => {
+                drawer.classList.add('hidden');
+            }, 300);
+        } else {
+            // Esconde imediatamente
+            drawer.classList.add('hidden');
+        }
     }
-}
 
-// Fecha ao clicar fora do aside
-drawer.onclick = function(e) {
-    if (e.target === drawer) closeMobileMenu(true);
-};
+    // Evento de Abertura
+    if (openBtn) {
+        openBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            if (!drawer || !aside) return;
+
+            // Animação do ícone
+            if (hamburgerIcon) {
+                hamburgerIcon.classList.add('scale-110', 'rotate-12');
+                setTimeout(() => hamburgerIcon.classList.remove('scale-110', 'rotate-12'), 250);
+            }
+
+            // Garante que o drawer esteja visível
+            drawer.classList.remove('hidden');
+
+            // Força um reflow para garantir que a transição ocorra
+            void aside.offsetWidth;
+
+            // Remove a classe que joga para fora da tela
+            aside.classList.remove('-translate-x-full');
+        });
+    }
+
+    // Evento de Fechamento (Botão X)
+    if (closeBtn) {
+        closeBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            closeMobileMenu(true);
+        });
+    }
+
+    // Evento de Fechamento (Clicar no fundo/Drawer)
+    if (drawer) {
+        drawer.addEventListener('click', (e) => {
+            // Garante que o clique foi no fundo escuro, não no aside
+            if (e.target === drawer) {
+                closeMobileMenu(true);
+            }
+        });
+    }
+
+    // Fechar ao clicar em qualquer link dentro do menu
+    if (aside) {
+        const links = aside.querySelectorAll('a');
+        links.forEach(link => {
+            link.addEventListener('click', () => {
+                closeMobileMenu(false); // Fecha rápido para parecer responsivo
+            });
+        });
+    }
 </script>
 </body>
 </html>

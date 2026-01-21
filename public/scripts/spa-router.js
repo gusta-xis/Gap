@@ -31,6 +31,11 @@ const SPARouter = {
             contentUrl: '/pages/metas-content.html',
             script: '/scripts/metas.js'
         },
+        settings: {
+            title: 'Configurações - GAP Financeiro',
+            contentUrl: '/pages/settings-content.html',
+            script: '/scripts/settings.js'
+        },
 
     },
 
@@ -213,7 +218,8 @@ const SPARouter = {
             'normalizeTransactions', 'applyFilters', 'renderTransactions',
             'updateStatistics', 'loadCustomCategories', 'saveNewCategory',
             // ADICIONADO: Limpeza de variáveis de salário se necessário (opcional)
-            'initializeSalaryModal', 'metasData', 'initializeMetasModule', 'loadMetas', 'submitMeta'
+            'initializeSalaryModal', 'metasData', 'initializeMetasModule', 'loadMetas', 'submitMeta',
+            'initializeSettings', 'enforceSecurity'
         ];
 
         globalVarsToClean.forEach(varName => {
@@ -275,6 +281,13 @@ const SPARouter = {
                 window.initializeMetasModule();
             } else {
                 console.warn('⚠️ initializeMetasModule não está disponível');
+            }
+        } else if (pageName === 'settings') {
+            if (typeof window.initializeSettings === 'function') {
+                console.log('✅ Chamando initializeSettings...');
+                window.initializeSettings();
+            } else {
+                console.warn('⚠️ initializeSettings não está disponível');
             }
         }
 

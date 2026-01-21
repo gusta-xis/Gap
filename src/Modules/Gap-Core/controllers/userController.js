@@ -78,7 +78,8 @@ module.exports = {
   },
 
   update(req, res) {
-    userService.update(req.params.id, req.body, (err, r) => {
+    const userId = parseInt(req.params.id, 10);
+    userService.update(userId, req.body, (err, r) => {
       if (err) return sendError(res, err);
 
       return res.json({
