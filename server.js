@@ -182,6 +182,56 @@ const migrationAuditLogs = () => {
 };
 migrationAuditLogs();
 
+// --- Migration: Admin & Credentials ---
+const migrationAdmin = () => {
+  // 1. Roles
+  db.query("ALTER TABLE users ADD COLUMN role VARCHAR(20) DEFAULT 'user'", (err) => {
+    if (err && err.code !== 'ER_DUP_FIELDNAME') console.error('Migration Error (role):', err.message);
+  });
+
+  // 2. Credentials
+  db.query("ALTER TABLE users ADD COLUMN credential VARCHAR(20) UNIQUE DEFAULT NULL", (err) => {
+    if (err && err.code !== 'ER_DUP_FIELDNAME') console.error('Migration Error (credential):', err.message);
+  });
+
+  // 3. Allow Null Password (First Access)
+  db.query("ALTER TABLE users MODIFY senha VARCHAR(255) NULL", (err) => {
+    if (err) console.error('Migration Error (senha nullable):', err.message);
+
+    // 4. Seed Super Admin (only runs after column modifications)
+    seedSuperAdmin();
+  });
+};
+
+const seedSuperAdmin = () => {
+  const superUser = {
+    credential: 'GAP0001',
+    password: null, // First access requires setting password
+    role: 'super_admin',
+    nome: 'Admin Geral'
+  };
+
+  db.query('SELECT * FROM users WHERE credential = ?', [superUser.credential], (err, rows) => {
+    if (err) return console.error('Seed Check Error:', err.message);
+
+    if (rows.length === 0) {
+      console.log('🌱 Seeding Super Admin (First Access)...');
+
+      db.query(
+        'INSERT INTO users (nome, email, senha, role, credential) VALUES (?, ?, ?, ?, ?)',
+        [superUser.nome, 'gap@sistema', null, superUser.role, superUser.credential],
+        (err) => {
+          if (err) console.error('❌ Erro ao criar Super Admin:', err.message);
+          else console.log(`✅ Super Admin criado: ${superUser.credential} (Aguardando Ativação)`);
+        }
+      );
+    } else {
+      console.log('✅ Super Admin já existe.');
+    }
+  });
+};
+migrationAdmin();
+
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`🚀 Servidor rodando em: http://localhost:${PORT}`);

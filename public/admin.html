@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Gap - Painel Administrativo</title>
+  <link rel="stylesheet" href="styles/style.css">
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    /* Admin Specific Styles */
+    body {
+        background: #f8fafc;
+        overflow-y: auto;
+    }
+    .admin-container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 40px 20px;
+    }
+    .admin-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 40px;
+    }
+    .admin-title {
+        color: #1e293b;
+        font-size: 28px;
+    }
+    .admin-card {
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+        padding: 24px;
+        margin-bottom: 24px;
+    }
+    .user-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 20px;
+    }
+    .user-table th, .user-table td {
+        text-align: left;
+        padding: 14px;
+        border-bottom: 1px solid #e2e8f0;
+    }
+    .user-table th {
+        color: #64748b;
+        font-size: 14px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+    }
+    .badge {
+        display: inline-block;
+        padding: 4px 12px;
+        border-radius: 9999px;
+        font-size: 12px;
+        font-weight: 600;
+    }
+    .badge-user { background: #e2e8f0; color: #475569; }
+    .badge-admin { background: #bfdbfe; color: #1e40af; }
+    .badge-manager { background: #e9d5ff; color: #6b21a8; } /* Roxo para Gerente */
+    .badge-super_admin { background: #fef3c7; color: #92400e; } /* Admin Geral */
+
+    .action-btn {
+        padding: 6px 12px;
+        border-radius: 6px;
+        border: 1px solid #cbd5e1;
+        background: white;
+        cursor: pointer;
+        font-size: 12px;
+        font-weight: 600;
+        margin-right: 6px;
+        transition: all 0.2s;
+    }
+    .action-btn:hover { background: #f1f5f9; }
+    .btn-danger { color: #dc2626; border-color: #fecaca; }
+    .btn-danger:hover { background: #fef2f2; }
+
+    /* Modal */
+    .modal {
+        position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+        background: rgba(0,0,0,0.5);
+        display: flex; justify-content: center; align-items: center;
+        opacity: 0; pointer-events: none; transition: opacity 0.2s;
+        z-index: 50;
+    }
+    .modal.active { opacity: 1; pointer-events: auto; }
+    .modal-content {
+        background: white; padding: 30px; border-radius: 12px; width: 100%; max-width: 400px;
+    }
+  </style>
+</head>
+<body>
+
+<div class="admin-container">
+    <div class="admin-header">
+        <div>
+            <h1 class="admin-title">Gestão Administrativa</h1>
+            <p style="color: #64748b; margin-top: 5px;">Gerencie usuários e permissões do sistema</p>
+        </div>
+        <div>
+           <span id="currentUserDisplay" style="margin-right: 20px; font-weight: 600; color: #334155;"></span>
+           <button class="btn-clean" id="logoutBtn" style="color: #ef4444;">Sair</button>
+        </div>
+    </div>
+
+    <!-- Actions Bar -->
+    <div class="admin-card" id="actionsCard">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+            <h3 style="font-size: 18px; font-weight: 600;">Ações Rápidas</h3>
+            <button class="btn-submit" id="btnOpenCreateAdmin" style="width: auto; padding: 10px 20px;">
+                + Novo Administrador
+            </button>
+        </div>
+    </div>
+
+    <!-- Users User -->
+    <div class="admin-card">
+        <h3 style="font-size: 18px; font-weight: 600; margin-bottom: 10px;">Usuários do Sistema</h3>
+        <div style="overflow-x: auto;">
+            <table class="user-table">
+                <thead>
+                    <tr>
+                        <th>Nome</th>
+                        <th>Email / Credencial</th>
+                        <th>Função</th>
+                        <th>Ações</th>
+                    </tr>
+                </thead>
+                <tbody id="usersTableBody">
+                    <!-- Populated by JS -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Create Admin -->
+<div class="modal" id="createAdminModal">
+    <div class="modal-content">
+        <h2 class="form-title" style="font-size: 24px;">Novo Admin</h2>
+        <form id="createAdminForm">
+            <div class="input-group">
+                <label>Nome do Admin</label>
+                <div class="input-wrapper">
+                    <input type="text" id="newAdminName" placeholder="Nome completo" required>
+                </div>
+            </div>
+            <div class="input-group">
+                <label>Tipo de Conta</label>
+                <div class="input-wrapper">
+                    <select id="newAdminRole" style="width: 100%; border: none; outline: none; background: transparent;">
+                        <option value="admin">Administrador (GAxxxxP)</option>
+                        <option value="manager" id="optManager">Gerente (GAPxxxx)</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="input-group">
+                <label>Email (Recuperação)</label>
+                <div class="input-wrapper">
+                    <input type="email" id="newAdminEmail" placeholder="email@exemplo.com" required>
+                </div>
+            </div>
+
+            <!-- Password deleted: First Access Flow -->
+            
+            <div style="display: flex; gap: 10px; margin-top: 20px;">
+                <button type="button" class="btn-clean" id="closeModalBtn" style="flex: 1;">Cancelar</button>
+                <button type="submit" class="btn-submit" style="flex: 1;">Criar</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script src="scripts/admin.js"></script>
+</body>
+</html>

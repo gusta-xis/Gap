@@ -52,7 +52,7 @@ module.exports = {
   },
 
   findAll(callback) {
-    db.query('SELECT id, nome, email FROM users', callback);
+    db.query('SELECT id, nome, email, role, credential FROM users', callback);
   },
 
   findById(id, callback) {
@@ -61,22 +61,69 @@ module.exports = {
     }
 
     db.query(
-      'SELECT id, nome, email FROM users WHERE id = ?',
+      'SELECT id, nome, email, role, credential FROM users WHERE id = ?',
       [id],
       (err, rows) => callback(err, rows ? rows[0] : null)
     );
   },
 
   findByEmail(email, callback) {
-    if (!email || typeof email !== 'string') {
-      return callback(new Error('Email deve ser uma string válida'));
-    }
-
     db.query(
-      'SELECT id, nome, email, senha FROM users WHERE email = ?',
+      'SELECT id, nome, email, senha, role, credential FROM users WHERE email = ?',
       [email],
       (err, rows) => callback(err, rows ? rows[0] : null)
     );
+  },
+
+  findByEmailOrCredential(login, callback) {
+    if (!login || typeof login !== 'string') {
+      return callback(new Error('Login inválido'));
+    }
+
+    // Se tem @ é email, senão assume credencial
+    const field = login.includes('@') ? 'email' : 'credential';
+
+    db.query(
+      `SELECT id, nome, email, senha, role, credential, reset_code FROM users WHERE ${field} = ?`,
+      [login],
+      (err, rows) => callback(err, rows ? rows[0] : null)
+    );
+  },
+
+  createAdmin(data, callback) {
+    // data: { nome, senha, role (admin/super_admin), creator_role }
+    // Gera credencial sequencial baseada no role
+    // Gerente Geral e Gerente usam GAPxxxx. Admin usa GAxxxxP.
+    const isManagerial = ['super_admin', 'manager'].includes(data.role);
+    const prefix = isManagerial ? 'GAP' : 'GA';
+    const suffix = isManagerial ? '' : 'P';
+    const searchPattern = `${prefix}%${suffix}`;
+
+    // Busca a última credencial usada para incrementar
+    db.query('SELECT credential FROM users WHERE credential LIKE ? ORDER BY credential DESC LIMIT 1', [searchPattern], (err, rows) => {
+      if (err) return callback(err);
+
+      let nextNum = 1;
+      if (rows.length > 0) {
+        // Extrai números: GAP0001 -> 0001
+        const lastCred = rows[0].credential;
+        const numPart = lastCred.replace(/\D/g, '');
+        nextNum = parseInt(numPart) + 1;
+      }
+
+      const formattedNum = String(nextNum).padStart(4, '0');
+      const newCredential = `${prefix}${formattedNum}${suffix}`;
+
+      // Insere
+      db.query(
+        'INSERT INTO users (nome, email, senha, role, credential) VALUES (?, ?, ?, ?, ?)',
+        [data.nome, data.email || null, data.senha, data.role, newCredential],
+        (err, result) => {
+          if (err) return callback(err);
+          callback(null, { ...result, credential: newCredential });
+        }
+      );
+    });
   },
 
   update(id, data, callback) {
@@ -84,7 +131,12 @@ module.exports = {
       return callback(new Error('ID deve ser um número inteiro válido'));
     }
 
-    const filteredData = filterAllowedFields(data, ALLOWED_UPDATE_FIELDS);
+    // Permite atualizar role também
+    const ALLOWED_UPDATE_FIELDS_EXTENDED = ['nome', 'email', 'senha', 'role'];
+    const filteredData = filterAllowedFields(data, ALLOWED_UPDATE_FIELDS_EXTENDED);
+
+    // hack para permitir 'role' já que filterAllowedFields usa const externa
+    if (data.role) filteredData.role = data.role;
 
     if (Object.keys(filteredData).length === 0) {
       return callback(new Error('Nenhum campo válido para atualizar'));

@@ -138,6 +138,8 @@ module.exports = {
 
   findById: (id, cb) => userModel.findById(id, cb),
 
+  findByEmailOrCredential: (login, cb) => userModel.findByEmailOrCredential(login, cb),
+
   update: (id, data, callback) => {
     // Se não for atualizar senha, segue fluxo normal
     if (!data.senha) {

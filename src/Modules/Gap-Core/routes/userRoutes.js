@@ -1,3 +1,4 @@
+const { verifyAdmin, verifySuperAdmin } = require('../middlewares/adminMiddleware');
 const express = require('express');
 const router = express.Router();
 const userController = require('../controllers/userController');
@@ -13,7 +14,16 @@ router.post('/refresh', userController.refreshToken);
 router.post('/forgot-password', userController.forgotPassword);
 
 
+
+// --- Admin Routes ---
+router.get('/admin/list', authMiddleware, verifyAdmin, userController.adminListUsers);
+router.post('/admin/create', authMiddleware, verifyAdmin, userController.adminCreateUser);
+router.delete('/admin/:id', authMiddleware, verifySuperAdmin, userController.adminDeleteUser);
+router.patch('/admin/:id/role', authMiddleware, verifySuperAdmin, userController.adminUpdateRole);
+
 router.post('/verify-code', userController.verifyCode);
+router.post('/check-credential', userController.checkCredential);
+router.post('/activate-credential', userController.activateCredential);
 
 router.post('/reset-password', validateResetPassword, userController.resetPassword);
 

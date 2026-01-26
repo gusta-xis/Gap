@@ -12,7 +12,9 @@ const transporter = nodemailer.createTransport({
     },
     tls: {
         rejectUnauthorized: false // Em desenvolvimento/teste pode ajudar com certificados auto-assinados
-    }
+    },
+    debug: true, // Log detalhado do SMTP
+    logger: true // Log no console
 });
 
 /**
