@@ -12,6 +12,9 @@ router.post('/refresh', userController.refreshToken);
 
 router.post('/forgot-password', userController.forgotPassword);
 
+
+router.post('/verify-code', userController.verifyCode);
+
 router.post('/reset-password', validateResetPassword, userController.resetPassword);
 
 router.get('/', authMiddleware, userController.findAll);

@@ -151,6 +151,37 @@ db.query("ALTER TABLE gastos_variaveis ADD COLUMN meta_id INT DEFAULT NULL", (er
   }
 });
 
+// --- Migration: Reset Code Columns in Users ---
+const migrationResetCode = () => {
+  db.query("ALTER TABLE users ADD COLUMN reset_code VARCHAR(6) DEFAULT NULL", (err) => {
+    if (err && err.code !== 'ER_DUP_FIELDNAME') console.error('Migration Error (reset_code):', err.message);
+  });
+  db.query("ALTER TABLE users ADD COLUMN reset_code_expires DATETIME DEFAULT NULL", (err) => {
+    if (err && err.code !== 'ER_DUP_FIELDNAME') console.error('Migration Error (reset_code_expires):', err.message);
+  });
+};
+migrationResetCode();
+
+// --- Migration: Audit Logs Table ---
+const migrationAuditLogs = () => {
+  const createTableQuery = `
+    CREATE TABLE IF NOT EXISTS audit_logs (
+      id INT AUTO_INCREMENT PRIMARY KEY,
+      user_id INT DEFAULT NULL,
+      action VARCHAR(50) NOT NULL,
+      ip_address VARCHAR(45),
+      details TEXT,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL
+    )
+  `;
+  db.query(createTableQuery, (err) => {
+    if (err) console.error('Migration Error (audit_logs):', err.message);
+    else console.log('✅ Tabela audit_logs verificada/criada.');
+  });
+};
+migrationAuditLogs();
+
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`🚀 Servidor rodando em: http://localhost:${PORT}`);

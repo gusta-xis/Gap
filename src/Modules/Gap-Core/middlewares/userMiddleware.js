@@ -89,10 +89,10 @@ module.exports = {
     next();
   },
   validateResetPassword: (req, res, next) => {
-    const { token, newPassword } = req.body;
+    const { email, code, newPassword } = req.body;
 
-    if (!token) {
-      return res.status(400).json({ error: 'Token obrigatório.' });
+    if (!email || !code) {
+      return res.status(400).json({ error: 'Email e código são obrigatórios.' });
     }
 
     if (!newPassword || typeof newPassword !== 'string') {
