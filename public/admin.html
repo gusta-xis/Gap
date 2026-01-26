@@ -125,6 +125,7 @@
                     <tr>
                         <th>Nome</th>
                         <th>Email / Credencial</th>
+                        <th>Módulo</th>
                         <th>Função</th>
                         <th>Ações</th>
                     </tr>
@@ -171,7 +172,26 @@
                 <button type="button" class="btn-clean" id="closeModalBtn" style="flex: 1;">Cancelar</button>
                 <button type="submit" class="btn-submit" style="flex: 1;">Criar</button>
             </div>
+
         </form>
+    </div>
+</div>
+
+<!-- Modal Delete Confirmation -->
+<div class="modal" id="deleteConfirmModal">
+    <div class="modal-content">
+        <h2 class="form-title" style="font-size: 24px; color: #dc2626;">Confirmar Exclusão</h2>
+        <p style="margin-bottom: 20px; color: #64748b;">Tem certeza que deseja remover este usuário? Esta ação não pode ser desfeita.</p>
+        
+        <div style="background: #f8fafc; padding: 15px; border-radius: 8px; margin-bottom: 20px; border: 1px solid #e2e8f0;">
+            <p><strong>Nome:</strong> <span id="deleteUserName">...</span></p>
+            <p><strong>Email/Cred:</strong> <span id="deleteUserIdentifier">...</span></p>
+        </div>
+
+        <div style="display: flex; gap: 10px;">
+            <button type="button" class="btn-clean" id="cancelDeleteBtn" style="flex: 1;">Cancelar</button>
+            <button type="button" class="btn-submit btn-danger" id="confirmDeleteBtn" style="flex: 1; background: #dc2626; border-color: #dc2626; color: white;">Excluir</button>
+        </div>
     </div>
 </div>
 

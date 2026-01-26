@@ -25,11 +25,6 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('currentUserDisplay').textContent = `${currentUser.nome} (${roleNames[currentUser.role] || currentUser.role})`;
 
     // Logic: Admin CANNOT see create actions card? 
-    // Requirement: Admin controls user access. So Admin might need a button to create User (not implemented yet in UI but requested).
-    // For now, let's allow Manager and Super Admin to see the "Create Admin" button (which opens modal).
-    // Admin user creation is usually done via Signup or specific "Invite User" flow not yet fully detailed, 
-    // but the prompt said "administrador controla acesso de usuario".
-    // Let's hide the "Create Admin/Manager" button for simple Admins.
     if (!['super_admin', 'manager'].includes(currentUser.role)) {
         document.getElementById('actionsCard').style.display = 'none';
     }
@@ -41,55 +36,73 @@ document.addEventListener('DOMContentLoaded', () => {
         window.location.replace('/login.html');
     });
 
+    // --- Global State form Modal ---
+    let allUsers = [];
+    let userIdToDelete = null;
+
+    const deleteModal = document.getElementById('deleteConfirmModal');
+    const deleteNameSpan = document.getElementById('deleteUserName');
+    const deleteIdSpan = document.getElementById('deleteUserIdentifier');
+
     // Load Users
     fetchUsers();
 
-    // Modal Logic
-    const modal = document.getElementById('createAdminModal');
+    // --- Create Admin Modal Logic ---
+    const createModal = document.getElementById('createAdminModal');
     const optManager = document.getElementById('optManager');
 
-    document.getElementById('btnOpenCreateAdmin').addEventListener('click', () => {
-        // Only Super Admin can create Managers
-        if (currentUser.role !== 'super_admin') {
-            if (optManager) optManager.style.display = 'none'; // Hide option
-        } else {
-            if (optManager) optManager.style.display = 'block';
-        }
-        modal.classList.add('active');
-    });
+    const btnOpenCreate = document.getElementById('btnOpenCreateAdmin');
+    if (btnOpenCreate) {
+        btnOpenCreate.addEventListener('click', () => {
+            // Only Super Admin can create Managers
+            if (currentUser.role !== 'super_admin') {
+                if (optManager) optManager.style.display = 'none'; // Hide option
+            } else {
+                if (optManager) optManager.style.display = 'block';
+            }
+            createModal.classList.add('active');
+        });
+    }
 
-    document.getElementById('closeModalBtn').addEventListener('click', () => modal.classList.remove('active'));
+    const btnCloseCreate = document.getElementById('closeModalBtn');
+    if (btnCloseCreate) btnCloseCreate.addEventListener('click', () => createModal.classList.remove('active'));
 
     // Create Admin Form
-    document.getElementById('createAdminForm').addEventListener('submit', async (e) => {
-        e.preventDefault();
-        const nome = document.getElementById('newAdminName').value;
-        const email = document.getElementById('newAdminEmail').value;
-        const role = document.getElementById('newAdminRole').value;
+    const createForm = document.getElementById('createAdminForm');
+    if (createForm) {
+        createForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const nome = document.getElementById('newAdminName').value;
+            const email = document.getElementById('newAdminEmail').value;
+            const role = document.getElementById('newAdminRole').value;
 
-        try {
-            const res = await fetch('/api/v1/users/admin/create', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`
-                },
-                body: JSON.stringify({ nome, email, role })
-            });
-            const data = await res.json();
+            try {
+                const res = await fetch('/api/v1/users/admin/create', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({ nome, email, role })
+                });
+                const data = await res.json();
 
-            if (res.ok) {
-                alert(`${role === 'manager' ? 'Gerente' : 'Admin'} criado com sucesso!\nCredencial: ${data.credential}`);
-                modal.classList.remove('active');
-                fetchUsers();
-            } else {
-                alert('Erro: ' + data.error);
+                if (res.ok) {
+                    alert(`${role === 'manager' ? 'Gerente' : 'Admin'} criado com sucesso!\nCredencial: ${data.credential}`);
+                    createModal.classList.remove('active');
+                    fetchUsers();
+                    createForm.reset();
+                } else {
+                    alert('Erro: ' + data.error);
+                }
+            } catch (err) {
+                console.error(err);
+                alert('Erro de conexão');
             }
-        } catch (err) {
-            console.error(err);
-            alert('Erro de conexão');
-        }
-    });
+        });
+    }
+
+    // --- Functions ---
 
     async function fetchUsers() {
         try {
@@ -97,7 +110,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
             const users = await res.json();
-            renderTable(users);
+            if (Array.isArray(users)) {
+                allUsers = users;
+                renderTable(users);
+            } else {
+                console.error("API response is not an array:", users);
+            }
         } catch (err) {
             console.error('Erro ao buscar usuários', err);
         }
@@ -112,6 +130,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
             // Identifier (Email or Credential)
             const identifier = u.credential ? `<span style="font-family:monospace; font-weight:bold;">${u.credential}</span>` : u.email;
+
+            // Module Logic
+            const moduleName = ['admin', 'manager', 'super_admin'].includes(u.role) ? 'Administrativo' : 'Financeiro';
 
             // Actions
             let actionsHtml = '';
@@ -130,12 +151,14 @@ document.addEventListener('DOMContentLoaded', () => {
             if (u.id === currentUser.id) canDelete = false;
 
             if (canDelete) {
-                actionsHtml += `<button class="action-btn btn-danger" onclick="deleteUser(${u.id})">Excluir</button>`;
+                // IMPORTANT: Calls promptDeleteUser
+                actionsHtml += `<button class="action-btn btn-danger" onclick="promptDeleteUser(${u.id})">Excluir</button>`;
             }
 
             tr.innerHTML = `
                 <td>${u.nome}</td>
                 <td>${identifier}</td>
+                <td><span class="badge" style="background:#f1f5f9; color:#475569;">${moduleName}</span></td>
                 <td><span class="badge badge-${u.role}">${roleNames[u.role] || u.role}</span></td>
                 <td>${actionsHtml}</td>
             `;
@@ -143,23 +166,58 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    window.deleteUser = async (id) => {
-        if (!confirm('Tem certeza que deseja excluir este usuário?')) return;
+    // --- Delete Confirmation Logic ---
 
-        try {
-            const res = await fetch(`/api/v1/users/admin/${id}`, {
-                method: 'DELETE',
-                headers: { 'Authorization': `Bearer ${token}` }
-            });
+    window.promptDeleteUser = (id) => {
+        const user = allUsers.find(u => u.id === id);
+        if (!user) return;
 
-            if (res.ok) {
-                fetchUsers();
-            } else {
-                const data = await res.json();
-                alert('Erro: ' + data.error);
-            }
-        } catch (err) {
-            alert('Erro de conexão');
-        }
+        userIdToDelete = id;
+
+        if (deleteNameSpan) deleteNameSpan.textContent = user.nome;
+        if (deleteIdSpan) deleteIdSpan.textContent = user.credential || user.email;
+
+        if (deleteModal) deleteModal.classList.add('active');
     };
+
+    const btnCancelDelete = document.getElementById('cancelDeleteBtn');
+    if (btnCancelDelete) {
+        btnCancelDelete.addEventListener('click', () => {
+            if (deleteModal) deleteModal.classList.remove('active');
+            userIdToDelete = null;
+        });
+    }
+
+    const btnConfirmDelete = document.getElementById('confirmDeleteBtn');
+    if (btnConfirmDelete) {
+        btnConfirmDelete.addEventListener('click', async () => {
+            if (!userIdToDelete) return;
+
+            // UI Feedback
+            const originalText = btnConfirmDelete.innerText;
+            btnConfirmDelete.innerText = 'Excluindo...';
+            btnConfirmDelete.disabled = true;
+
+            try {
+                const res = await fetch(`/api/v1/users/admin/${userIdToDelete}`, {
+                    method: 'DELETE',
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+
+                if (res.ok) {
+                    fetchUsers();
+                    if (deleteModal) deleteModal.classList.remove('active');
+                } else {
+                    const data = await res.json();
+                    alert('Erro: ' + data.error);
+                }
+            } catch (err) {
+                alert('Erro de conexão');
+            } finally {
+                btnConfirmDelete.innerText = originalText;
+                btnConfirmDelete.disabled = false;
+                userIdToDelete = null;
+            }
+        });
+    }
 });
