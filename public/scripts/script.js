@@ -244,18 +244,47 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  const forgotPasswordForm = document.getElementById('forgotPasswordForm');
-  if (forgotPasswordForm) {
-    forgotPasswordForm.addEventListener('submit', async (e) => {
+  /* =========================================================
+     NOVO FLUXO DE RECUPERAÇÃO DE SENHA (CÓDIGO 6 DÍGITOS)
+     ========================================================= */
+
+  // Referências aos passos
+  const step1Email = document.getElementById('step-1-email');
+  const step2Code = document.getElementById('step-2-code');
+  const step3Reset = document.getElementById('step-3-new-password');
+
+  // Referências aos formulários
+  const forgotEmailForm = document.getElementById('forgotEmailForm');
+  const forgotCodeForm = document.getElementById('forgotCodeForm');
+  const forgotResetForm = document.getElementById('forgotResetForm');
+
+  // Estado local para controle
+  let recoveryEmail = '';
+  let recoveryCode = '';
+
+  // Helper para transição de passos
+  function goToStep(showStep) {
+    step1Email.classList.add('hidden');
+    step2Code.classList.add('hidden');
+    step3Reset.classList.add('hidden');
+
+    showStep.classList.remove('hidden');
+    clearAllFeedbacks();
+  }
+
+  // PASSO 1: ENVIAR EMAIL
+  if (forgotEmailForm) {
+    forgotEmailForm.addEventListener('submit', async (e) => {
       e.preventDefault();
       clearAllFeedbacks();
 
-      const btn = forgotPasswordForm.querySelector('button[type="submit"]');
+      const emailInput = document.getElementById('forgot-email');
+      const email = sanitizeInput(emailInput.value);
+      const btn = forgotEmailForm.querySelector('.btn-submit');
       const txtOriginal = btn.innerText;
+
       btn.innerText = 'Enviando...';
       btn.disabled = true;
-
-      const email = sanitizeInput(document.getElementById('forgot-email').value);
 
       try {
         const response = await fetch('/api/v1/users/forgot-password', {
@@ -267,24 +296,119 @@ document.addEventListener('DOMContentLoaded', () => {
         const result = await response.json();
 
         if (response.ok) {
-          if (result.token) {
-            const resetLink = `${window.location.origin}/reset-password.html?token=${result.token}`;
-            try {
-              await navigator.clipboard.writeText(resetLink);
-              showFeedback('forgot', 'success', 'Link copiado para a área de transferência! (Simulação)');
-            } catch (clipboardErr) {
-              showFeedback('forgot', 'success', 'Link gerado (verifique console/alert antigo se necessário).');
-            }
-          } else {
-            showFeedback('forgot', 'success', result.message || 'Se o email existir, um link foi enviado.');
-          }
-          forgotPasswordForm.reset();
+          recoveryEmail = email;
+          document.getElementById('userEmailDisplay').textContent = email;
+          goToStep(step2Code);
+          showFeedback('forgotStep2', 'success', result.message || 'Código enviado! Verifique seu email.');
         } else {
-          showFeedback('forgot', 'error', result.error || 'Falha ao enviar link.');
+          showFeedback('forgotStep1', 'error', result.error || 'Erro ao enviar código.');
         }
       } catch (error) {
-        console.error('❌ Erro de conexão:', error);
-        showFeedback('forgot', 'error', 'Erro de conexão com o servidor.');
+        console.error(error);
+        showFeedback('forgotStep1', 'error', 'Erro de conexão.');
+      } finally {
+        btn.innerText = txtOriginal;
+        btn.disabled = false;
+      }
+    });
+  }
+
+  // PASSO 2: VERIFICAR CÓDIGO
+  if (forgotCodeForm) {
+    forgotCodeForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      clearAllFeedbacks();
+
+      const codeInput = document.getElementById('forgot-code');
+      const code = sanitizeInput(codeInput.value);
+      const btn = forgotCodeForm.querySelector('.btn-submit');
+      const txtOriginal = btn.innerText;
+
+      if (code.length !== 6) {
+        showFeedback('forgotStep2', 'error', 'O código deve ter 6 números.');
+        return;
+      }
+
+      btn.innerText = 'Verificando...';
+      btn.disabled = true;
+
+      try {
+        const response = await fetch('/api/v1/users/verify-code', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email: recoveryEmail, code }),
+        });
+
+        const result = await response.json();
+
+        if (response.ok) {
+          recoveryCode = code;
+          goToStep(step3Reset);
+          showFeedback('forgotStep3', 'success', 'Código validado! Crie sua nova senha.');
+        } else {
+          showFeedback('forgotStep2', 'error', result.error || 'Código inválido ou expirado.');
+        }
+      } catch (error) {
+        showFeedback('forgotStep2', 'error', 'Erro de conexão.');
+      } finally {
+        btn.innerText = txtOriginal;
+        btn.disabled = false;
+      }
+    });
+
+    // Botão Reenviar
+    const btnResend = document.getElementById('btnResendCode');
+    if (btnResend) {
+      btnResend.addEventListener('click', () => {
+        goToStep(step1Email);
+        showFeedback('forgotStep1', 'success', 'Confirme seu email para reenviar.');
+      });
+    }
+  }
+
+  // PASSO 3: REDEFINIR SENHA
+  if (forgotResetForm) {
+    forgotResetForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      clearAllFeedbacks();
+
+      const newPassword = document.getElementById('new-password').value;
+      const confirmPassword = document.getElementById('confirm-new-password').value;
+      const btn = forgotResetForm.querySelector('.btn-submit');
+      const txtOriginal = btn.innerText;
+
+      if (newPassword !== confirmPassword) {
+        showFeedback('forgotStep3', 'error', 'As senhas não coincidem.');
+        return;
+      }
+
+      if (newPassword.length < 8) {
+        showFeedback('forgotStep3', 'error', 'A senha deve ter no mínimo 8 caracteres.');
+        return;
+      }
+
+      btn.innerText = 'Redefinindo...';
+      btn.disabled = true;
+
+      try {
+        const response = await fetch('/api/v1/users/reset-password', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email: recoveryEmail, code: recoveryCode, newPassword }),
+        });
+
+        const result = await response.json();
+
+        if (response.ok) {
+          showFeedback('forgotStep3', 'success', 'Senha redefinida com sucesso! Redirecionando...');
+          setTimeout(() => {
+            window.location.reload();
+          }, 3000);
+        } else {
+          showFeedback('forgotStep3', 'error', result.error || 'Erro ao redefinir senha.');
+        }
+      } catch (error) {
+        showFeedback('forgotStep3', 'error', 'Erro de conexão.');
       } finally {
         btn.innerText = txtOriginal;
         btn.disabled = false;

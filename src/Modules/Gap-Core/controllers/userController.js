@@ -102,36 +102,44 @@ module.exports = {
     const { email } = req.body;
 
     if (!email) {
-      return res.status(400).json({
-        error: 'Email obrigatório'
-      });
+      return res.status(400).json({ error: 'Email obrigatório' });
     }
 
-    userService.generatePasswordResetToken(email, (err, result) => {
+    userService.generatePasswordResetCode(email, (err, result) => {
       if (err) return sendError(res, err);
 
       return res.json({
-        message: 'Se o email existir, um link de recuperação será enviado.',
-        token: result.token
+        message: result.message
+        // token: result.token (Removido, usamos código por email agora)
       });
     });
   },
 
-  resetPassword(req, res) {
-    const { token, newPassword } = req.body;
+  verifyCode(req, res) {
+    const { email, code } = req.body;
 
-    if (!token || !newPassword) {
-      return res.status(400).json({
-        error: 'Token e nova senha são obrigatórios'
-      });
+    if (!email || !code) {
+      return res.status(400).json({ error: 'Email e código são obrigatórios' });
     }
 
-    userService.resetPassword(token, newPassword, (err, result) => {
+    userService.verifyResetCode(email, code, (err, result) => {
+      if (err) return sendError(res, err);
+      return res.json({ valid: true });
+    });
+  },
+
+  resetPassword(req, res) {
+    const { email, code, newPassword } = req.body;
+    const ipAddress = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
+
+    if (!email || !code || !newPassword) {
+      return res.status(400).json({ error: 'Email, código e nova senha são obrigatórios' });
+    }
+
+    userService.resetPassword(email, code, newPassword, ipAddress, (err, result) => {
       if (err) return sendError(res, err);
 
-      return res.json({
-        message: 'Senha redefinida com sucesso'
-      });
+      return res.json({ message: 'Senha redefinida com sucesso' });
     });
   },
 };

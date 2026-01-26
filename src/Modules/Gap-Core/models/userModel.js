@@ -21,8 +21,8 @@ module.exports = {
       return callback(new Error('Nome, email e senha são obrigatórios'));
     }
 
-    db.query('INSERT INTO users (nome, email, senha) VALUES (?, ?, ?)', 
-      [filteredData.nome, filteredData.email, filteredData.senha], 
+    db.query('INSERT INTO users (nome, email, senha) VALUES (?, ?, ?)',
+      [filteredData.nome, filteredData.email, filteredData.senha],
       callback
     );
   },
@@ -118,5 +118,42 @@ module.exports = {
     }
 
     db.query('UPDATE users SET senha = ? WHERE id = ?', [hashedPassword, id], callback);
+  },
+
+  saveResetCode(email, code, expires, callback) {
+    db.query(
+      'UPDATE users SET reset_code = ?, reset_code_expires = ? WHERE email = ?',
+      [code, expires, email],
+      callback
+    );
+  },
+
+  validateResetCode(email, code, callback) {
+    db.query(
+      'SELECT id, email, reset_code, reset_code_expires FROM users WHERE email = ? AND reset_code = ?',
+      [email, code],
+      (err, rows) => {
+        if (err) return callback(err);
+        if (!rows || rows.length === 0) return callback(null, null);
+
+        const user = rows[0];
+        const now = new Date();
+        const expires = new Date(user.reset_code_expires);
+
+        if (now > expires) {
+          return callback(null, null); // Expirado
+        }
+
+        callback(null, user);
+      }
+    );
+  },
+
+  clearResetCode(email, callback) {
+    db.query(
+      'UPDATE users SET reset_code = NULL, reset_code_expires = NULL WHERE email = ?',
+      [email],
+      callback
+    );
   },
 };

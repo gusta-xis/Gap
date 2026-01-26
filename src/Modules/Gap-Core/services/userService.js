@@ -1,3 +1,5 @@
+const auditService = require('./auditService');
+const emailService = require('./emailService');
 const userModel = require('../models/userModel');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
@@ -194,75 +196,85 @@ module.exports = {
 
   delete: (id, cb) => userModel.remove(id, cb),
 
-  generatePasswordResetToken: (email, callback) => {
+  generatePasswordResetCode: (email, callback) => {
     userModel.findByEmail(email, (err, user) => {
       if (err) {
         console.error('❌ Erro ao buscar usuário:', err.message);
-        return callback({
-          status: 500,
-          message: 'Erro ao processar recuperação'
-        });
+        return callback({ status: 500, message: 'Erro ao processar recuperação' });
       }
 
       if (!user) {
-        return callback(null, {
-          message: 'Se o email existir, um link será enviado.'
-        });
+        // Auditoria de tentativa falha (email não existe) - opcional
+        // auditService.log(null, 'PASSWORD_RESET_REQUEST_FAILED', 'UNKNOWN', `Email not found: ${email}`);
+
+        // Retornamos sucesso vago por segurança
+        return callback(null, { message: 'Se o email existir, um código de recuperação será enviado.' });
       }
 
-      const resetToken = jwt.sign(
-        {
-          id: user.id,
-          email: user.email,
-          type: 'reset'
-        },
-        process.env.JWT_SECRET,
-        { expiresIn: '1h' }
-      );
+      // Gera código de 6 dígitos aleatório
+      const code = Math.floor(100000 + Math.random() * 900000).toString();
 
-      callback(null, {
-        token: resetToken,
-        message: 'Token de recuperação gerado'
+      // Expira em 1 hora
+      const expires = new Date(Date.now() + 3600000);
+
+      userModel.saveResetCode(email, code, expires, async (err) => {
+        if (err) {
+          console.error('❌ Erro ao salvar código:', err.message);
+          return callback({ status: 500, message: 'Erro ao gerar código' });
+        }
+
+        // Auditoria
+        auditService.log(user.id, 'PASSWORD_RESET_REQUEST', 'UNKNOWN', 'Code generated');
+
+        // Envia email
+        try {
+          await emailService.sendResetCode(email, code);
+          callback(null, { message: 'Se o email existir, um código de recuperação será enviado.' });
+        } catch (emailErr) {
+          console.error('❌ Erro no envio de email:', emailErr);
+          // Ainda retornamos sucesso para o usuário não saber que falhou o email (ou retornar erro 500?)
+          // Melhor retornar erro genérico
+          callback({ status: 500, message: 'Erro ao enviar email de recuperação' });
+        }
       });
     });
   },
 
-  resetPassword: (token, newPassword, callback) => {
-    jwt.verify(token, process.env.JWT_SECRET, (err, decoded) => {
-      if (err) {
-        return callback({
-          status: 401,
-          message: 'Token inválido ou expirado'
-        });
+  verifyResetCode: (email, code, callback) => {
+    userModel.validateResetCode(email, code, (err, user) => {
+      if (err) return callback(err);
+
+      if (!user) {
+        auditService.log(null, 'CODE_VERIFICATION_FAILED', 'UNKNOWN', `Email: ${email}`);
+        return callback({ status: 400, message: 'Código inválido ou expirado' });
       }
 
-      if (decoded.type !== 'reset') {
-        return callback({
-          status: 401,
-          message: 'Token inválido'
-        });
+      auditService.log(user.id, 'CODE_VERIFICATION_SUCCESS', 'UNKNOWN', 'Code verified');
+      callback(null, { valid: true });
+    });
+  },
+
+  resetPassword: (email, code, newPassword, ipAddress, callback) => {
+    userModel.validateResetCode(email, code, (err, user) => {
+      if (err) return callback({ status: 500, message: 'Erro interno' });
+
+      if (!user) {
+        auditService.log(null, 'PASSWORD_RESET_FAILED', ipAddress, `Invalid code/email: ${email}`);
+        return callback({ status: 400, message: 'Código inválido ou expirado' });
       }
 
       bcrypt.hash(newPassword, 10, (hashErr, hash) => {
-        if (hashErr) {
-          console.error('❌ Erro ao gerar hash:', hashErr.message);
-          return callback({
-            status: 500,
-            message: 'Erro ao processar nova senha'
-          });
-        }
+        if (hashErr) return callback({ status: 500, message: 'Erro ao processar senha' });
 
-        userModel.updatePassword(decoded.id, hash, (updateErr) => {
-          if (updateErr) {
-            return callback({
-              status: 500,
-              message: 'Erro ao atualizar senha'
-            });
-          }
+        userModel.updatePassword(user.id, hash, (updateErr) => {
+          if (updateErr) return callback({ status: 500, message: 'Erro ao atualizar senha' });
 
-          callback(null, {
-            message: 'Senha redefinida com sucesso'
-          });
+          // Limpa o código usado
+          userModel.clearResetCode(email, () => { });
+
+          auditService.log(user.id, 'PASSWORD_RESET_SUCCESS', ipAddress, 'Password changed');
+
+          callback(null, { message: 'Senha redefinida com sucesso' });
         });
       });
     });
