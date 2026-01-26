@@ -54,6 +54,7 @@ const sendResetCode = async (toEmail, code) => {
     try {
         const info = await transporter.sendMail(mailOptions);
         console.log(`✅ Email enviado: ${info.messageId}`);
+
         return info;
     } catch (error) {
         console.error('❌ Erro ao enviar email:', error);
