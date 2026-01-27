@@ -164,20 +164,10 @@ function setupFinanceCard() {
 
 function setupLogout() {
   const logoutBtn = document.getElementById('logoutBtn');
-
   if (logoutBtn) {
     logoutBtn.addEventListener('click', () => {
-      try {
-        sessionStorage.removeItem('accessToken');
-        sessionStorage.removeItem('refreshToken');
-        sessionStorage.removeItem('user');
-        sessionStorage.removeItem('userName');
-
-        localStorage.removeItem('token');
-        localStorage.removeItem('user');
-        localStorage.removeItem('userName');
-      } catch (e) { }
-
+      sessionStorage.clear();
+      localStorage.clear();
       window.location.replace('/');
     });
   }

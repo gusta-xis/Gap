@@ -1,5 +1,5 @@
 <!doctype html>
-<html class="light" lang="pt-br">
+<html class="light antialiased" lang="pt-br">
   <head>
     <meta charset="utf-8" />
     <meta content="width=device-width, initial-scale=1.0" name="viewport" />
@@ -21,14 +21,31 @@
               'text-dark': '#f8f7f5',
               'text-secondary-light': '#4a423d',
               'text-secondary-dark': '#b0a69f',
+              'text-muted-light': '#666666',
+              'text-muted-dark': '#a3a3a3',
             }
           }
         }
       }
     </script>
     <link href="https://fonts.googleapis.com" rel="preconnect" />
-    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+    <style>
+        /* Partials from dashboard.css for strict consistency */
+        button, a, [role="button"] {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        button:hover, a:hover {
+            transform: translateY(-2px);
+        }
+        .logout-btn svg {
+            transition: all 0.3s ease;
+        }
+        .logout-btn:hover svg {
+            filter: drop-shadow(0 2px 4px rgba(160, 67, 10, 0.2));
+        }
+    </style>
   </head>
   <body class="font-[Manrope] bg-background-light dark:bg-background-dark text-text-light dark:text-text-dark min-h-screen flex flex-col">
     
@@ -37,7 +54,7 @@
         <div class="absolute -bottom-[20%] -left-[10%] w-[500px] h-[500px] rounded-full bg-card-light/50 dark:bg-card-light/5 blur-[80px]"></div>
     </div>
 
-    <header class="relative z-10 flex items-center justify-between px-6 py-4 lg:px-12 backdrop-blur-md border-b border-black/5 dark:border-white/5 sticky top-0">
+    <header class="relative z-10 flex h-16 items-center justify-between px-6 lg:px-12 bg-white/5 dark:bg-black/20 backdrop-blur-md border-b border-black/5 dark:border-white/5 sticky top-0 shadow-sm">
         <div class="flex items-center gap-3">
             <img src="img/burnt-cooper.svg" alt="Gap" class="h-10 w-auto" />
         </div>
@@ -46,8 +63,12 @@
             <div class="flex items-center justify-center bg-primary rounded-full size-10 font-bold text-white shadow-lg shadow-primary/30">
                 <span id="userAvatar">U</span>
             </div>
-            <button id="logoutBtn" class="flex items-center justify-center rounded-lg size-10 text-text-secondary-light hover:text-red-600 hover:bg-red-50 dark:text-text-secondary-dark dark:hover:text-red-400 dark:hover:bg-red-900/20 transition-all">
-                <span class="material-symbols-outlined">logout</span>
+            <button id="logoutBtn" class="logout-btn group flex items-center justify-center p-2.5 rounded-xl !bg-transparent text-text-muted-light hover:!text-red-600 hover:!bg-red-50 dark:text-text-muted-dark dark:hover:!text-red-400 dark:hover:!bg-red-900/20 transition-all duration-200" title="Sair do Sistema">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 transition-transform group-hover:-translate-x-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+                    <polyline points="16 17 21 12 16 7" />
+                    <line x1="21" y1="12" x2="9" y2="12" />
+                </svg>
             </button>
         </div>
     </header>
@@ -66,7 +87,7 @@
 
             <div class="grid w-full grid-cols-1 md:grid-cols-2 gap-6 lg:gap-8 px-2 max-w-4xl">
                 
-                <a class="group relative flex flex-col rounded-3xl p-1 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl" href="/financeiro">
+                <a class="group relative flex flex-col rounded-3xl p-1 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl active:scale-95" href="/financeiro">
                     <div class="absolute inset-0 rounded-3xl bg-gradient-to-b from-primary/10 to-transparent opacity-0 group-hover:opacity-100 transition duration-500"></div>
                     <div class="relative flex flex-col h-full rounded-[22px] bg-white dark:bg-[#2A2420] border border-black/5 dark:border-white/5 p-6 md:p-8 overflow-hidden shadow-sm">
                         <div class="mb-6 flex items-start justify-between">

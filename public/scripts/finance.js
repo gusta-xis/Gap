@@ -123,13 +123,23 @@ document.addEventListener('DOMContentLoaded', () => {
           body: JSON.stringify({ moduleName: 'financeiro', status: true })
         });
 
-        // Update local session
-        if (user) {
-          user.modules_access = user.modules_access || {};
-          user.modules_access.financeiro = true;
-          sessionStorage.setItem('user', JSON.stringify(user));
+        // 3. Atualizar sessão local para não mostrar intro novamente
+        const userData = JSON.parse(sessionStorage.getItem('user') || '{}');
+        if (!userData.modules_access) userData.modules_access = {};
+        userData.modules_access.financeiro = true;
+        sessionStorage.setItem('user', JSON.stringify(userData));
+
+        // 3.1 Se houver dados no localStorage (lembrar de mim), atualizar também
+        const localDataStr = localStorage.getItem('user');
+        if (localDataStr) {
+          const localData = JSON.parse(localDataStr);
+          if (!localData.modules_access) localData.modules_access = {};
+          localData.modules_access.financeiro = true;
+          localStorage.setItem('user', JSON.stringify(localData));
         }
 
+        // 4. Redirecionar para o dashboard
+        window.location.replace('/financeiro/dashboard');
       } catch (e) {
         console.warn('Erro ao salvar introdução no servidor', e);
       }
