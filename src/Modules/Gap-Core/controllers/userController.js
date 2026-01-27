@@ -26,7 +26,7 @@ module.exports = {
     const { login, senha } = req.body; // Accepts 'login' instead of 'email'
 
     if (!login || !senha) {
-      return res.status(400).json({ error: 'Login and password are required' });
+      return res.status(400).json({ error: 'Login e senha são obrigatórios' });
     }
 
     // Search by email OR credential
@@ -34,16 +34,16 @@ module.exports = {
       if (err) return sendError(res, err);
 
       if (!user) {
-        return res.status(401).json({ error: 'Invalid credentials' });
+        return res.status(401).json({ error: 'Credenciais inválidas' });
       }
 
       if (user.senha === null) {
-        return res.status(403).json({ error: 'Account not activated. Use First Access option.' });
+        return res.status(403).json({ error: 'Conta não ativada. Use a opção de Primeiro Acesso.' });
       }
 
       const isMatch = await bcrypt.compare(senha, user.senha);
       if (!isMatch) {
-        return res.status(401).json({ error: 'Invalid credentials' });
+        return res.status(401).json({ error: 'Credenciais inválidas' });
       }
 
       const token = jwt.sign(
@@ -59,7 +59,7 @@ module.exports = {
       );
 
       res.json({
-        message: 'Login successful',
+        message: 'Login realizado com sucesso',
         token,
         refreshToken,
         user: {
@@ -75,7 +75,7 @@ module.exports = {
 
   checkCredential(req, res) {
     const { credential } = req.body;
-    if (!credential) return res.status(400).json({ error: 'Credential is required' });
+    if (!credential) return res.status(400).json({ error: 'Credencial é obrigatória' });
 
     // Clean input
     const cred = credential.trim().toUpperCase();
@@ -84,7 +84,7 @@ module.exports = {
       if (err) return sendError(res, err);
 
       // Return 404 for security if not found
-      if (!user) return res.status(404).json({ error: 'Credential not found' });
+      if (!user) return res.status(404).json({ error: 'Credencial não encontrada' });
 
       // If found, check if it's first access (password is null)
       return res.json({
@@ -97,17 +97,17 @@ module.exports = {
 
   activateCredential(req, res) {
     const { credential, newPassword } = req.body;
-    if (!credential || !newPassword) return res.status(400).json({ error: 'Incomplete data' });
+    if (!credential || !newPassword) return res.status(400).json({ error: 'Dados incompletos' });
 
     const cred = credential.trim().toUpperCase();
 
     userModel.findByEmailOrCredential(cred, (err, user) => {
       if (err) return sendError(res, err);
-      if (!user) return res.status(404).json({ error: 'User not found' });
+      if (!user) return res.status(404).json({ error: 'Usuário não encontrado' });
 
       // Only allow activation if password is NULL
       if (user.senha !== null) {
-        return res.status(400).json({ error: 'Account already active. Please login.' });
+        return res.status(400).json({ error: 'Conta já está ativa. Por favor, faça login.' });
       }
 
       bcrypt.hash(newPassword, 10, (errHash, hashedPassword) => {
@@ -116,7 +116,7 @@ module.exports = {
         // Update password
         userModel.updatePassword(user.id, hashedPassword, (upErr) => {
           if (upErr) return sendError(res, upErr);
-          res.json({ message: 'Account activated successfully! Please login.' });
+          res.json({ message: 'Conta ativada com sucesso! Por favor, faça login.' });
         });
       });
     });
@@ -127,7 +127,7 @@ module.exports = {
 
     if (!refreshToken) {
       return res.status(400).json({
-        error: 'Refresh token is required'
+        error: 'Token de atualização é obrigatório'
       });
     }
 
@@ -148,7 +148,7 @@ module.exports = {
       if (err) return sendError(res, err);
 
       return res.status(201).json({
-        message: 'User created successfully',
+        message: 'Usuário criado com sucesso',
         id: result.insertId
       });
     });
@@ -166,7 +166,7 @@ module.exports = {
     if (parseInt(req.params.id, 10) !== req.user.id) {
       // Could allow admins to view others, but logic seems strict to self for now on this endpoint?
       // Existing code was strictly: id !== req.user.id -> 403
-      return res.status(403).json({ error: 'Access denied' });
+      return res.status(403).json({ error: 'Acesso negado' });
     }
 
     userService.findById(req.params.id, (err, r) => {
@@ -174,7 +174,7 @@ module.exports = {
 
       if (!r) {
         return res.status(404).json({
-          error: 'User not found'
+          error: 'Usuário não encontrado'
         });
       }
 
@@ -193,7 +193,7 @@ module.exports = {
       if (err) return sendError(res, err);
 
       return res.json({
-        message: 'User updated successfully'
+        message: 'Usuário atualizado com sucesso'
       });
     });
   },
@@ -206,7 +206,7 @@ module.exports = {
       if (err) return sendError(res, err);
 
       return res.json({
-        message: 'User deleted successfully'
+        message: 'Usuário deletado com sucesso'
       });
     });
   },
@@ -215,7 +215,7 @@ module.exports = {
     const { email } = req.body;
 
     if (!email) {
-      return res.status(400).json({ error: 'Email is required' });
+      return res.status(400).json({ error: 'Email é obrigatório' });
     }
 
     userService.generatePasswordResetCode(email, (err, result) => {
@@ -231,7 +231,7 @@ module.exports = {
     const { email, code } = req.body;
 
     if (!email || !code) {
-      return res.status(400).json({ error: 'Email and code are required' });
+      return res.status(400).json({ error: 'Email e código são obrigatórios' });
     }
 
     userService.verifyResetCode(email, code, (err, result) => {
@@ -245,13 +245,13 @@ module.exports = {
     const ipAddress = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
 
     if (!email || !code || !newPassword) {
-      return res.status(400).json({ error: 'Email, code, and new password are required' });
+      return res.status(400).json({ error: 'Email, código e nova senha são obrigatórios' });
     }
 
     userService.resetPassword(email, code, newPassword, ipAddress, (err, result) => {
       if (err) return sendError(res, err);
 
-      return res.json({ message: 'Password reset successfully' });
+      return res.json({ message: 'Senha redefinida com sucesso' });
     });
   },
 
@@ -279,15 +279,15 @@ module.exports = {
     const newRoleWeight = getRoleWeight(role);
 
     if (creatorWeight <= newRoleWeight) {
-      return res.status(403).json({ error: 'Insufficient permission to create a user with this role.' });
+      return res.status(403).json({ error: 'Permissão insuficiente para criar um usuário com esta função.' });
     }
 
     // Additional check: Ensure 'user' is the minimum weight (handled by logic, but robust)
     if (!['admin', 'manager', 'super_admin', 'user'].includes(role)) {
-      return res.status(400).json({ error: 'Invalid role' });
+      return res.status(400).json({ error: 'Função inválida' });
     }
 
-    if (!email) return res.status(400).json({ error: 'Email is required' });
+    if (!email) return res.status(400).json({ error: 'Email é obrigatório' });
 
     const userData = { nome, senha: null, role, email };
 
@@ -297,14 +297,14 @@ module.exports = {
         if (err) return sendError(res, err);
         const roleName = role === 'manager' ? 'Manager' : (role === 'super_admin' ? 'Super Admin' : 'Administrator');
         res.status(201).json({
-          message: `${roleName} created successfully (Waiting for Activation)`,
+          message: `${roleName} criado com sucesso (Aguardando Ativação)`,
           credential: result.credential
         });
       });
     } else {
       // Create standard user
       const { senha } = req.body;
-      if (!senha) return res.status(400).json({ error: 'Password required for standard users' });
+      if (!senha) return res.status(400).json({ error: 'Senha obrigatória para usuários padrão' });
 
       bcrypt.hash(senha, 10, (errHash, hashedPassword) => {
         if (errHash) return sendError(res, errHash);
@@ -312,7 +312,7 @@ module.exports = {
 
         userModel.create(userData, (err, result) => {
           if (err) return sendError(res, err);
-          res.status(201).json({ message: 'User created successfully' });
+          res.status(201).json({ message: 'Usuário criado com sucesso' });
         });
       });
     }
@@ -320,23 +320,23 @@ module.exports = {
 
   adminDeleteUser(req, res) {
     const id = parseInt(req.params.id);
-    if (id === req.user.id) return res.status(400).json({ error: 'Cannot delete yourself.' });
+    if (id === req.user.id) return res.status(400).json({ error: 'Não é possível deletar a si mesmo.' });
 
     userModel.findById(id, (err, targetUser) => {
       if (err) return sendError(res, err);
-      if (!targetUser) return res.status(404).json({ error: 'User not found' });
+      if (!targetUser) return res.status(404).json({ error: 'Usuário não encontrado' });
 
       const myWeight = req.user.weight;
       const targetWeight = getRoleWeight(targetUser.role);
 
       // Hierarchy Rule: My Weight must be strictly greater than Target Weight
       if (myWeight <= targetWeight) {
-        return res.status(403).json({ error: 'You do not have permission to delete this user.' });
+        return res.status(403).json({ error: 'Você não tem permissão para deletar este usuário.' });
       }
 
       userModel.remove(id, (delErr) => {
         if (delErr) return sendError(res, delErr);
-        res.json({ message: 'User deleted successfully' });
+        res.json({ message: 'Usuário deletado com sucesso' });
       });
     });
   },
@@ -358,13 +358,13 @@ module.exports = {
     // However, existing code was: if (req.user.role !== 'super_admin') return 403.
     // I will keep it simple: Only Super Admin (Weight 3).
 
-    if (req.user.role !== 'super_admin') return res.status(403).json({ error: 'Insufficient permission.' });
+    if (req.user.role !== 'super_admin') return res.status(403).json({ error: 'Permissão  insuficiente.' });
 
-    if (!['user', 'admin', 'manager'].includes(role)) return res.status(400).json({ error: 'Invalid role.' });
+    if (!['user', 'admin', 'manager'].includes(role)) return res.status(400).json({ error: 'Função inválida.' });
 
     userModel.update(id, { role }, (err) => {
       if (err) return sendError(res, err);
-      res.json({ message: `Role updated to ${role}` });
+      res.json({ message: `Função atualizada para ${role}` });
     });
   },
 };

@@ -26,6 +26,30 @@ window.addEventListener('pageshow', function (event) {
 });
 
 document.addEventListener('DOMContentLoaded', () => {
+  // Toggle Password Visibility
+  document.body.addEventListener('click', (e) => {
+    // Check if the clicked element or its parent is the toggle button
+    const button = e.target.closest('.toggle-password');
+    if (!button) return;
+
+    // Prevent form submission if inside a form
+    e.preventDefault();
+
+    const targetId = button.dataset.target;
+    const input = document.getElementById(targetId);
+    if (!input) return;
+
+    const iconSvg = button.querySelector('.eye-icon');
+
+    if (input.type === 'password') {
+      input.type = 'text';
+      if (iconSvg) iconSvg.style.stroke = '#A0430A'; // Primary color
+    } else {
+      input.type = 'password';
+      if (iconSvg) iconSvg.style.stroke = ''; // Reset to original
+    }
+  });
+
   clearUserSession();
 
   const mainContainer = document.querySelector('.main-container');

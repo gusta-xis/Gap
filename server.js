@@ -76,7 +76,7 @@ app.use(cors(corsOptions));
 const loginLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   max: 10,
-  message: { error: 'Too many login attempts. Please try again later.' },
+  message: { error: 'Muitas tentativas de login. Tente novamente mais tarde.' },
   standardHeaders: true,
   legacyHeaders: false,
 });
@@ -133,11 +133,11 @@ const noCache = (req, res, next) => {
 app.use(['/subsistemas', '/financeiro', '/financeiro/dashboard'], noCache);
 
 // --- Error Handling ---
-app.use((req, res) => res.status(404).json({ error: 'Route not found' }));
+app.use((req, res) => res.status(404).json({ error: 'Rota não encontrada' }));
 
 app.use((err, req, res, next) => {
   console.error('🔥 Error:', err.message);
-  const message = process.env.NODE_ENV === 'production' ? 'Internal Server Error' : err.message;
+  const message = process.env.NODE_ENV === 'production' ? 'Erro Interno do Servidor' : err.message;
   res.status(err.status || 500).json({ error: message });
 });
 

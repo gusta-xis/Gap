@@ -813,6 +813,30 @@
     const drawer = document.getElementById('mobileMenuDrawer');
     const aside = document.getElementById('mobileMenuAside');
 
+    // Toggle Password Visibility (Global for SPA)
+    document.body.addEventListener('click', (e) => {
+        // Check if the clicked element or its parent is the toggle button
+        const button = e.target.closest('.toggle-password');
+        if (!button) return;
+
+        // Prevent form submission if inside a form
+        e.preventDefault();
+
+        const targetId = button.dataset.target;
+        const input = document.getElementById(targetId);
+        if (!input) return;
+
+        const iconSvg = button.querySelector('.eye-icon');
+
+        if (input.type === 'password') {
+            input.type = 'text';
+            if (iconSvg) iconSvg.style.stroke = '#A0430A'; // Primary color
+        } else {
+            input.type = 'password';
+            if (iconSvg) iconSvg.style.stroke = ''; // Reset to original
+        }
+    });
+
     // Função centralizada para fechar o menu
     function closeMobileMenu(animate = true) {
         if (!aside || !drawer) return;
