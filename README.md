@@ -29,7 +29,7 @@ Agradecimentos aos desenvolvedores do projeto!
           <sub><b>Luiz Gustavo</b></sub>
         </a>
         <br />
-        <a href="https://linkedin.com">
+        <a href="https://www.linkedin.com/in/devdamascena/">
           <img src="https://img.shields.io/badge/-LinkedIn-blue?style=flat-square&logo=linkedin&logoColor=white" />
         </a>
       </td>
