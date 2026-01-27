@@ -1,114 +1,129 @@
-# 📱 GAP — Sistema de Gestão e Administração Pessoal
+# 🌐 GAP — Sistema de Gestão e Administração Pessoal
 
-**Organize, acompanhe e gerencie todos os aspectos da sua vida pessoal em um único lugar.**
+![Status](https://img.shields.io/badge/status-produção%20v1.0.0-succes)
+![Node](https://img.shields.io/badge/Node.js-22.x-green?logo=node.js)
+![MySQL](https://img.shields.io/badge/MySQL-8.0-blue?logo=mysql)
+![License](https://img.shields.io/badge/license-MIT-lightgrey)
 
-![Status](https://img.shields.io/badge/STATUS-PRODUÇÃO%20(v1.0.0)-brightgreen?style=for-the-badge)
-![Node.js](https://img.shields.io/badge/NODE.JS-v22-green?style=for-the-badge)
-![Security](https://img.shields.io/badge/SECURITY-MAXIMUM-blue?style=for-the-badge)
-![RBAC](https://img.shields.io/badge/ACCESS-TIERED-orange?style=for-the-badge)
-![Licença](https://img.shields.io/badge/LICENSE-MIT-lightgrey?style=for-the-badge)
+<!-- ALL-CONTRIBUTORS-BADGE:START -->
+[![All Contributors](https://img.shields.io/badge/all_contributors-1-orange.svg?style=flat-square)](#contributors-)
+<!-- ALL-CONTRIBUTORS-BADGE:END -->
 
----
-
-## 🚀 Visão Geral (v1.0.0)
-
-O **GAP** (Gestão e Administração Pessoal) atingiu sua versão estável **1.0.0**. Esta versão representa um marco de transformação do sistema para uma arquitetura de nível corporativo (*Enterprise-Grade*), com foco absoluto em **Segurança (Hardening)**, **Hierarquia de Acesso (RBAC)** e **Código Limpo**.
-
-### 🔒 Destaques da Versão 1.0.0:
-- **Hardening de Servidor:** Implementação global de `Helmet`, `CSP` rigorosa e desativação de headers de fingerprinting (`X-Powered-By`).
-- **Hierarquia de 4 Níveis:** Sistema de pesos (0 a 3) garantindo que usuários só gerenciem níveis inferiores ("Regra de Ouro").
-- **Credenciais Automáticas:** Geração inteligente de IDs (`GAPxxxx` para Gerentes, `GAxxxxP` para Admins).
-- **Sanitização Universal:** Proteção nativa contra XSS e NoSQL Injection em todas as camadas.
+O **GAP** é um sistema para **gestão financeira e administração de permissões**, desenvolvido com foco em segurança e escalabilidade corporativa.  
+Gerencie finanças pessoais, usuários e permissões hierárquicas com robustez e simplicidade.
 
 ---
 
-## 🏛️ Arquitetura Modular
+## ⭐ Contribuidores do GitHub
 
+Agradecimentos aos desenvolvedores do projeto!
+
+<table>
+  <tbody>
+    <tr>
+      <!-- Luiz Gustavo -->
+      <td align="center" width="20%">
+        <a href="https://github.com/gusta-xis">
+          <img src="https://github.com/gusta-xis.png" width="100px" alt="Luiz Gustavo"/>
+          <br />
+          <sub><b>Luiz Gustavo</b></sub>
+        </a>
+        <br />
+        <a href="https://linkedin.com">
+          <img src="https://img.shields.io/badge/-LinkedIn-blue?style=flat-square&logo=linkedin&logoColor=white" />
+        </a>
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+---
+
+## ✨ Funcionalidades
+
+- **Gestão Financeira**: Controle de despesas fixas, variáveis, salários e metas.
+- **Hierarquia RBAC**: 4 Níveis de acesso (Super Admin, Gerente, Admin, Usuário).
+- **Segurança Avançada**: 
+  - Login com Access/Refresh Tokens.
+  - Sanitização automática de inputs.
+  - Proteção contra Brute-force e XSS.
+- **Dashboard**: Visualização gráfica de metas e gastos em tempo real.
+- **API REST**: Arquitetura organizada e documentada.
+
+---
+
+# 🛠 Tecnologias
+
+## 🚀 Back-end
+![Node.js](https://img.shields.io/badge/Node.js-22+-339933?style=for-the-badge&logo=node.js&logoColor=white)
+![Express.js](https://img.shields.io/badge/Express.js-4.18-000000?style=for-the-badge&logo=express&logoColor=white)
+![MySQL2](https://img.shields.io/badge/MySQL2-4479A1?style=for-the-badge&logo=mysql&logoColor=white)
+![Sequelize](https://img.shields.io/badge/Sequelize-52B0E7?style=for-the-badge&logo=sequelize&logoColor=white)
+![JWT](https://img.shields.io/badge/JWT-000000?style=for-the-badge&logo=jsonwebtokens&logoColor=white)
+![Helmet](https://img.shields.io/badge/Helmet-Security-blue?style=for-the-badge)
+
+---
+
+## 🎨 Front-end
+![HTML5](https://img.shields.io/badge/HTML5-E34F26?style=for-the-badge&logo=html5&logoColor=white)
+![CSS3](https://img.shields.io/badge/CSS3-1572B6?style=for-the-badge&logo=css3&logoColor=white)
+![TailwindCSS](https://img.shields.io/badge/Tailwind_CSS-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white)
+![JavaScript](https://img.shields.io/badge/JavaScript-F7DF1E?style=for-the-badge&logo=javascript&logoColor=black)
+![Fetch API](https://img.shields.io/badge/Fetch_API-000000?style=for-the-badge)
+
+---
+
+## �️ Banco de Dados
+![Relational](https://img.shields.io/badge/Relational_Model-4D4D4D?style=for-the-badge)
+![Transactions](https://img.shields.io/badge/Transactions-00A8E8?style=for-the-badge)
+
+- Tabelas principais: **Users**, **Gastos_Variaveis**, **Gastos_Fixos**, **Metas**
+- Relacionamentos robustos via Foreign Keys.
+- Migrações automáticas via código (Sync Check).
+
+---
+
+## 🧱 Arquitetura
+
+![MVC](https://img.shields.io/badge/MVC_Modular-6C63FF?style=for-the-badge)
+![Clean Code](https://img.shields.io/badge/Clean_Code-00BFA6?style=for-the-badge)
+![Service Layer](https://img.shields.io/badge/Service_Layer-FF8C42?style=for-the-badge)
+
+### Organização
+- **Controllers**: Recebem requisições e validam permissões.
+- **Services**: Contêm a lógica de negócio pura.
+- **Models**: Interagem com o banco de dados (DAOs).
+
+### Fluxo de Dados
+
+```mermaid
+flowchart TD
+    A[Cliente / Frontend] -->|JSON| B[Rota / Middleware]
+    B -->|Validação| C[Controller]
+    C -->|Regra de Negócio| D[Service]
+    D -->|Query SQL| E[Model]
+    E -->|Dados| F[(MySQL Database)]
 ```
-🏠 GAP (Núcleo Central & Auth)
- ├── 🛡️ Camada de Segurança (Middlewares)
- ├── 👥 Gestão de Identidade (User Core)
- │
- ├── 💰 Módulo Financeiro (Ativo)
- │    ├── Despesas Variáveis & Fixas
- │    ├── Salários & Metas
- │    └── Dashboard em Tempo Real
- │
- ├── 📅 Módulo Agenda (Roadmap)
- └── 🏥 Módulo Saúde (Roadmap)
-```
 
 ---
 
-## 🛠 Tecnologias & Segurança
+## 🤝 Como contribuir
 
-### Backend
-- **Node.js + Express**: Core robusto e performático.
-- **MySQL 8 + Sequelize**: Integridade de dados e Prepared Statements.
-- **JWT (Dual Token)**: Access Token (15m) + Refresh Token (7d).
-- **Security Stack**: `helmet`, `xss`, `rate-limit`, `cors`.
+Contribuições são super bem-vindas!  
 
-### Frontend
-- **HTML5 + Vanilla JS**: Leveza e performance máxima.
-- **Tailwind CSS**: Design responsivo e moderno.
-- **Dynamic UI**: Interfaces que se adaptam ao nível de permissão do usuário.
-
----
-
-## 🔑 Níveis de Acesso (RBAC)
-
-O sistema implementa uma hierarquia estrita baseada em pesos:
-
-| Cargo/Role | Peso | Permissões Principais | Identificador |
-| :--- | :--- | :--- | :--- |
-| **Super Admin** | **3** | Acesso Total, Criar Gerentes | `GAPxxxx` |
-| **Manager** | **2** | Gerir Admins e Usuários | `GAPxxxx` |
-| **Admin** | **1** | Gerir Usuários Padrão | `GAxxxxP` |
-| **User** | **0** | Acesso Pessoal (Financeiro) | Email |
+1. Faça um **fork**  
+2. Crie uma branch:
+    ```bash
+    git checkout -b feature/minha-melhoria
+    ```
+3. Faça suas alterações e commit:
+    ```bash
+    git commit -m "feat: adicionar nova funcionalidade"
+    ```
+4. Envie a branch:
+    ```bash 
+    git push origin feature/minha-melhoria
+    ```
+5. Abra um Pull Request ❤️
 
 ---
-
-## 🚀 Instalação e Deploy
-
-Consulte o nosso **Plano de Implantação** oficial para detalhes de infraestrutura:
-
-📄 **[Ler PLANO_DE_IMPLANTACAO.md](./PLANO_DE_IMPLANTACAO.md)**
-
-Para rodar localmente:
-
-1. **Clone e Instale:**
-   ```bash
-   git clone https://github.com/gusta-xis/gap.git
-   npm install
-   ```
-
-2. **Configure o `.env`:**
-   ```env
-   DB_HOST=127.0.0.1
-   JWT_SECRET=seu_segredo_super_seguro
-   NODE_ENV=development
-   ```
-
-3. **Inicie:**
-   ```bash
-   npm run dev
-   ```
-   *As migrações de banco de dados rodarão automaticamente.*
-
----
-
-## 📚 Documentação Técnica
-
-Para uma análise detalhada da arquitetura e decisões de código, consulte o Code Review final:
-
-📄 **[Ler docs/code-review.md](./docs/code-review.md)**
-
----
-
-## 👨‍💻 Autor
-
-Desenvolvido por **Luiz Gustavo** com foco em excelência técnica e segurança.
-
----
-
-**© 2026 GAP Systems.** *Código Limpo, Dados Seguros.*
