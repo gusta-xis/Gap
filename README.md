@@ -42,7 +42,7 @@ Agradecimentos aos desenvolvedores do projeto!
 ## ✨ Funcionalidades
 
 - **Gestão Financeira**: Controle de despesas fixas, variáveis, salários e metas.
-- **Hierarquia RBAC**: 4 Níveis de acesso (Super Admin, Gerente, Admin, Usuário).
+- **Hierarquia RBAC**: 4 Níveis de acesso (Gerente Geral, Gerente, Admin, Usuário).
 - **Segurança Avançada**: 
   - Login com Access/Refresh Tokens.
   - Sanitização automática de inputs.
