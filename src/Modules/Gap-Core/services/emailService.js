@@ -12,7 +12,9 @@ const transporter = nodemailer.createTransport({
     },
     tls: {
         rejectUnauthorized: false // Em desenvolvimento/teste pode ajudar com certificados auto-assinados
-    }
+    },
+    debug: true, // Log detalhado do SMTP
+    logger: true // Log no console
 });
 
 /**
@@ -54,6 +56,7 @@ const sendResetCode = async (toEmail, code) => {
     try {
         const info = await transporter.sendMail(mailOptions);
         console.log(`✅ Email enviado: ${info.messageId}`);
+
         return info;
     } catch (error) {
         console.error('❌ Erro ao enviar email:', error);

@@ -31,7 +31,8 @@ document.addEventListener('DOMContentLoaded', () => {
   const mainContainer = document.querySelector('.main-container');
   const linkToSignup = document.getElementById('linkToSignup');
   const linkToLogin = document.getElementById('linkToLogin');
-  const linkToForgotPassword = document.getElementById('linkToForgotPassword');
+  const linkForgotPassword = document.getElementById('linkForgotPassword');
+  const cancelForgot = document.getElementById('cancelForgot');
   const linkBackToLogin = document.getElementById('linkBackToLogin');
 
   // Helper para exibir feedback visual e esconder o oposto
@@ -55,6 +56,73 @@ document.addEventListener('DOMContentLoaded', () => {
     document.querySelectorAll('.message-box').forEach(box => box.classList.add('hidden'));
   }
 
+  /* =========================================================
+     LÓGICA DE TABS (EMAIL / CREDENCIAL)
+     ========================================================= */
+  const tabBtns = document.querySelectorAll('.tab-btn');
+  const emailGroup = document.getElementById('email-input-group');
+  const credentialGroup = document.getElementById('credential-input-group');
+  const passwordGroup = document.getElementById('password-group'); // Grupo senha normal
+  const activationFields = document.getElementById('activation-fields'); // Grupo ativação
+
+  const btnLoginSubmit = document.getElementById('btnLoginSubmit');
+  const btnCredentialContinue = document.getElementById('btnCredentialContinue');
+  const btnActivateAccount = document.getElementById('btnActivateAccount');
+
+  const emailInput = document.getElementById('login-email');
+  const credentialInput = document.getElementById('credential');
+
+  let loginMode = 'email'; // email | credential
+  let credentialValidated = false; // Se já validou a existência da credencial
+
+  // Reset UI Helper
+  function resetLoginUI() {
+    passwordGroup.classList.remove('hidden');
+    activationFields.classList.add('hidden');
+
+    btnLoginSubmit.classList.remove('hidden');
+    btnCredentialContinue.classList.add('hidden');
+    btnActivateAccount.classList.add('hidden');
+
+    credentialValidated = false;
+    credentialInput.readOnly = false;
+  }
+
+  if (tabBtns.length > 0) {
+    tabBtns.forEach(btn => {
+      btn.addEventListener('click', () => {
+        // Reset steps
+        resetLoginUI();
+        clearAllFeedbacks();
+
+        tabBtns.forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+
+        const target = btn.dataset.target;
+        if (target === 'email-input-group') {
+          emailGroup.classList.remove('hidden');
+          credentialGroup.classList.add('hidden');
+          loginMode = 'email';
+          emailInput.focus();
+        } else {
+          emailGroup.classList.add('hidden');
+          credentialGroup.classList.remove('hidden');
+          loginMode = 'credential';
+          credentialInput.focus();
+
+          // Credential Mode Initial State: Hide Password, Show Continue
+          passwordGroup.classList.add('hidden');
+          btnLoginSubmit.classList.add('hidden');
+          btnCredentialContinue.classList.remove('hidden');
+        }
+      });
+    });
+  }
+
+  /* =========================================================
+     TOGGLE MODES (LOGIN <-> SIGNUP <-> FORGOT)
+     ========================================================= */
+
   if (linkToSignup) {
     linkToSignup.addEventListener('click', (e) => {
       e.preventDefault();
@@ -73,12 +141,25 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  if (linkToForgotPassword) {
-    linkToForgotPassword.addEventListener('click', (e) => {
+  if (linkForgotPassword) {
+    linkForgotPassword.addEventListener('click', (e) => {
       e.preventDefault();
       clearAllFeedbacks();
       mainContainer.classList.remove('sign-up-mode');
       mainContainer.classList.add('forgot-password-mode');
+      // Reset steps logic if needed
+      if (typeof goToStep === 'function') {
+        const step1 = document.getElementById('step-1-email');
+        if (step1) goToStep(step1);
+      }
+    });
+  }
+
+  if (cancelForgot) {
+    cancelForgot.addEventListener('click', (e) => {
+      e.preventDefault();
+      clearAllFeedbacks();
+      mainContainer.classList.remove('forgot-password-mode');
     });
   }
 
@@ -90,35 +171,173 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  const toggleButtons = document.querySelectorAll('.toggle-password');
-  toggleButtons.forEach((button) => {
-    button.addEventListener('click', () => {
-      const targetId = button.getAttribute('data-target');
-      const input = document.getElementById(targetId);
-      const iconSvg = button.querySelector('.eye-icon');
+  /* =========================================================
+     LOGICA DO BOTÃO CONTINUAR (CREDENCIAL)
+     ========================================================= */
+  if (btnCredentialContinue) {
+    btnCredentialContinue.addEventListener('click', async (e) => {
+      e.preventDefault();
+      clearAllFeedbacks();
 
-      if (input.getAttribute('type') === 'password') {
-        input.setAttribute('type', 'text');
-        if (iconSvg) iconSvg.style.stroke = '#9c4c19';
-      } else {
-        input.setAttribute('type', 'password');
-        if (iconSvg) iconSvg.style.stroke = '#9ca3af';
+      const cred = sanitizeInput(credentialInput.value).toUpperCase();
+      if (!cred) {
+        showFeedback('login', 'error', 'Por favor, digite sua credencial.');
+        return;
+      }
+
+      btnCredentialContinue.innerText = 'Verificando...';
+      btnCredentialContinue.disabled = true;
+
+      try {
+        const res = await fetch('/api/v1/users/check-credential', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ credential: cred })
+        });
+        const data = await res.json();
+
+        if (res.ok && data.exists) {
+          credentialValidated = true;
+          credentialInput.readOnly = true; // Trava input
+
+          btnCredentialContinue.classList.add('hidden'); // Esconde Continue
+
+          if (data.firstAccess) {
+            // FLUXO ATIVAÇÃO
+            activationFields.classList.remove('hidden');
+            btnActivateAccount.classList.remove('hidden');
+            showFeedback('login', 'success', `Bem-vindo, ${data.nome.split(' ')[0]}. Crie sua senha.`);
+          } else {
+            // FLUXO LOGIN NORMAL
+            passwordGroup.classList.remove('hidden');
+            btnLoginSubmit.classList.remove('hidden');
+            document.getElementById('password').focus();
+          }
+
+        } else {
+          showFeedback('login', 'error', data.error || 'Credencial não encontrada.');
+        }
+      } catch (err) {
+        console.error(err);
+        showFeedback('login', 'error', 'Erro de conexão.');
+      } finally {
+        btnCredentialContinue.innerText = 'Continuar';
+        btnCredentialContinue.disabled = false;
       }
     });
-  });
+  }
+
+  /* =========================================================
+     LOGICA DO BOTÃO ATIVAR CONTA
+     ========================================================= */
+  if (btnActivateAccount) {
+    btnActivateAccount.addEventListener('click', async (e) => {
+      e.preventDefault();
+      clearAllFeedbacks();
+
+      const pass1 = document.getElementById('new-active-password').value;
+      const pass2 = document.getElementById('confirm-active-password').value;
+      const cred = sanitizeInput(credentialInput.value).toUpperCase();
+
+      if (pass1 !== pass2) {
+        showFeedback('login', 'error', 'As senhas não coincidem.');
+        return;
+      }
+      if (pass1.length < 6) {
+        showFeedback('login', 'error', 'A senha deve ter no mínimo 6 caracteres.');
+        return;
+      }
+
+      btnActivateAccount.innerText = 'Ativando...';
+      btnActivateAccount.disabled = true;
+
+      try {
+        const res = await fetch('/api/v1/users/activate-credential', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ credential: cred, newPassword: pass1 })
+        });
+        const data = await res.json();
+
+        if (res.ok) {
+          showFeedback('login', 'success', 'Conta ativada! Entrando...');
+
+          // Auto-login
+          try {
+            const loginRes = await fetch('/api/v1/users/login', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ login: cred, senha: pass1 })
+            });
+            const loginResult = await loginRes.json();
+
+            if (loginRes.ok) {
+              if (loginResult.token) sessionStorage.setItem('accessToken', loginResult.token);
+              if (loginResult.refreshToken) sessionStorage.setItem('refreshToken', loginResult.refreshToken);
+              if (loginResult.user) {
+                sessionStorage.setItem('user', JSON.stringify(loginResult.user));
+                if (loginResult.user.nome) sessionStorage.setItem('userName', sanitizeInput(loginResult.user.nome));
+              }
+
+              setTimeout(() => {
+                if (['admin', 'manager', 'super_admin'].includes(loginResult.user.role)) {
+                  window.location.replace('/admin.html');
+                } else {
+                  window.location.replace('/financeiro/dashboard'); // Fallback or user role
+                }
+              }, 1000);
+            } else {
+              // Fallback if auto-login fails
+              window.location.reload();
+            }
+          } catch (loginErr) {
+            console.error(loginErr);
+            window.location.reload();
+          }
+
+        } else {
+          showFeedback('login', 'error', data.error);
+        }
+      } catch (err) {
+        showFeedback('login', 'error', 'Erro de conexão.');
+      } finally {
+        btnActivateAccount.innerText = 'Ativar Conta';
+        btnActivateAccount.disabled = false;
+      }
+    });
+  }
 
   const loginForm = document.getElementById('loginForm');
   if (loginForm) {
     loginForm.addEventListener('submit', async (e) => {
+      // Esse listener agora é só para o LOGIN NORMAL (btn-submit ENTER ou Click)
       e.preventDefault();
       clearAllFeedbacks();
 
-      const email = sanitizeInput(document.getElementById('login-email').value);
-      const senha = document.getElementById('login-senha').value;
-      const btn = loginForm.querySelector('.btn-submit');
+      const btn = btnLoginSubmit; // Botão de login normal
       const txtOriginal = btn.innerText;
 
-      /* Browser validation handles empty fields */
+      // Decide qual valor enviar
+      let loginValue = '';
+      if (loginMode === 'email') {
+        loginValue = sanitizeInput(emailInput.value);
+        if (!loginValue) {
+          showFeedback('login', 'error', 'Por favor, digite seu email.');
+          return;
+        }
+      } else {
+        loginValue = sanitizeInput(credentialInput.value).toUpperCase();
+        if (!loginValue) {
+          showFeedback('login', 'error', 'Por favor, digite sua credencial.');
+          return;
+        }
+      }
+
+      const senha = document.getElementById('password').value;
+      if (!senha) {
+        showFeedback('login', 'error', 'Por favor, digite sua senha.');
+        return;
+      }
 
       btn.innerText = 'Entrando...';
       btn.disabled = true;
@@ -127,13 +346,15 @@ document.addEventListener('DOMContentLoaded', () => {
         const response = await fetch('/api/v1/users/login', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ email, senha }),
+          body: JSON.stringify({ login: loginValue, senha }),
         });
 
+        // ... (Mesma lógica de antes)
         const result = await response.json().catch(() => ({}));
 
         if (response.ok) {
-          if (result.accessToken) sessionStorage.setItem('accessToken', result.accessToken);
+          // Store tokens (Backend returns 'token' and 'refreshToken')
+          if (result.token) sessionStorage.setItem('accessToken', result.token);
           if (result.refreshToken) sessionStorage.setItem('refreshToken', result.refreshToken);
 
           if (result.user) {
@@ -142,29 +363,31 @@ document.addEventListener('DOMContentLoaded', () => {
               if (result.user.nome) {
                 sessionStorage.setItem('userName', sanitizeInput(result.user.nome));
               }
-            } catch (e) {
-              console.warn('⚠️ Erro ao salvar dados locais:', e);
-            }
+            } catch (e) { console.warn('⚠️ Erro ao salvar dados locais:', e); }
           }
 
           showFeedback('login', 'success', 'Acesso permitido! Redirecionando...');
 
           setTimeout(() => {
-            if (result.user && result.user.introducao_vista === 0) {
-              window.location.replace('/financeiro');
+            if (['admin', 'manager', 'super_admin'].includes(result.user.role)) {
+              window.location.replace('/admin.html');
             } else {
-              window.location.replace('/financeiro/dashboard');
+              if (result.user && result.user.introducao_vista === 0) {
+                window.location.replace('/financeiro');
+              } else {
+                window.location.replace('/financeiro/dashboard');
+              }
             }
-          }, 1000); // Pequeno delay para ler a mensagem
+          }, 1000);
 
         } else {
-          showFeedback('login', 'error', 'Acesso negado, verifique suas credenciais.');
+          showFeedback('login', 'error', result.error || 'Acesso negado, verifique suas credenciais.');
         }
       } catch (error) {
         console.error('❌ Erro de conexão:', error);
         showFeedback('login', 'error', 'Erro de conexão com o servidor.');
       } finally {
-        const senhaInput = document.getElementById('login-senha');
+        const senhaInput = document.getElementById('password');
         if (senhaInput) senhaInput.value = '';
 
         btn.innerText = txtOriginal;
