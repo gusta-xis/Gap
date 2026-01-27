@@ -16,16 +16,30 @@ document.addEventListener('DOMContentLoaded', () => {
         return;
     }
 
+    // Role mapping for UI display
     const roleNames = {
         'super_admin': 'Gerente Geral',
         'manager': 'Gerente',
-        'admin': 'Administrador'
+        'admin': 'Administrador',
+        'user': 'Usuário'
     };
+
+    // Role Weights (Matches Backend)
+    const ROLE_WEIGHTS = {
+        'super_admin': 3,
+        'manager': 2,
+        'admin': 1,
+        'user': 0
+    };
+
+    const getRoleWeight = (role) => ROLE_WEIGHTS[role] !== undefined ? ROLE_WEIGHTS[role] : 0;
+    const myWeight = getRoleWeight(currentUser.role);
 
     document.getElementById('currentUserDisplay').textContent = `${currentUser.nome} (${roleNames[currentUser.role] || currentUser.role})`;
 
-    // Logic: Admin CANNOT see create actions card? 
-    if (!['super_admin', 'manager'].includes(currentUser.role)) {
+    // Logic: Only Super Admin and Manager can see the actions card (Create Admin)
+    // Weight >= 2 (Manager)
+    if (myWeight < 2) {
         document.getElementById('actionsCard').style.display = 'none';
     }
 
@@ -36,7 +50,7 @@ document.addEventListener('DOMContentLoaded', () => {
         window.location.replace('/login.html');
     });
 
-    // --- Global State form Modal ---
+    // --- Global State for Modal ---
     let allUsers = [];
     let userIdToDelete = null;
 
@@ -54,8 +68,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const btnOpenCreate = document.getElementById('btnOpenCreateAdmin');
     if (btnOpenCreate) {
         btnOpenCreate.addEventListener('click', () => {
-            // Only Super Admin can create Managers
-            if (currentUser.role !== 'super_admin') {
+            // Only Super Admin (Weight 3) can create Managers (Weight 2)
+            if (myWeight < 3) {
                 if (optManager) optManager.style.display = 'none'; // Hide option
             } else {
                 if (optManager) optManager.style.display = 'block';
@@ -104,6 +118,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- Functions ---
 
+    /**
+     * Fetches the user list from the API.
+     */
     async function fetchUsers() {
         try {
             const res = await fetch('/api/v1/users/admin/list', {
@@ -117,10 +134,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 console.error("API response is not an array:", users);
             }
         } catch (err) {
-            console.error('Erro ao buscar usuários', err);
+            console.error('Error fetching users', err);
         }
     }
 
+    /**
+     * Renders the user table.
+     * @param {Array} users 
+     */
     function renderTable(users) {
         const tbody = document.getElementById('usersTableBody');
         tbody.innerHTML = '';
@@ -131,23 +152,18 @@ document.addEventListener('DOMContentLoaded', () => {
             // Identifier (Email or Credential)
             const identifier = u.credential ? `<span style="font-family:monospace; font-weight:bold;">${u.credential}</span>` : u.email;
 
-            // Module Logic
+            // Module Logic (Visual Only)
             const moduleName = ['admin', 'manager', 'super_admin'].includes(u.role) ? 'Administrativo' : 'Financeiro';
 
             // Actions
             let actionsHtml = '';
 
-            // Check Delete Permission
-            let canDelete = false;
-            if (currentUser.role === 'super_admin') {
-                canDelete = true;
-            } else if (currentUser.role === 'manager') {
-                if (['admin', 'user'].includes(u.role)) canDelete = true;
-            } else if (currentUser.role === 'admin') {
-                if (u.role === 'user') canDelete = true;
-            }
+            // Check Delete Permission using Weights
+            // Rule: My Weight must be strictly greater than Target Weight
+            const targetWeight = getRoleWeight(u.role);
+            let canDelete = myWeight > targetWeight;
 
-            // Cannot delete self
+            // Cannot delete self (Safety check, also enforced by backend)
             if (u.id === currentUser.id) canDelete = false;
 
             if (canDelete) {
@@ -155,6 +171,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 actionsHtml += `<button class="action-btn btn-danger" onclick="promptDeleteUser(${u.id})">Excluir</button>`;
             }
 
+            // Render Row
             tr.innerHTML = `
                 <td>${u.nome}</td>
                 <td>${identifier}</td>
@@ -168,6 +185,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- Delete Confirmation Logic ---
 
+    // Expose function to window scope for onclick event
     window.promptDeleteUser = (id) => {
         const user = allUsers.find(u => u.id === id);
         if (!user) return;

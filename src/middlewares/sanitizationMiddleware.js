@@ -2,16 +2,20 @@ let xss;
 try {
     xss = require('xss');
 } catch (error) {
-    console.warn('⚠️ Módulo "xss" não encontrado. Usando sanitização básica provisória.');
+    console.warn('⚠️ Module "xss" not found. Using basic provisional sanitization.');
 }
 
-// Função auxiliar para sanitizar strings recursivamente
+/**
+ * Recursively sanitizes strings, arrays, and objects.
+ * @param {any} value - The value to sanitize.
+ * @returns {any} - The sanitized value.
+ */
 const sanitize = (value) => {
     if (typeof value === 'string') {
         if (xss) {
             return xss(value);
         } else {
-            // Fallback básico: Escape de tags HTML
+            // Basic fallback: HTML tag escaping
             return value
                 .replace(/&/g, "&amp;")
                 .replace(/</g, "&lt;")

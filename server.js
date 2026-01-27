@@ -15,7 +15,7 @@ const { authPageMiddleware, authResetPasswordMiddleware } = require('./src/middl
 const requiredEnvVars = ['DB_HOST', 'DB_USER', 'DB_NAME', 'DB_PORT', 'JWT_SECRET'];
 requiredEnvVars.forEach((envVar) => {
   if (!process.env[envVar]) {
-    console.error(`❌ Variável de ambiente obrigatória ausente: ${envVar}`);
+    console.error(`❌ Missing required environment variable: ${envVar}`);
     process.exit(1);
   }
 });
@@ -36,6 +36,9 @@ app.use(helmet({
     },
   },
 }));
+
+// Disable X-Powered-By header for security
+app.disable('x-powered-by');
 
 // Additional Security Headers
 app.use((req, res, next) => {
@@ -60,7 +63,7 @@ const corsOptions = {
     if (!origin || allowedOrigins.includes(origin)) {
       callback(null, true);
     } else {
-      callback(new Error('CORS não permitido'));
+      callback(new Error('CORS not allowed'));
     }
   },
   credentials: true,
@@ -73,7 +76,7 @@ app.use(cors(corsOptions));
 const loginLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   max: 10,
-  message: { error: 'Muitas tentativas de login. Tente novamente mais tarde.' },
+  message: { error: 'Too many login attempts. Please try again later.' },
   standardHeaders: true,
   legacyHeaders: false,
 });
@@ -130,11 +133,11 @@ const noCache = (req, res, next) => {
 app.use(['/subsistemas', '/financeiro', '/financeiro/dashboard'], noCache);
 
 // --- Error Handling ---
-app.use((req, res) => res.status(404).json({ error: 'Rota não encontrada' }));
+app.use((req, res) => res.status(404).json({ error: 'Route not found' }));
 
 app.use((err, req, res, next) => {
-  console.error('🔥 Erro:', err.message);
-  const message = process.env.NODE_ENV === 'production' ? 'Erro interno do servidor' : err.message;
+  console.error('🔥 Error:', err.message);
+  const message = process.env.NODE_ENV === 'production' ? 'Internal Server Error' : err.message;
   res.status(err.status || 500).json({ error: message });
 });
 
@@ -151,7 +154,10 @@ db.query("ALTER TABLE gastos_variaveis ADD COLUMN meta_id INT DEFAULT NULL", (er
   }
 });
 
-// --- Migration: Reset Code Columns in Users ---
+/**
+ * Migration: Resets code columns in Users table.
+ * Ensures 'reset_code' and 'reset_code_expires' columns exist.
+ */
 const migrationResetCode = () => {
   db.query("ALTER TABLE users ADD COLUMN reset_code VARCHAR(6) DEFAULT NULL", (err) => {
     if (err && err.code !== 'ER_DUP_FIELDNAME') console.error('Migration Error (reset_code):', err.message);
@@ -162,7 +168,10 @@ const migrationResetCode = () => {
 };
 migrationResetCode();
 
-// --- Migration: Audit Logs Table ---
+/**
+ * Migration: Audit Logs Table.
+ * Creates the 'audit_logs' table if it doesn't exist.
+ */
 const migrationAuditLogs = () => {
   const createTableQuery = `
     CREATE TABLE IF NOT EXISTS audit_logs (
@@ -177,12 +186,15 @@ const migrationAuditLogs = () => {
   `;
   db.query(createTableQuery, (err) => {
     if (err) console.error('Migration Error (audit_logs):', err.message);
-    else console.log('✅ Tabela audit_logs verificada/criada.');
+    else console.log('✅ Table audit_logs checked/created.');
   });
 };
 migrationAuditLogs();
 
-// --- Migration: Admin & Credentials ---
+/**
+ * Migration: Admin & Credentials.
+ * Ensures 'role' and 'credential' columns exist and seeds the Super Admin.
+ */
 const migrationAdmin = () => {
   // 1. Roles
   db.query("ALTER TABLE users ADD COLUMN role VARCHAR(20) DEFAULT 'user'", (err) => {
@@ -203,6 +215,9 @@ const migrationAdmin = () => {
   });
 };
 
+/**
+ * Seeds the Super Admin user if not present.
+ */
 const seedSuperAdmin = () => {
   const superUser = {
     credential: 'GAP0001',
@@ -221,12 +236,12 @@ const seedSuperAdmin = () => {
         'INSERT INTO users (nome, email, senha, role, credential) VALUES (?, ?, ?, ?, ?)',
         [superUser.nome, 'gap@sistema', null, superUser.role, superUser.credential],
         (err) => {
-          if (err) console.error('❌ Erro ao criar Super Admin:', err.message);
-          else console.log(`✅ Super Admin criado: ${superUser.credential} (Aguardando Ativação)`);
+          if (err) console.error('❌ Error creating Super Admin:', err.message);
+          else console.log(`✅ Super Admin created: ${superUser.credential} (Waiting for Activation)`);
         }
       );
     } else {
-      console.log('✅ Super Admin já existe.');
+      console.log('✅ Super Admin already exists.');
     }
   });
 };
@@ -234,6 +249,6 @@ migrationAdmin();
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-  console.log(`🚀 Servidor rodando em: http://localhost:${PORT}`);
-  console.log(`🔒 Segurança: Ativa (${process.env.NODE_ENV || 'development'})`);
+  console.log(`🚀 Server running on: http://localhost:${PORT}`);
+  console.log(`🔒 Security: Active (${process.env.NODE_ENV || 'development'})`);
 });
