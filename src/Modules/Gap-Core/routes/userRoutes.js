@@ -37,14 +37,6 @@ router.put('/:id', authMiddleware, hierarchyMiddleware, validateUser, userContro
 
 router.delete('/:id', authMiddleware, hierarchyMiddleware, userController.delete);
 
-router.put('/:id/introducao-vista', authMiddleware, async (req, res) => {
-  const { id } = req.params;
-  try {
-    await db.query('UPDATE users SET introducao_vista = 1 WHERE id = ?', [id]);
-    res.sendStatus(204);
-  } catch (err) {
-    res.status(500).json({ error: 'Erro ao atualizar introducao_vista' });
-  }
-});
+router.patch('/:id/module-access', authMiddleware, hierarchyMiddleware, userController.updateModuleAccess);
 
 module.exports = router;

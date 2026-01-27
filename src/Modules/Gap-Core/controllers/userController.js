@@ -67,9 +67,28 @@ module.exports = {
           nome: user.nome,
           email: user.email,
           role: user.role,
-          credential: user.credential
+          credential: user.credential,
+          modules_access: user.modules_access
         }
       });
+    });
+  },
+
+  updateModuleAccess(req, res) {
+    const userId = parseInt(req.params.id, 10);
+    const { moduleName, status } = req.body;
+
+    if (userId !== req.user.id) {
+      return res.status(403).json({ error: 'Acesso negado' });
+    }
+
+    if (!moduleName || typeof status !== 'boolean') {
+      return res.status(400).json({ error: 'Dados inválidos' });
+    }
+
+    userModel.updateModuleAccess(userId, moduleName, status, (err) => {
+      if (err) return sendError(res, err);
+      res.json({ message: 'Acesso ao módulo atualizado' });
     });
   },
 

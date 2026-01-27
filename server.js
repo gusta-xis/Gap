@@ -192,6 +192,17 @@ const migrationAuditLogs = () => {
 migrationAuditLogs();
 
 /**
+ * Migration: Modules Access (JSON).
+ * Ensures 'modules_access' column exists for tracking first access per module.
+ */
+const migrationModulesAccess = () => {
+  db.query("ALTER TABLE users ADD COLUMN modules_access JSON DEFAULT NULL", (err) => {
+    if (err && err.code !== 'ER_DUP_FIELDNAME') console.error('Migration Error (modules_access):', err.message);
+  });
+};
+migrationModulesAccess();
+
+/**
  * Migration: Admin & Credentials.
  * Ensures 'role' and 'credential' columns exist and seeds the Super Admin.
  */

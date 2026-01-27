@@ -396,11 +396,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (['admin', 'manager', 'super_admin'].includes(result.user.role)) {
               window.location.replace('/admin.html');
             } else {
-              if (result.user && result.user.introducao_vista === 0) {
-                window.location.replace('/financeiro');
-              } else {
-                window.location.replace('/financeiro/dashboard');
-              }
+              window.location.replace('/subsistemas');
             }
           }, 1000);
 

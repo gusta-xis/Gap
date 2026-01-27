@@ -1,9 +1,9 @@
 function enforceSecurity() {
-    const token = sessionStorage.getItem('accessToken') || localStorage.getItem('token');
-    if (!token) {
-        window.location.replace('/'); 
-        return;
-    }
+  const token = sessionStorage.getItem('accessToken') || localStorage.getItem('token');
+  if (!token) {
+    window.location.replace('/');
+    return;
+  }
 }
 
 // Oculta conteúdo até validar autenticação para evitar flash
@@ -13,14 +13,14 @@ enforceSecurity();
 document.body.style.display = 'block';
 
 window.addEventListener('pageshow', (event) => {
-    enforceSecurity();
-    document.body.style.display = 'block';
+  enforceSecurity();
+  document.body.style.display = 'block';
 });
 
 // Desabilita navegação para trás para evitar acessar telas protegidas
 try {
   history.pushState(null, '', location.href);
-  window.addEventListener('popstate', function() {
+  window.addEventListener('popstate', function () {
     const token = sessionStorage.getItem('accessToken') || localStorage.getItem('token');
     if (!token) {
       window.location.replace('/');
@@ -96,14 +96,14 @@ function initSubtemas() {
 
     const logoutBtn = document.getElementById('logoutBtn');
     const logoutLink = document.getElementById('logoutLink');
-    
+
     const doLogout = (openHref) => {
       try {
         localStorage.removeItem('token');
         localStorage.removeItem('user');
         localStorage.removeItem('userName');
       } catch (err) { }
-      
+
       if (openHref) {
         window.open(openHref, '_blank', 'noopener');
         window.location.replace('/');
@@ -133,27 +133,27 @@ function initSubtemas() {
 
 function setupFinanceCard() {
   const financeCard = document.querySelector('a[href="/financeiro"]');
-  
+
   if (financeCard) {
     financeCard.addEventListener('click', (e) => {
       e.preventDefault();
-      
+
       const userJson = sessionStorage.getItem('user') || localStorage.getItem('user');
-      let userId = null;
-      
+      let modulesAccess = {};
+
       if (userJson) {
         try {
           const userData = JSON.parse(userJson);
-          userId = userData.id;
+          modulesAccess = userData.modules_access || {};
         } catch (e) {
           console.warn('❌ Erro ao parsear dados do usuário:', e);
         }
       }
-      
-      const introSeenKey = userId ? `financeIntroSeen_${userId}` : 'financeIntroSeen';
-      const financeIntroSeen = localStorage.getItem(introSeenKey) === 'true';
-      
-      if (financeIntroSeen) {
+
+      // Check specific module access
+      const financeSeen = !!modulesAccess.financeiro;
+
+      if (financeSeen) {
         window.location.href = '/financeiro/dashboard';
       } else {
         window.location.href = '/financeiro';
@@ -164,7 +164,7 @@ function setupFinanceCard() {
 
 function setupLogout() {
   const logoutBtn = document.getElementById('logoutBtn');
-  
+
   if (logoutBtn) {
     logoutBtn.addEventListener('click', () => {
       try {
@@ -177,7 +177,7 @@ function setupLogout() {
         localStorage.removeItem('user');
         localStorage.removeItem('userName');
       } catch (e) { }
-      
+
       window.location.replace('/');
     });
   }

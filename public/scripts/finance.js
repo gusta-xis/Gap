@@ -5,7 +5,7 @@ function sanitizeString(str) {
   return str.trim();
 }
 
-window.addEventListener('pageshow', function(event) {
+window.addEventListener('pageshow', function (event) {
   if (event.persisted || (window.performance && window.performance.navigation.type === 2)) {
     window.location.reload();
   }
@@ -32,7 +32,7 @@ document.body.style.display = 'none';
 
   const introSeenKey = userId ? `financeIntroSeen_${userId}` : 'financeIntroSeen';
   const introSeen = localStorage.getItem(introSeenKey) === 'true';
-  
+
   if (introSeen) {
     window.location.replace('/financeiro/dashboard');
     return;
@@ -44,7 +44,7 @@ document.body.style.display = 'none';
 // Desabilita navegação para trás para evitar acessar telas protegidas
 try {
   history.pushState(null, '', location.href);
-  window.addEventListener('popstate', function() {
+  window.addEventListener('popstate', function () {
     const token = sessionStorage.getItem('accessToken');
     if (!token) {
       window.location.replace('/');
@@ -100,6 +100,48 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
+  async function completeIntroduction() {
+    let userId = null;
+    let user = null;
+    const userJson = sessionStorage.getItem('user') || localStorage.getItem('user');
+
+    if (userJson) {
+      try {
+        user = JSON.parse(userJson);
+        userId = user && user.id ? user.id : null;
+      } catch (e) { }
+    }
+
+    if (userId) {
+      try {
+        await fetch(`/api/v1/users/${userId}/module-access`, {
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${sessionStorage.getItem('accessToken')}`
+          },
+          body: JSON.stringify({ moduleName: 'financeiro', status: true })
+        });
+
+        // Update local session
+        if (user) {
+          user.modules_access = user.modules_access || {};
+          user.modules_access.financeiro = true;
+          sessionStorage.setItem('user', JSON.stringify(user));
+        }
+
+      } catch (e) {
+        console.warn('Erro ao salvar introdução no servidor', e);
+      }
+    }
+
+    // Fallback/Legacy LocalStorage update just in case
+    const introSeenKey = userId ? `financeIntroSeen_${userId}` : 'financeIntroSeen';
+    localStorage.setItem(introSeenKey, 'true');
+
+    window.location.replace('/financeiro/dashboard');
+  }
+
   /**
    * Avança para o próximo passo
    */
@@ -107,18 +149,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (currentStep < maxSteps) {
       goToStep(currentStep + 1);
     } else {
-      let userId = null;
-      const userJson = sessionStorage.getItem('user') || localStorage.getItem('user');
-      if (userJson) {
-        try {
-          const u = JSON.parse(userJson);
-          userId = u && u.id ? u.id : null;
-        } catch (e) { }
-      }
-
-      const introSeenKey = userId ? `financeIntroSeen_${userId}` : 'financeIntroSeen';
-      localStorage.setItem(introSeenKey, 'true');
-      window.location.replace('/financeiro/dashboard');
+      completeIntroduction();
     }
   }
 
@@ -143,18 +174,7 @@ document.addEventListener('DOMContentLoaded', () => {
   if (skipIntroBtn) {
     skipIntroBtn.addEventListener('click', (e) => {
       e.preventDefault();
-
-      let userId = null;
-      const userJson = sessionStorage.getItem('user') || localStorage.getItem('user');
-      if (userJson) {
-        try {
-          const u = JSON.parse(userJson);
-          userId = u && u.id ? u.id : null;
-        } catch (e) { }
-      }
-      const introSeenKey = userId ? `financeIntroSeen_${userId}` : 'financeIntroSeen';
-      localStorage.setItem(introSeenKey, 'true');
-      window.location.replace('/financeiro/dashboard');
+      completeIntroduction();
     });
   }
 
