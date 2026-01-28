@@ -32,15 +32,15 @@ const authPageMiddleware = (req, res, next) => {
 
     // Verifica se o token é válido
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    
+
     // Adiciona os dados do usuário na requisição
     req.user = decoded;
-    
+
     // Permite continuar para a rota
     next();
   } catch (error) {
     console.error('❌ Erro na autenticação de página:', error.message);
-    
+
     // Se o token é inválido ou expirado, redireciona para login
     return res.redirect('/login');
   }
@@ -87,7 +87,7 @@ const authResetPasswordMiddleware = (req, res, next) => {
     // Verifica se o token de reset é válido
     try {
       const decoded = jwt.verify(resetToken, process.env.JWT_SECRET);
-      
+
       // Verifica se o token é especificamente para reset de senha
       if (decoded.type !== 'password-reset') {
         throw new Error('Token não é de reset de senha');
@@ -96,7 +96,7 @@ const authResetPasswordMiddleware = (req, res, next) => {
       // Adiciona informações na requisição
       req.resetToken = resetToken;
       req.resetUserId = decoded.userId;
-      
+
       next();
     } catch (jwtError) {
       console.warn('⚠️ Token de reset inválido ou expirado:', jwtError.message);
@@ -134,5 +134,5 @@ const authResetPasswordMiddleware = (req, res, next) => {
 
 module.exports = {
   authPageMiddleware,
-  authResetPasswordMiddleware
+  authPageMiddleware
 };
