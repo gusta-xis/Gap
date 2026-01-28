@@ -426,7 +426,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const email = sanitizeInput(document.getElementById('signup-email').value);
       const senha = document.getElementById('signup-senha').value;
       const confSenha = document.getElementById('signup-confSenha').value;
-      const btn = signupForm.querySelector('.btn-submit');
+      const btn = signupForm.querySelector('button[type="submit"]');
       const txtOriginal = btn.innerText;
 
       /* Browser validation handles empty fields */
@@ -523,7 +523,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
       const emailInput = document.getElementById('forgot-email');
       const email = sanitizeInput(emailInput.value);
-      const btn = forgotEmailForm.querySelector('.btn-submit');
+      const btn = forgotEmailForm.querySelector('button[type="submit"]');
       const txtOriginal = btn.innerText;
 
       btn.innerText = 'Enviando...';
@@ -564,7 +564,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
       const codeInput = document.getElementById('forgot-code');
       const code = sanitizeInput(codeInput.value);
-      const btn = forgotCodeForm.querySelector('.btn-submit');
+      const btn = forgotCodeForm.querySelector('button[type="submit"]');
       const txtOriginal = btn.innerText;
 
       if (code.length !== 6) {
@@ -617,7 +617,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
       const newPassword = document.getElementById('new-password').value;
       const confirmPassword = document.getElementById('confirm-new-password').value;
-      const btn = forgotResetForm.querySelector('.btn-submit');
+      const btn = forgotResetForm.querySelector('button[type="submit"]');
       const txtOriginal = btn.innerText;
 
       if (newPassword !== confirmPassword) {

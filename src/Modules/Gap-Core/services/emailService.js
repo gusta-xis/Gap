@@ -54,12 +54,14 @@ const sendResetCode = async (toEmail, code) => {
     };
 
     try {
+        console.log(`📤 Tentando enviar email para: ${toEmail} via ${process.env.EMAIL_HOST}:${process.env.EMAIL_PORT}`);
         const info = await transporter.sendMail(mailOptions);
-        console.log(`✅ Email enviado: ${info.messageId}`);
+        console.log(`✅ Email enviado com sucesso: ${info.messageId}`);
 
         return info;
     } catch (error) {
-        console.error('❌ Erro ao enviar email:', error);
+        console.error('❌ Erro CRÍTICO ao enviar email:', error);
+        console.error('🔍 Verifique suas credenciais no arquivo .env (EMAIL_USER, EMAIL_PASS)');
         throw error;
     }
 };
