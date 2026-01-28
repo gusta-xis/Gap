@@ -72,7 +72,7 @@ module.exports = {
    * @param {Function} callback - Callback function (err, rows).
    */
   findAll(callback) {
-    db.query('SELECT id, nome, email, role, credential FROM users', callback);
+    db.query('SELECT id, nome, email, role, credential, modules_access FROM users', callback);
   },
 
   /**
@@ -86,7 +86,7 @@ module.exports = {
     }
 
     db.query(
-      'SELECT id, nome, email, role, credential FROM users WHERE id = ?',
+      'SELECT id, nome, email, role, credential, modules_access FROM users WHERE id = ?',
       [id],
       (err, rows) => callback(err, rows ? rows[0] : null)
     );
@@ -99,7 +99,7 @@ module.exports = {
    */
   findByEmail(email, callback) {
     db.query(
-      'SELECT id, nome, email, senha, role, credential FROM users WHERE email = ?',
+      'SELECT id, nome, email, senha, role, credential, modules_access FROM users WHERE email = ?',
       [email],
       (err, rows) => callback(err, rows ? rows[0] : null)
     );
@@ -119,7 +119,7 @@ module.exports = {
     const field = login.includes('@') ? 'email' : 'credential';
 
     db.query(
-      `SELECT id, nome, email, senha, role, credential, reset_code FROM users WHERE ${field} = ?`,
+      `SELECT id, nome, email, senha, role, credential, reset_code, modules_access FROM users WHERE ${field} = ?`,
       [login],
       (err, rows) => callback(err, rows ? rows[0] : null)
     );
@@ -285,4 +285,24 @@ module.exports = {
       callback
     );
   },
+
+  /**
+   * Updates a specific module access status in the JSON column.
+   * @param {number} userId - User ID.
+   * @param {string} moduleName - Name of the module (e.g. 'financeiro').
+   * @param {boolean} status - True if accessed/completed.
+   * @param {Function} callback - Callback function.
+   */
+  updateModuleAccess(userId, moduleName, status, callback) {
+    // Uses JSON_SET (MySQL 5.7+) to update specific key, or creates object if null
+    // If modules_access is NULL, COALESCE makes it '{}'
+    const query = `
+      UPDATE users 
+      SET modules_access = JSON_SET(COALESCE(modules_access, '{}'), '$.${moduleName}', ?) 
+      WHERE id = ?
+    `;
+    // Note: status is boolean, but MySQL JSON boolean is slightly tricky in some drivers. 
+    // Usually passing true/false works with JSON_SET.
+    db.query(query, [status, userId], callback);
+  }
 };

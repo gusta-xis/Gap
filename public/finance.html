@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="pt-br">
+<html class="light antialiased" lang="pt-br">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,9 +7,59 @@
     
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&family=Manuale:ital,wght@1,800&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <script>
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        primary: "#A0430A",
+                        secondary: "#DFE8E6",
+                        "background-light": "#f8f7f6", 
+                        "background-dark": "#121212", 
+                        "surface-light": "#ffffff",    
+                        "surface-dark": "#1E1E1E",     
+                        "text-light": "#1a1a1a",
+                        "text-dark": "#e5e5e5",
+                        "text-muted-light": "#666666",
+                        "text-muted-dark": "#a3a3a3",
+                        border: "rgba(0,0,0,0.08)",
+                        "border-dark": "rgba(255,255,255,0.08)",
+                    },
+                    fontFamily: {
+                        display: ["Manrope", "sans-serif"]
+                    },
+                    borderRadius: {
+                        DEFAULT: "0.5rem",
+                        xl: "0.75rem",
+                        "2xl": "1rem",
+                        "3xl": "1.5rem"
+                    }
+                },
+            },
+        };
+    </script>
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Manuale:ital,wght@1,800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Symbols+Outlined" rel="stylesheet" />
 
     <link rel="stylesheet" href="styles/finance.css">
+    <style>
+        /* Partials from dashboard.css for strict consistency */
+        button, a, [role="button"] {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        button:hover, a:hover {
+            transform: translateY(-2px);
+        }
+        /* Applied to skip-intro button which acts as logout/back */
+        #skip-intro svg {
+            transition: all 0.3s ease;
+        }
+        #skip-intro:hover svg {
+            filter: drop-shadow(0 2px 4px rgba(160, 67, 10, 0.2));
+        }
+    </style>
     
     <style>
         html, body {
@@ -25,9 +75,12 @@
     </style>
 <body>
 
-    <a class="back-link" href="#" id="skip-intro" aria-label="Pular introdução">
-        <span>Pular introdução</span>
-    </a>
+    <button id="skip-intro" class="absolute top-6 left-6 group flex items-center justify-center p-2.5 rounded-xl !bg-transparent text-text-muted-light hover:!text-red-600 hover:!bg-red-50 dark:text-text-muted-dark dark:hover:!text-red-400 dark:hover:!bg-red-900/20 transition-all duration-200 z-50 cursor-pointer" title="Pular introdução">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 transition-transform group-hover:-translate-x-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="19" y1="12" x2="5" y2="12"></line>
+            <polyline points="12 19 5 12 12 5"></polyline>
+        </svg>
+    </button>
 
     <div class="card-container">
         
@@ -58,7 +111,7 @@
             </div>
 
             <div class="action-area">
-                <button id="btn-continue" class="btn-continue">
+                <button id="btn-continue" class="px-8 py-3 rounded-xl bg-primary text-white font-bold shadow-lg shadow-primary/25 hover:bg-primary/90 hover:shadow-primary/40 active:scale-95 transition-all duration-200">
                     Continuar
                 </button>
 
